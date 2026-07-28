@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.example.fitlog.feature.plan.PlanViewModel
+-keep,allowobfuscation,allowshrinking class com.example.fitlog.feature.plan.PlanViewModel
+-keep,allowobfuscation,allowshrinking class com.example.fitlog.feature.progress.ProgressViewModel
+-keep,allowobfuscation,allowshrinking class com.example.fitlog.feature.progress.ProgressViewModel

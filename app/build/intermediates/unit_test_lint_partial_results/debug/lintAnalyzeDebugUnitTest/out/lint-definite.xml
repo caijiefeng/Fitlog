@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.7.3" type="incidents">
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose:compose-bom than 2024.12.01 is available: 2026.06.01">
+        <fix-replace
+            description="Change to 2026.06.01"
+            family="Update versions"
+            oldString="2024.12.01"
+            replacement="2026.06.01"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="5"
+            column="15"
+            startOffset="79"
+            endLine="5"
+            endColumn="27"
+            endOffset="91"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.8.7 is available: 2.11.0">
+        <fix-replace
+            description="Change to 2.11.0"
+            family="Update versions"
+            oldString="2.8.7"
+            replacement="2.11.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="6"
+            column="13"
+            startOffset="104"
+            endLine="6"
+            endColumn="20"
+            endOffset="111"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.8.7 is available: 2.11.0">
+        <fix-replace
+            description="Change to 2.11.0"
+            family="Update versions"
+            oldString="2.8.7"
+            replacement="2.11.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="6"
+            column="13"
+            startOffset="104"
+            endLine="6"
+            endColumn="20"
+            endOffset="111"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.navigation:navigation-compose than 2.8.5 is available: 2.9.8">
+        <fix-replace
+            description="Change to 2.9.8"
+            family="Update versions"
+            oldString="2.8.5"
+            replacement="2.9.8"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="7"
+            column="14"
+            startOffset="125"
+            endLine="7"
+            endColumn="21"
+            endOffset="132"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-compiler than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="8"
+            column="8"
+            startOffset="140"
+            endLine="8"
+            endColumn="15"
+            endOffset="147"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-ktx than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="8"
+            column="8"
+            startOffset="140"
+            endLine="8"
+            endColumn="15"
+            endOffset="147"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-runtime than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="8"
+            column="8"
+            startOffset="140"
+            endLine="8"
+            endColumn="15"
+            endOffset="147"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.datastore:datastore-preferences than 1.1.1 is available: 1.2.1">
+        <fix-replace
+            description="Change to 1.2.1"
+            family="Update versions"
+            oldString="1.1.1"
+            replacement="1.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="9"
+            column="13"
+            startOffset="160"
+            endLine="9"
+            endColumn="20"
+            endOffset="167"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.hilt:hilt-navigation-compose than 1.2.0 is available: 1.4.0">
+        <fix-replace
+            description="Change to 1.4.0"
+            family="Update versions"
+            oldString="1.2.0"
+            replacement="1.4.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="11"
+            column="19"
+            startOffset="202"
+            endLine="11"
+            endColumn="26"
+            endOffset="209"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.activity:activity-compose than 1.9.3 is available: 1.13.0">
+        <fix-replace
+            description="Change to 1.13.0"
+            family="Update versions"
+            oldString="1.9.3"
+            replacement="1.13.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="13"
+            column="20"
+            startOffset="250"
+            endLine="13"
+            endColumn="27"
+            endOffset="257"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.core:core-ktx than 1.15.0 is available: 1.19.0">
+        <fix-replace
+            description="Change to 1.19.0"
+            family="Update versions"
+            oldString="1.15.0"
+            replacement="1.19.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="14"
+            column="12"
+            startOffset="269"
+            endLine="14"
+            endColumn="20"
+            endOffset="277"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test.ext:junit than 1.2.1 is available: 1.3.0">
+        <fix-replace
+            description="Change to 1.3.0"
+            family="Update versions"
+            oldString="1.2.1"
+            replacement="1.3.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="18"
+            column="21"
+            startOffset="326"
+            endLine="18"
+            endColumn="28"
+            endOffset="333"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test.espresso:espresso-core than 3.6.1 is available: 3.7.0">
+        <fix-replace
+            description="Change to 3.7.0"
+            family="Update versions"
+            oldString="3.6.1"
+            replacement="3.7.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="19"
+            column="12"
+            startOffset="345"
+            endLine="19"
+            endColumn="19"
+            endOffset="352"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose.ui:ui-test-junit4 than 1.7.6 is available: 1.11.4">
+        <fix-replace
+            description="Change to 1.11.4"
+            family="Update versions"
+            oldString="1.7.6"
+            replacement="1.11.4"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="20"
+            column="19"
+            startOffset="371"
+            endLine="20"
+            endColumn="26"
+            endOffset="378"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose.ui:ui-test-manifest than 1.7.6 is available: 1.11.4">
+        <fix-replace
+            description="Change to 1.11.4"
+            family="Update versions"
+            oldString="1.7.6"
+            replacement="1.11.4"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="20"
+            column="19"
+            startOffset="371"
+            endLine="20"
+            endColumn="26"
+            endOffset="378"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test:runner than 1.6.2 is available: 1.7.0">
+        <fix-replace
+            description="Change to 1.7.0"
+            family="Update versions"
+            oldString="1.6.2"
+            replacement="1.7.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="24"
+            column="15"
+            startOffset="452"
+            endLine="24"
+            endColumn="22"
+            endOffset="459"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test:core than 1.6.1 is available: 1.7.0">
+        <fix-replace
+            description="Change to 1.7.0"
+            family="Update versions"
+            oldString="1.6.1"
+            replacement="1.7.0"
+            priority="0"/>
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="26"
+            column="22"
+            startOffset="504"
+            endLine="26"
+            endColumn="29"
+            endOffset="511"/>
+    </incident>
+
+    <incident
+        id="SimilarGradleDependency"
+        severity="informational"
+        message="There are multiple dependencies com.google.dagger:hilt-android-compiler but with different version">
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="60"
+            column="18"
+            startOffset="2279"
+            endLine="60"
+            endColumn="102"
+            endOffset="2363"/>
+    </incident>
+
+    <incident
+        id="SimilarGradleDependency"
+        severity="informational"
+        message="There are multiple dependencies com.google.dagger:hilt-android-compiler but with different version">
+        <location
+            file="$HOME/projects/fitlog/gradle/libs.versions.toml"
+            line="81"
+            column="34"
+            startOffset="4071"
+            endLine="81"
+            endColumn="126"
+            endOffset="4163"/>
+    </incident>
+
+</incidents>

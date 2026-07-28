@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.fitlog.core.datastore.UserPreferencesRepositoryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-07-28T08:23:04" hostname="Jacobi" time="0.139">
+  <properties/>
+  <testcase name="setOnboardingComplete updates preference" classname="com.example.fitlog.core.datastore.UserPreferencesRepositoryTest" time="0.131"/>
+  <testcase name="initial preferences have correct defaults" classname="com.example.fitlog.core.datastore.UserPreferencesRepositoryTest" time="0.003"/>
+  <testcase name="setThemeMode updates preference" classname="com.example.fitlog.core.datastore.UserPreferencesRepositoryTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
