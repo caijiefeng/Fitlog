@@ -18,21 +18,24 @@
 
 ---
 
-## V1 — Exercise Library & Training Templates
+## V1 — Exercise Library & Training Templates ✅
 
-**Goal**: Users can browse built-in exercises, create custom exercises, and build reusable training templates.
+**Status**: Complete (V1.1 validated)
 
-**Scope**:
-- Room entities: MuscleGroup, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutTemplateExercise, WorkoutSchedule
-- Room TypeConverters for LocalDate, Instant, enums
-- Exercise library with built-in exercises by muscle group
-- Custom exercise CRUD
-- WorkoutTemplate CRUD
+**Deliverables**:
+- Room entities: ExerciseCategory, Exercise, WorkoutTemplate, WorkoutTemplateExercise, WorkoutSchedule
+- Room TypeConverters for LocalDate, Instant
+- 45 built-in exercises across 11 muscle groups (idempotent seed)
+- Custom exercise CRUD (create, edit, soft-delete)
+- Exercise search by name and filter by muscle group
+- WorkoutTemplate CRUD with exercise configuration (sets, rep range, weight, RPE, RIR, rest)
 - Assign templates to days of week (WorkoutSchedule)
-- Plan tab: display weekly schedule, link to templates
-- Today tab: show today's scheduled template
+- Plan tab: weekly schedule display, links to templates and exercise library
+- Today tab: shows today's scheduled template and exercise count
 
-**Tests**: ExerciseDao, WorkoutTemplateDao, WorkoutScheduleDao; Repository unit tests
+**Tests**: 4 DAO instrumentation tests (not run — no device), 3 Repository unit tests, 3 ViewModel unit tests, 33 total passing unit tests
+
+**Known gaps**: connectedDebugAndroidTest not executed (no device/emulator). 2 ExerciseEditViewModel save-path tests deferred to instrumentation (viewModelScope coroutine timing).
 
 ---
 

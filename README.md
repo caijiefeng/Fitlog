@@ -4,7 +4,7 @@ A local-first, privacy-focused strength training tracker for Android.
 
 ## Status
 
-**V0.1** — Project skeleton with design system, navigation, and architecture boundaries. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan.
+**V1** — Exercise library, training templates, and weekly scheduling. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan. V2: Workout execution and set logging.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ A local-first, privacy-focused strength training tracker for Android.
 - **Architecture**: MVVM with UDF, feature-package layout
 - **DI**: Hilt 2.53.1 + KSP
 - **Navigation**: Navigation Compose (string-based routes)
-- **Storage**: DataStore Preferences (active), Room 2.6.1 (deferred to V1)
+- **Storage**: Room 2.6.1 (active), DataStore Preferences
 - **Build**: Gradle 8.11.1 + AGP 8.7.3 + Version Catalog
 - **Testing**: JUnit 4, MockK, Turbine, Compose Testing, Hilt Testing
 
@@ -50,18 +50,20 @@ A local-first, privacy-focused strength training tracker for Android.
 ./gradlew connectedDebugAndroidTest
 ```
 
-## Current Features (V0)
+## Current Features (V1)
 
 - 5-tab bottom navigation: 今日, 计划, 记录, 进度, 我的
 - Forced dark theme (black + white + single accent)
-- Reusable design system components (TopAppBar, Card, EmptyState, PageContainer, SectionHeader)
-- Hilt DI with DataStore for user preferences
-- Full domain model (data classes only, Room deferred to V1)
+- Reusable design system components
+- **Exercise library**: 45 built-in exercises across 11 muscle groups, search, filter, custom exercises
+- **Training templates**: create, edit, add exercises with target sets/reps/weight/RPE/RIR/rest
+- **Weekly scheduling**: assign templates to days (Mon-Sun), view on Plan tab
+- **Today**: shows scheduled workout template and exercise count
 
 ## Not Yet Implemented
 
-- Exercise library and training templates (V1)
 - Workout execution and set logging (V2)
+- Calendar view, reminders, notifications (V3)
 - Calendar, scheduling, and reminders (V3)
 - User profile and body measurements (V4)
 - Nutrition tracking (V5)
