@@ -50,6 +50,12 @@ android {
         compose = true
     }
 
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,LICENSE.md,LICENSE-notice.md}"
+        }
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -112,6 +118,7 @@ dependencies {
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.mockk)
     kspAndroidTest(libs.hilt.android.compiler.testing)
     debugImplementation(libs.compose.ui.test.manifest)
 }
