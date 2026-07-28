@@ -71,6 +71,8 @@ data class WorkoutTemplateExercise(
     val id: Long = 0,
     val templateId: Long,                  // FK → WorkoutTemplate
     val exerciseId: Long,                  // FK → Exercise
+    val exerciseName: String = "",          // denormalized for display
+    val primaryMuscleGroup: MuscleGroup = MuscleGroup.FULL_BODY,
     val targetSets: Int = 3,
     val targetRepsMin: Int? = null,
     val targetRepsMax: Int? = null,
@@ -80,6 +82,16 @@ data class WorkoutTemplateExercise(
     val restSeconds: Int = 90,
     val notes: String? = null,
     val sortOrder: Int = 0,
+)
+
+data class WorkoutTemplateDetail(
+    val template: WorkoutTemplate,
+    val exercises: List<WorkoutTemplateExerciseDetail>,
+)
+
+data class WorkoutTemplateExerciseDetail(
+    val templateExercise: WorkoutTemplateExercise,
+    val exercise: Exercise?,
 )
 
 data class WorkoutSchedule(
