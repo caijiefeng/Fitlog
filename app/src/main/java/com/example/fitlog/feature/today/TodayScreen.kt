@@ -37,59 +37,36 @@ fun TodayScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-
     val snackbarMessage = stringResource(R.string.snackbar_v2_feature)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is TodayEvent.QuickStartNotAvailable -> {
-                    snackbarHostState.showSnackbar(message = snackbarMessage)
-                }
+                is TodayEvent.QuickStartNotAvailable -> snackbarHostState.showSnackbar(message = snackbarMessage)
             }
         }
     }
 
-    // Greeting based on time of day
     val greeting = greetingForHour(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
 
     Scaffold(
-        topBar = {
-            FitLogTopAppBar(title = stringResource(R.string.nav_today))
-        },
+        topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_today)) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(
-            modifier = Modifier.padding(innerPadding),
-        ) {
+        PageContainer(modifier = Modifier.padding(innerPadding)) {
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Greeting
-            Text(
-                text = stringResource(greeting),
-                style = MaterialTheme.typography.headlineSmall,
-                color = FitLogTextPrimary,
-            )
+            Text(text = stringResource(greeting), style = MaterialTheme.typography.headlineSmall, color = FitLogTextPrimary)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.today_subtitle),
-                style = MaterialTheme.typography.bodyLarge,
-                color = FitLogTextSecondary,
-            )
-
+            Text(text = stringResource(R.string.today_subtitle), style = MaterialTheme.typography.bodyLarge, color = FitLogTextSecondary)
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Today's Workout
             SectionHeader(title = stringResource(R.string.section_todays_workout))
 
             if (uiState.hasWorkoutToday) {
                 FitLogCard {
-                    Text(
-                        text = uiState.todayWorkoutName ?: stringResource(R.string.section_todays_workout),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = FitLogTextPrimary,
-                    )
+                    Text(uiState.todayTemplateName ?: "", style = MaterialTheme.typography.titleMedium, color = FitLogTextPrimary)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("${uiState.todayExerciseCount} 个动作", style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
                 }
             } else {
                 EmptyState(
@@ -100,24 +77,11 @@ fun TodayScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Quick Actions
             SectionHeader(title = stringResource(R.string.section_quick_actions))
-
-            FitLogCard(
-                onClick = { viewModel.onQuickStart() },
-            ) {
-                Text(
-                    text = stringResource(R.string.today_quick_start),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = FitLogAccent,
-                )
+            FitLogCard(onClick = { viewModel.onQuickStart() }) {
+                Text(stringResource(R.string.today_quick_start), style = MaterialTheme.typography.titleMedium, color = FitLogAccent)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.today_quick_start_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = FitLogTextSecondary,
-                )
+                Text(stringResource(R.string.today_quick_start_desc), style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
             }
         }
     }

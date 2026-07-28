@@ -1,17 +1,19 @@
 package com.example.fitlog.core.di
 
-/*
- * Database Hilt module — deferred to V1.
- *
- * Room is not instantiated in V0. The DatabaseModule will provide
- * FitLogDatabase and DAOs once real entities are introduced in V1.
- *
- * When restoring:
- *   1. Import FitLogDatabase and Room.
- *   2. Uncomment the @Provides method below.
- */
+import android.content.Context
+import androidx.room.Room
+import com.example.fitlog.core.database.FitLogDatabase
+import com.example.fitlog.core.database.dao.ExerciseCategoryDao
+import com.example.fitlog.core.database.dao.ExerciseDao
+import com.example.fitlog.core.database.dao.WorkoutScheduleDao
+import com.example.fitlog.core.database.dao.WorkoutTemplateDao
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
-/*
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -25,7 +27,20 @@ object DatabaseModule {
             context,
             FitLogDatabase::class.java,
             "fitlog.db",
-        ).build()
+        )
+            .addCallback(DatabaseCallback())
+            .build()
     }
+
+    @Provides
+    fun provideExerciseDao(db: FitLogDatabase): ExerciseDao = db.exerciseDao()
+
+    @Provides
+    fun provideExerciseCategoryDao(db: FitLogDatabase): ExerciseCategoryDao = db.exerciseCategoryDao()
+
+    @Provides
+    fun provideWorkoutTemplateDao(db: FitLogDatabase): WorkoutTemplateDao = db.workoutTemplateDao()
+
+    @Provides
+    fun provideWorkoutScheduleDao(db: FitLogDatabase): WorkoutScheduleDao = db.workoutScheduleDao()
 }
-*/

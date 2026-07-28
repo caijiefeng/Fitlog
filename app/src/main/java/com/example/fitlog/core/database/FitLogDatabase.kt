@@ -1,31 +1,35 @@
 package com.example.fitlog.core.database
 
-/*
- * FitLog Room database — deferred to V1.
- *
- * Room does not support empty entity lists. Rather than creating a
- * placeholder table that would pollute the schema and require a
- * destructive migration in V1, Room instantiation is deferred until
- * the first real entities are created.
- *
- * V1 will introduce:
- *   MuscleGroup, Exercise, WorkoutTemplate, WorkoutTemplateExercise,
- *   WorkoutSchedule
- *
- * See docs/DATA_MODEL.md for the complete future schema.
- *
- * When reintroducing Room:
- *   1. Uncomment the Room dependencies in app/build.gradle.kts.
- *   2. Create the first Entity classes with @Entity annotations.
- *   3. Restore @Database(entities = [...], version = 1) below.
- *   4. Restore the DatabaseModule Hilt provider.
- */
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.fitlog.core.database.converter.Converters
+import com.example.fitlog.core.database.dao.ExerciseCategoryDao
+import com.example.fitlog.core.database.dao.ExerciseDao
+import com.example.fitlog.core.database.dao.WorkoutScheduleDao
+import com.example.fitlog.core.database.dao.WorkoutTemplateDao
+import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
+import com.example.fitlog.core.database.entity.ExerciseEntity
+import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
+import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
+import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
 
-/*
 @Database(
-    entities = [],
+    entities = [
+        ExerciseCategoryEntity::class,
+        ExerciseEntity::class,
+        WorkoutTemplateEntity::class,
+        WorkoutTemplateExerciseEntity::class,
+        WorkoutScheduleEntity::class,
+    ],
     version = 1,
-    exportSchema = false,
+    exportSchema = true,
 )
-abstract class FitLogDatabase : RoomDatabase()
-*/
+@TypeConverters(Converters::class)
+abstract class FitLogDatabase : RoomDatabase() {
+
+    abstract fun exerciseCategoryDao(): ExerciseCategoryDao
+    abstract fun exerciseDao(): ExerciseDao
+    abstract fun workoutTemplateDao(): WorkoutTemplateDao
+    abstract fun workoutScheduleDao(): WorkoutScheduleDao
+}
