@@ -1,4 +1,4 @@
-package com.example.fitlog.feature.today
+package com.example.fitlog.feature.plan
 
 import com.example.fitlog.data.repository.DaySchedule
 import com.example.fitlog.data.repository.WorkoutScheduleRepository
@@ -15,12 +15,11 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class TodayViewModelTest {
+class PlanViewModelTest {
 
     private val scheduleRepo = mockk<WorkoutScheduleRepository>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
@@ -31,34 +30,37 @@ class TodayViewModelTest {
     fun tearDown() { Dispatchers.resetMain() }
 
     @Test
-    fun `initial state after collect`() = runTest(testDispatcher) {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo)
+    fun `initial state shows loading`() = runTest(testDispatcher) {
+        coEvery { scheduleRepo.getFullWeek() } returns flowOf(emptyList())
+
+        val vm = PlanViewModel(scheduleRepo)
         testDispatcher.scheduler.advanceUntilIdle()
+
         val state = vm.uiState.first()
         assertFalse(state.isLoading)
-        assertFalse(state.hasWorkoutToday)
     }
 
     @Test
-    fun `hasWorkoutToday true when schedule exists`() = runTest(testDispatcher) {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(
-            DaySchedule(1, "周一", 10L, "Push Day", 5)
+    fun `week schedule shows 7 days`() = runTest(testDispatcher) {
+        coEvery { scheduleRepo.getFullWeek() } returns flowOf(
+            (1..7).map { day -> DaySchedule(day, "Day$day", null, null, 0) }
         )
-        val vm = TodayViewModel(scheduleRepo)
+        val vm = PlanViewModel(scheduleRepo)
         testDispatcher.scheduler.advanceUntilIdle()
+
         val state = vm.uiState.first()
-        assertTrue(state.hasWorkoutToday)
-        assertEquals("Push Day", state.todayTemplateName)
-        assertEquals(5, state.todayExerciseCount)
+        assertEquals(7, state.weekSchedule.size)
     }
 
     @Test
-    fun `quickStart emits event`() = runTest {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo)
-        vm.onQuickStart()
-        // Event is emitted via tryEmit (non-suspending), so it's available immediately
-        assertFalse(vm.uiState.first().hasWorkoutToday)
+    fun `schedule shows template name when set`() = runTest(testDispatcher) {
+        coEvery { scheduleRepo.getFullWeek() } returns flowOf(
+            listOf(DaySchedule(1, "周一", 10L, "Push Day", 5))
+        )
+        val vm = PlanViewModel(scheduleRepo)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = vm.uiState.first()
+        assertEquals("Push Day", state.weekSchedule.find { it.dayOfWeek == 1 }!!.templateName)
     }
 }
