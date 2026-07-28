@@ -36,6 +36,7 @@ import com.example.fitlog.data.repository.DaySchedule
 fun PlanScreen(
     viewModel: PlanViewModel = hiltViewModel(),
     onNavigateToExercises: () -> Unit = {},
+    onNavigateToTemplates: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,6 +49,10 @@ fun PlanScreen(
 
             // Quick links
             Row {
+                TextButton(onClick = onNavigateToTemplates) {
+                    Text("模板 →", color = FitLogAccent)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = onNavigateToExercises) {
                     Text("动作库 →", color = FitLogAccent)
                 }

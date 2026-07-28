@@ -49,6 +49,7 @@ fun FitLogNavHost(
         composable(BottomNavItem.Plan.route) {
             PlanScreen(
                 onNavigateToExercises = { navController.navigate(Routes.EXERCISE_LIST) },
+                onNavigateToTemplates = { navController.navigate(Routes.TEMPLATE_LIST) },
             )
         }
         composable(BottomNavItem.Record.route) { RecordScreen() }
