@@ -26,6 +26,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 @Composable
 fun PlanScreen(
     viewModel: PlanViewModel = hiltViewModel(),
+    onNavigateToExercises: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
