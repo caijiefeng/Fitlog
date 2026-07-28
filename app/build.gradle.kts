@@ -42,6 +42,10 @@ android {
         jvmTarget = "17"
     }
 
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+
     buildFeatures {
         compose = true
     }
@@ -75,10 +79,10 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
 
-    // Room — reintroduced in V1 with first real entities
-    // implementation(libs.room.runtime)
-    // implementation(libs.room.ktx)
-    // ksp(libs.room.compiler)
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     // DataStore
     implementation(libs.datastore.preferences)
