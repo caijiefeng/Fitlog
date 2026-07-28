@@ -1,41 +1,43 @@
 package com.example.fitlog.core.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.fitlog.R
 
 enum class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelResId: Int,
     val icon: ImageVector,
 ) {
     Today(
         route = "today",
-        label = "今日",
+        labelResId = R.string.nav_today,
         icon = Icons.Filled.CalendarMonth,
     ),
     Plan(
         route = "plan",
-        label = "计划",
+        labelResId = R.string.nav_plan,
         icon = Icons.Filled.DateRange,
     ),
     Record(
         route = "record",
-        label = "记录",
+        labelResId = R.string.nav_record,
         icon = Icons.Filled.EditNote,
     ),
     Progress(
         route = "progress",
-        label = "进度",
+        labelResId = R.string.nav_progress,
         icon = Icons.AutoMirrored.Filled.TrendingUp,
     ),
     Profile(
         route = "profile",
-        label = "我的",
+        labelResId = R.string.nav_profile,
         icon = Icons.Filled.Person,
     );
 

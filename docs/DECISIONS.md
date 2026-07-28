@@ -169,3 +169,25 @@ domain/          → Shared business logic
 **Alternatives considered**:
 - `SavedStateHandle` only: rejected because it does not survive process death on all devices.
 - In-memory only: rejected — data loss on crash.
+
+---
+
+## ADR-012: Backup and Export Strategy
+
+**Decision**: `android:allowBackup` is set to `false` by default. Data backup, export, and restore are user-initiated actions implemented in V7.
+
+**Rationale**:
+- FitLog is a local-first, privacy-first application. Automatic backup to cloud services (Android Auto Backup) conflicts with the privacy guarantee.
+- User data should only leave the device through explicit user action.
+- Manual export gives users full control over what is exported and where it goes.
+
+**V7 Implementation**:
+- CSV export: workouts, measurements, nutrition logs.
+- JSON export: full structured data dump.
+- Local backup file: encrypted archive saved to user-selected location.
+- Local restore: user selects a backup file to restore from.
+- Health Connect integration: optional read/write of weight, body fat, and workout data.
+
+**Alternatives considered**:
+- Android Auto Backup (allowBackup=true): rejected — auto-uploads to Google Drive, conflicting with the local-first privacy model.
+- No backup at all: rejected — users need data portability.

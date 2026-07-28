@@ -28,8 +28,8 @@ Compose UI → ViewModel → UseCase/Domain Service → Repository → DataSourc
 
 ### Data Layer (`core.database`, `core.datastore`)
 - **Repositories** abstract data source access.
-- **Room** for structured relational data (workouts, exercises, logs).
-- **DataStore** for user preferences/settings.
+- **Room** — deferred to V1. Not instantiated in V0. Will be used for structured relational data (workouts, exercises, logs) once first real entities are created.
+- **DataStore** — active in V0 for user preferences.
 - Repositories return domain models, not Room entities.
 
 ## Package Structure
@@ -42,13 +42,13 @@ com.example.fitlog
 │
 ├── core/
 │   ├── database/
-│   │   └── FitLogDatabase.kt     # Room DB (empty in V0)
+│   │   └── FitLogDatabase.kt     # Deferred to V1 (commented template)
 │   ├── datastore/
 │   │   └── UserPreferencesRepository.kt
 │   ├── designsystem/
 │   │   ├── theme/                # Color, Type, Theme
 │   │   └── component/            # Reusable composables
-│   ├── di/                       # Hilt modules (DB, DataStore)
+│   ├── di/                       # Hilt modules (DataStore; DB deferred)
 │   ├── model/                    # Domain data classes
 │   ├── navigation/               # NavHost, BottomBar, NavItems
 │   └── common/                   # Result, DateTimeUtils
@@ -70,9 +70,11 @@ com.example.fitlog
 
 | Scope | Components |
 |---|---|
-| `@Singleton` | `FitLogDatabase`, `DataStore<Preferences>`, Repositories, UseCases |
+| `@Singleton` | `DataStore<Preferences>`, Repositories, UseCases |
 | `@HiltViewModel` | ViewModels |
 | `@ActivityScoped` | (reserved for future) |
+
+**V0 Note**: `FitLogDatabase` is not provided by Hilt in V0. Room will be instantiated in V1 once the first real entities (MuscleGroup, Exercise, WorkoutTemplate, etc.) are created. The `DatabaseModule` is commented out and will be restored at that time.
 
 ## Navigation
 
@@ -87,7 +89,7 @@ com.example.fitlog
 User taps "Start Workout"
     → TodayScreen calls viewModel.onStartWorkout()
     → TodayViewModel invokes StartWorkoutUseCase
-    → UseCase reads WorkoutPlan from WorkoutPlanRepository
+    → UseCase reads WorkoutTemplate from WorkoutPlanRepository
     → Repository queries Room DAO
     → Returns domain model WorkoutSession
     → ViewModel updates StateFlow<TodayUiState>
@@ -105,9 +107,9 @@ User taps "Start Workout"
 | Test Type | Location | Framework |
 |---|---|---|
 | Unit (ViewModel) | `app/src/test/` | JUnit4 + MockK + Turbine |
-| Unit (Repository) | `app/src/test/` | JUnit4 + Robolectric |
-| UI (Compose) | `app/src/androidTest/` | Compose Testing |
-| Navigation | `app/src/androidTest/` | Compose Testing + Nav |
+| Unit (Repository) | `app/src/test/` | JUnit4 |
+| UI (Compose) | `app/src/androidTest/` | Compose Testing + Hilt |
+| Navigation | `app/src/androidTest/` | Compose Testing + Hilt + Nav |
 
 ## Conventions
 
@@ -115,4 +117,5 @@ User taps "Start Workout"
 - Composable naming: PascalCase
 - ViewModel naming: `FeatureNameViewModel`
 - Resource naming: `snake_case`
-- Strings: Chinese (primary), English keys
+- User-visible strings: in `res/values/strings.xml`, referenced via `stringResource()`
+- Composable labels: stored as `@StringRes` resource IDs, not hardcoded strings

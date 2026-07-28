@@ -11,9 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
@@ -29,7 +31,7 @@ fun RecordScreen(
 
     Scaffold(
         topBar = {
-            FitLogTopAppBar(title = "记录")
+            FitLogTopAppBar(title = stringResource(R.string.nav_record))
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
@@ -38,20 +40,20 @@ fun RecordScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            SectionHeader(title = "最近训练")
+            SectionHeader(title = stringResource(R.string.section_recent_training))
 
             EmptyState(
                 icon = Icons.Filled.EditNote,
-                title = "还没有训练记录",
-                subtitle = "完成训练后，记录将在这里显示",
+                title = stringResource(R.string.empty_record_title),
+                subtitle = stringResource(R.string.empty_record_subtitle),
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SectionHeader(title = "身体数据")
+            SectionHeader(title = stringResource(R.string.section_body_data))
 
             Text(
-                text = "体重、体脂、围度等记录将在这里显示",
+                text = stringResource(R.string.record_placeholder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = FitLogTextSecondary,
             )

@@ -92,7 +92,7 @@ data class WorkoutSchedule(
 
 // ── Workout Execution ───────────────────────────────────────────────────────
 
-enum class WorkoutStatus { PLANNED, IN_PROGRESS, COMPLETED, CANCELLED }
+enum class WorkoutStatus { PLANNED, IN_PROGRESS, PARTIALLY_COMPLETED, COMPLETED, CANCELLED, SKIPPED }
 
 data class WorkoutSession(
     val id: Long = 0,
@@ -192,15 +192,20 @@ data class Meal(
 
 enum class MealType { BREAKFAST, LUNCH, DINNER, SNACK, OTHER }
 
+/**
+ * Links a food item to a meal. Nutrient fields are historical snapshots
+ * captured at logging time — editing a Food's nutritional values does not
+ * retroactively change past MealEntry records.
+ */
 data class MealEntry(
     val id: Long = 0,
     val mealId: Long,                      // FK → Meal
     val foodId: Long,                      // FK → Food
     val servings: Double = 1.0,
-    val calories: Double? = null,
-    val proteinGrams: Double? = null,
-    val carbsGrams: Double? = null,
-    val fatGrams: Double? = null,
+    val calories: Double? = null,          // historical snapshot
+    val proteinGrams: Double? = null,      // historical snapshot
+    val carbsGrams: Double? = null,        // historical snapshot
+    val fatGrams: Double? = null,          // historical snapshot
 )
 
 data class DailyNutritionTarget(
@@ -212,10 +217,16 @@ data class DailyNutritionTarget(
     val targetCarbsG: Double? = null,
     val targetFatG: Double? = null,
     val targetBodyFatPercent: Double? = null,
-    val mealBudgetCalories: Double? = null,   // per-meal target
-    val mealBudgetProteinG: Double? = null,
-    val mealBudgetCarbsG: Double? = null,
-    val mealBudgetFatG: Double? = null,
+)
+
+data class MealNutritionTarget(
+    val id: Long = 0,
+    val dailyTargetId: Long,               // FK → DailyNutritionTarget
+    val mealType: MealType = MealType.OTHER,
+    val budgetCalories: Double? = null,
+    val budgetProteinG: Double? = null,
+    val budgetCarbsG: Double? = null,
+    val budgetFatG: Double? = null,
 )
 
 // ── Reminder ────────────────────────────────────────────────────────────────
@@ -237,9 +248,9 @@ data class CheckIn(
     val id: Long = 0,
     val date: LocalDate = LocalDate.now(),
     val sessionId: Long? = null,           // FK → WorkoutSession (if linked)
+    val measurementId: Long? = null,       // FK → BodyMeasurement
     val mood: Int? = null,                 // 1–5
     val energyLevel: Int? = null,          // 1–5
-    val bodyWeightKg: Double? = null,
     val notes: String? = null,
     val createdAt: Instant = Instant.now(),
 )

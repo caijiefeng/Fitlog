@@ -17,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
@@ -35,7 +37,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            FitLogTopAppBar(title = "我的")
+            FitLogTopAppBar(title = stringResource(R.string.nav_profile))
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
@@ -58,12 +60,13 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = if (uiState.userName.isNotEmpty()) uiState.userName else "未设置昵称",
+                            text = if (uiState.userName.isNotEmpty()) uiState.userName
+                                   else stringResource(R.string.profile_no_name),
                             style = MaterialTheme.typography.titleMedium,
                             color = FitLogTextPrimary,
                         )
                         Text(
-                            text = "设置个人资料以获取更好的体验",
+                            text = stringResource(R.string.profile_setup_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = FitLogTextSecondary,
                         )
@@ -73,33 +76,32 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Settings placeholders
             Text(
-                text = "设置",
+                text = stringResource(R.string.section_settings),
                 style = MaterialTheme.typography.titleMedium,
                 color = FitLogTextPrimary,
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             val settingsItems = listOf(
-                "个人资料" to "身高、体重、年龄、性别",
-                "训练偏好" to "单位、休息时间默认值",
-                "外观" to "深色模式、字体大小",
-                "数据管理" to "导出、备份、恢复",
-                "关于" to "版本 0.1.0",
+                R.string.profile_personal_info to R.string.profile_personal_info_desc,
+                R.string.profile_training_prefs to R.string.profile_training_prefs_desc,
+                R.string.profile_appearance to R.string.profile_appearance_desc,
+                R.string.profile_data_management to R.string.profile_data_management_desc,
+                R.string.profile_about to R.string.profile_about_desc,
             )
 
-            settingsItems.forEach { (title, subtitle) ->
+            settingsItems.forEach { (titleRes, subtitleRes) ->
                 FitLogCard(
                     modifier = Modifier.padding(vertical = 4.dp),
                 ) {
                     Text(
-                        text = title,
+                        text = stringResource(titleRes),
                         style = MaterialTheme.typography.bodyLarge,
                         color = FitLogTextPrimary,
                     )
                     Text(
-                        text = subtitle,
+                        text = stringResource(subtitleRes),
                         style = MaterialTheme.typography.bodySmall,
                         color = FitLogTextSecondary,
                     )

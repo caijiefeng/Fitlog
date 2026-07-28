@@ -11,9 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
@@ -29,7 +31,7 @@ fun PlanScreen(
 
     Scaffold(
         topBar = {
-            FitLogTopAppBar(title = "计划")
+            FitLogTopAppBar(title = stringResource(R.string.nav_plan))
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
@@ -38,20 +40,20 @@ fun PlanScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            SectionHeader(title = "每周计划")
+            SectionHeader(title = stringResource(R.string.section_weekly_plan))
 
             EmptyState(
                 icon = Icons.Filled.DateRange,
-                title = "还没有训练计划",
-                subtitle = "创建你的每周训练计划，让训练更有条理",
+                title = stringResource(R.string.empty_plan_title),
+                subtitle = stringResource(R.string.empty_plan_subtitle),
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SectionHeader(title = "训练日")
+            SectionHeader(title = stringResource(R.string.section_training_days))
 
             Text(
-                text = "周一到周日 训练安排将在这里显示",
+                text = stringResource(R.string.plan_placeholder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = FitLogTextSecondary,
             )

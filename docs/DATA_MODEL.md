@@ -18,10 +18,13 @@ This document defines the **future complete data model**. Only domain data class
 ## Entity-Relationship Diagram
 
 ```
+MuscleGroup (enum, not an entity)
+     │
+     ▼
 ExerciseCategory ──< Exercise
-                       │
-MuscleGroup ───────────┘
-                       │
+     │                 │
+     └─ FK ────────────┘
+
 WorkoutTemplate ──< WorkoutTemplateExercise >── Exercise
      │
 WorkoutSchedule ── FK → WorkoutTemplate
@@ -30,8 +33,7 @@ WorkoutSchedule ── FK → WorkoutTemplate
 WorkoutSession ──< ExerciseSession >── Exercise
      │                    │
      │                    ▼
-     │               SetRecord
-     ▼
+     ▼               SetRecord
 CheckIn
      │
      ▼
@@ -41,6 +43,7 @@ BodyMeasurement
 MediaRecord
 
 Food ──< MealEntry >── Meal ──> DailyNutritionTarget
+                              ──> MealNutritionTarget
 
 Reminder ── FK → WorkoutSchedule
 
@@ -49,9 +52,7 @@ PersonalRecord ── FK → Exercise, WorkoutSession
 
 ## Domain Models
 
-### MuscleGroup (Enum)
-
-Standard muscle groups for built-in exercise classification.
+### MuscleGroup (Enum — not a Room entity)
 
 ```
 CHEST, BACK, SHOULDERS, BICEPS, TRICEPS, FOREARMS,
@@ -134,7 +135,7 @@ Assigns a template to a day of the week.
 ### WorkoutStatus (Enum)
 
 ```
-PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
+PLANNED, IN_PROGRESS, PARTIALLY_COMPLETED, COMPLETED, CANCELLED, SKIPPED
 ```
 
 ### WorkoutSession
@@ -150,7 +151,7 @@ A single training session instance.
 | startTime | Instant? | Actual start |
 | endTime | Instant? | Actual end |
 | durationSeconds | Int? | Computed duration |
-| status | WorkoutStatus | PLANNED / IN_PROGRESS / COMPLETED / CANCELLED |
+| status | WorkoutStatus | See enum above |
 | notes | String? | Session notes |
 | createdAt | Instant | |
 | updatedAt | Instant | |
@@ -256,7 +257,7 @@ A meal grouping for a date.
 
 ### MealEntry
 
-Links a food item to a meal with quantity.
+Links a food item to a meal with quantity. Nutrient fields are **historical snapshots** — they capture the values at the time of logging, so editing a Food's nutritional data does not retroactively alter past meal records.
 
 | Field | Type | Description |
 |---|---|---|
@@ -264,14 +265,14 @@ Links a food item to a meal with quantity.
 | mealId | Long | FK → Meal |
 | foodId | Long | FK → Food |
 | servings | Double | Number of servings |
-| calories | Double? | Computed from food |
-| proteinGrams | Double? | |
-| carbsGrams | Double? | |
-| fatGrams | Double? | |
+| calories | Double? | Historical snapshot |
+| proteinGrams | Double? | Historical snapshot |
+| carbsGrams | Double? | Historical snapshot |
+| fatGrams | Double? | Historical snapshot |
 
 ### DailyNutritionTarget
 
-Daily and per-meal nutrition targets.
+Daily nutrition summary and goal.
 
 | Field | Type | Description |
 |---|---|---|
@@ -283,10 +284,20 @@ Daily and per-meal nutrition targets.
 | targetCarbsG | Double? | Daily carb target (g) |
 | targetFatG | Double? | Daily fat target (g) |
 | targetBodyFatPercent | Double? | Target body fat percentage |
-| mealBudgetCalories | Double? | Per-meal calorie budget |
-| mealBudgetProteinG | Double? | Per-meal protein budget |
-| mealBudgetCarbsG | Double? | Per-meal carb budget |
-| mealBudgetFatG | Double? | Per-meal fat budget |
+
+### MealNutritionTarget
+
+Per-meal budget for each meal type. Each `DailyNutritionTarget` can have zero or more `MealNutritionTarget` entries for breakfast, lunch, dinner, and snacks.
+
+| Field | Type | Description |
+|---|---|---|
+| id | Long | Primary key |
+| dailyTargetId | Long | FK → DailyNutritionTarget |
+| mealType | MealType | BREAKFAST / LUNCH / DINNER / SNACK |
+| budgetCalories | Double? | Calorie budget for this meal |
+| budgetProteinG | Double? | Protein budget |
+| budgetCarbsG | Double? | Carb budget |
+| budgetFatG | Double? | Fat budget |
 
 ### Reminder
 
@@ -305,16 +316,16 @@ Workout reminder with timezone support.
 
 ### CheckIn
 
-Daily check-in record (mood, energy, weight).
+Daily check-in record. Links to the day's `BodyMeasurement` rather than storing weight directly, to maintain a single source of truth for body measurements.
 
 | Field | Type | Description |
 |---|---|---|
 | id | Long | Primary key |
 | date | LocalDate | Check-in date |
 | sessionId | Long? | FK → WorkoutSession (if linked to workout) |
+| measurementId | Long? | FK → BodyMeasurement |
 | mood | Int? | 1–5 |
 | energyLevel | Int? | 1–5 |
-| bodyWeightKg | Double? | Quick morning weight |
 | notes | String? | |
 | createdAt | Instant | |
 
@@ -358,17 +369,19 @@ All relationships use normalized foreign keys — **no JSON strings** for exerci
 - `WorkoutSession` 1→N `ExerciseSession` N→1 `Exercise`
 - `ExerciseSession` 1→N `SetRecord`
 - `Meal` 1→N `MealEntry` N→1 `Food`
+- `DailyNutritionTarget` 1→N `MealNutritionTarget`
+- `CheckIn` N→1 `BodyMeasurement`
 
 ## Room Entity Roadmap
 
 | Version | Entities Added |
 |---|---|
 | V0 | None (Room not instantiated) |
-| V1 | MuscleGroup, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutTemplateExercise, WorkoutSchedule |
+| V1 | MuscleGroup (enum), ExerciseCategory, Exercise, WorkoutTemplate, WorkoutTemplateExercise, WorkoutSchedule |
 | V2 | WorkoutSession, ExerciseSession, SetRecord, WorkoutStatus, SetType |
 | V3 | WorkoutSchedule expanded with calendar, Reminder, CheckIn |
 | V4 | UserProfile, BodyMeasurement, PersonalRecord |
-| V5 | Food, Meal, MealEntry, DailyNutritionTarget |
+| V5 | Food, Meal, MealEntry, DailyNutritionTarget, MealNutritionTarget |
 | V6 | MediaRecord |
 | V7 | HealthConnectSyncLog |
 | V8 | SuggestionLog |

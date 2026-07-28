@@ -1,4 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FitLog</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_today">今日</string>
+    <string name="nav_plan">计划</string>
+    <string name="nav_record">记录</string>
+    <string name="nav_progress">进度</string>
+    <string name="nav_profile">我的</string>
+
+    <!-- Section Headers -->
+    <string name="section_todays_workout">今日训练</string>
+    <string name="section_quick_actions">快速操作</string>
+    <string name="section_weekly_plan">每周计划</string>
+    <string name="section_training_days">训练日</string>
+    <string name="section_recent_training">最近训练</string>
+    <string name="section_body_data">身体数据</string>
+    <string name="section_training_stats">训练统计</string>
+    <string name="section_body_changes">身体变化</string>
+    <string name="section_settings">设置</string>
+
+    <!-- Empty States -->
+    <string name="empty_today_title">今日暂无训练计划</string>
+    <string name="empty_today_subtitle">前往「计划」页面创建你的每周训练计划</string>
+    <string name="empty_plan_title">还没有训练计划</string>
+    <string name="empty_plan_subtitle">创建你的每周训练计划，让训练更有条理</string>
+    <string name="empty_record_title">还没有训练记录</string>
+    <string name="empty_record_subtitle">完成训练后，记录将在这里显示</string>
+    <string name="empty_progress_title">还没有统计数据</string>
+    <string name="empty_progress_subtitle">坚持训练，这里将展示你的训练和身体变化趋势</string>
+
+    <!-- Today -->
+    <string name="today_greeting_morning">早上好</string>
+    <string name="today_greeting_afternoon">下午好</string>
+    <string name="today_greeting_evening">晚上好</string>
+    <string name="today_subtitle">准备开始今天的训练了吗？</string>
+    <string name="today_quick_start">快速开始训练</string>
+    <string name="today_quick_start_desc">不基于计划，直接开始记录训练</string>
+
+    <!-- Plan -->
+    <string name="plan_placeholder">周一到周日 训练安排将在这里显示</string>
+
+    <!-- Record -->
+    <string name="record_placeholder">体重、体脂、围度等记录将在这里显示</string>
+
+    <!-- Progress -->
+    <string name="progress_placeholder">体重趋势、围度变化等图表将在这里显示</string>
+
+    <!-- Profile -->
+    <string name="profile_no_name">未设置昵称</string>
+    <string name="profile_setup_hint">设置个人资料以获取更好的体验</string>
+    <string name="profile_personal_info">个人资料</string>
+    <string name="profile_personal_info_desc">身高、体重、出生日期、性别</string>
+    <string name="profile_training_prefs">训练偏好</string>
+    <string name="profile_training_prefs_desc">单位、休息时间默认值</string>
+    <string name="profile_appearance">外观</string>
+    <string name="profile_appearance_desc">字体大小跟随系统</string>
+    <string name="profile_data_management">数据管理</string>
+    <string name="profile_data_management_desc">导出、备份、恢复</string>
+    <string name="profile_about">关于</string>
+    <string name="profile_about_desc">版本 0.1.0</string>
+
+    <!-- Snackbar -->
+    <string name="snackbar_v2_feature">训练执行功能将在 V2 提供</string>
 </resources>
