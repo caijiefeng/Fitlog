@@ -138,4 +138,38 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_sessions_schedule_id_occurrence_date ON workout_sessions (schedule_id, occurrence_date)")
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    gender TEXT NOT NULL,
+                    birthday INTEGER NOT NULL,
+                    height_cm REAL,
+                    activity_level TEXT NOT NULL,
+                    goal_type TEXT NOT NULL,
+                    target_body_fat REAL,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS body_measurements (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    date INTEGER NOT NULL,
+                    weight_kg REAL,
+                    body_fat_percent REAL,
+                    muscle_kg REAL,
+                    waist_cm REAL,
+                    note TEXT,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_body_measurements_date ON body_measurements (date)")
+        }
+    }
 }

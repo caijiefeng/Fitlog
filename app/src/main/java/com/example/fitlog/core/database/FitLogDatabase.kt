@@ -5,21 +5,25 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.fitlog.core.database.converter.Converters
 import com.example.fitlog.core.database.dao.CheckInDao
+import com.example.fitlog.core.database.dao.BodyMeasurementDao
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
+import com.example.fitlog.core.database.dao.UserProfileDao
 import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
+import com.example.fitlog.core.database.entity.BodyMeasurementEntity
 import com.example.fitlog.core.database.entity.CheckInEntity
 import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
 import com.example.fitlog.core.database.entity.ExerciseEntity
 import com.example.fitlog.core.database.entity.ExerciseSessionEntity
 import com.example.fitlog.core.database.entity.ReminderEntity
 import com.example.fitlog.core.database.entity.SetRecordEntity
+import com.example.fitlog.core.database.entity.UserProfileEntity
 import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
 import com.example.fitlog.core.database.entity.WorkoutSessionEntity
@@ -39,8 +43,10 @@ import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
         WorkoutPlanOverrideEntity::class,
         ReminderEntity::class,
         CheckInEntity::class,
+        UserProfileEntity::class,
+        BodyMeasurementEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -56,4 +62,6 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun workoutPlanOverrideDao(): WorkoutPlanOverrideDao
     abstract fun reminderDao(): ReminderDao
     abstract fun checkInDao(): CheckInDao
+    abstract fun userProfileDao(): UserProfileDao
+    abstract fun bodyMeasurementDao(): BodyMeasurementDao
 }
