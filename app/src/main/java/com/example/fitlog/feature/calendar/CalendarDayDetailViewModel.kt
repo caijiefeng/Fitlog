@@ -3,12 +3,12 @@ package com.example.fitlog.feature.calendar
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.time.CurrentDateProvider
 import com.example.fitlog.data.repository.CalendarRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import com.example.fitlog.domain.calendar.CalendarDay
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
-import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
 import com.example.fitlog.domain.workout.RescheduleWorkoutUseCase
 import com.example.fitlog.domain.workout.RestoreWorkoutScheduleUseCase
 import com.example.fitlog.domain.workout.SkipWorkoutUseCase
@@ -28,15 +28,15 @@ data class CalendarDayDetailUiState(
     val date: LocalDate = LocalDate.now(),
     val occurrences: List<CalendarWorkoutOccurrence> = emptyList(),
     val isLoading: Boolean = true,
+    val isRescheduling: Boolean = false,
     val error: String? = null,
 )
 
 sealed interface CalendarDayDetailEvent {
     data class NavigateToWorkout(val sessionId: Long) : CalendarDayDetailEvent
     data class NavigateToExecution(val sessionId: Long) : CalendarDayDetailEvent
-    data class ShowReschedulePicker(val scheduleId: Long, val templateId: Long, val occurrenceDate: LocalDate) :
-        CalendarDayDetailEvent
     data class ShowSnackbar(val message: String) : CalendarDayDetailEvent
+    data object NavigateBack : CalendarDayDetailEvent
 }
 
 @HiltViewModel
@@ -47,6 +47,7 @@ class CalendarDayDetailViewModel @Inject constructor(
     private val skipWorkoutUseCase: SkipWorkoutUseCase,
     private val restoreWorkoutScheduleUseCase: RestoreWorkoutScheduleUseCase,
     private val sessionRepository: WorkoutSessionRepository,
+    private val sessionDao: WorkoutSessionDao,
     private val dateProvider: CurrentDateProvider,
 ) : ViewModel() {
 
@@ -150,5 +151,81 @@ class CalendarDayDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _events.emit(CalendarDayDetailEvent.NavigateToWorkout(sessionId))
         }
+    }
+
+    /**
+     * Reschedules the given occurrence to [targetDate].
+     * Rules:
+     * - targetDate >= today
+     * - No existing Session (any status including CANCELLED) for schedule+targetDate
+     * - targetDate != occurrenceDate (else would restore)
+     */
+    fun onReschedule(occurrence: CalendarWorkoutOccurrence, targetDate: LocalDate) {
+        viewModelScope.launch {
+            if (_uiState.value.isRescheduling) return@launch // double-tap guard
+
+            val scheduleId = occurrence.scheduleId ?: run {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("无法改期：缺少日程信息"))
+                return@launch
+            }
+            val templateId = occurrence.templateId ?: run {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("无法改期：缺少模板信息"))
+                return@launch
+            }
+            val occurrenceDate = occurrence.occurrenceDate ?: run {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("无法改期：缺少日期信息"))
+                return@launch
+            }
+            val today = dateProvider.today()
+
+            // Rule: targetDate >= today
+            if (targetDate < today) {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("改期目标日期不能早于今天"))
+                return@launch
+            }
+
+            // Rule: targetDate != occurrenceDate (else restore)
+            if (targetDate == occurrenceDate) {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("目标日期与原日期相同，无需改期"))
+                return@launch
+            }
+
+            // Rule: no existing Session for schedule+targetDate (any status)
+            val existingSession = sessionDao.getByScheduleAndOccurrence(scheduleId, targetDate.toEpochDay())
+            if (existingSession != null) {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("目标日期已有训练记录，无法改期"))
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(isRescheduling = true)
+            try {
+                rescheduleWorkoutUseCase(
+                    scheduleId = scheduleId,
+                    templateId = templateId,
+                    occurrenceDate = occurrenceDate,
+                    targetDate = targetDate,
+                )
+                loadDayDetail()
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar("已改期至 ${targetDate.monthValue}/${targetDate.dayOfMonth}"))
+                _events.emit(CalendarDayDetailEvent.NavigateBack)
+            } catch (e: Exception) {
+                _events.emit(CalendarDayDetailEvent.ShowSnackbar(e.message ?: "改期失败"))
+            } finally {
+                _uiState.value = _uiState.value.copy(isRescheduling = false)
+            }
+        }
+    }
+
+    /**
+     * Postpone to the next day.
+     */
+    fun onPostpone(occurrence: CalendarWorkoutOccurrence) {
+        val occurrenceDate = occurrence.occurrenceDate ?: return
+        val targetDate = occurrenceDate.plusDays(1)
+        onReschedule(occurrence, targetDate)
+    }
+
+    fun refresh() {
+        loadDayDetail()
     }
 }

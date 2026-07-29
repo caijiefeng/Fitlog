@@ -191,6 +191,18 @@
     <string name="calendar_action_continue">继续训练</string>
     <string name="calendar_action_view_detail">查看详情</string>
 
+    <!-- Calendar Reschedule -->
+    <string name="calendar_action_reschedule">改期</string>
+    <string name="calendar_action_postpone">延后一天</string>
+    <string name="calendar_reschedule_confirm">确认</string>
+    <string name="calendar_reschedule_cancel">取消</string>
+    <string name="calendar_reschedule_loading">正在改期…</string>
+    <string name="calendar_reschedule_error_target_before_today">改期目标日期不能早于今天</string>
+    <string name="calendar_reschedule_error_same_date">目标日期与原日期相同，无需改期</string>
+    <string name="calendar_reschedule_error_existing_session">目标日期已有训练记录，无法改期</string>
+    <string name="calendar_reschedule_error_missing_info">无法改期：缺少必要信息</string>
+    <string name="calendar_reschedule_restore">已恢复原计划</string>
+
     <!-- Today (V3 UI) -->
     <string name="today_workout_in_progress_title">继续训练</string>
     <string name="today_workout_in_progress_desc">你有一个进行中的训练</string>

@@ -6,6 +6,7 @@ import com.example.fitlog.core.time.CurrentDateProvider
 import com.example.fitlog.data.repository.CalendarRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
+import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,8 @@ sealed interface TodayEvent {
     ) : TodayEvent
 
     data class ResumeWorkout(val sessionId: Long) : TodayEvent
+
+    data class NavigateToWorkoutDetail(val sessionId: Long) : TodayEvent
 }
 
 @HiltViewModel
@@ -61,6 +64,7 @@ class TodayViewModel @Inject constructor(
 
     private fun loadTodayOccurrences() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(occurrences = emptyList())
             try {
                 val today = dateProvider.today()
                 val days = calendarRepository.getDayDetail(today.toEpochDay())
@@ -78,21 +82,60 @@ class TodayViewModel @Inject constructor(
         }
     }
 
-    fun onStartWorkout() {
+    fun onStartWorkout(occurrence: CalendarWorkoutOccurrence? = null) {
         viewModelScope.launch {
             val state = _uiState.value
-            if (state.hasInProgressWorkout) {
-                state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
+
+            // If occurrence is provided, use its data
+            val targetOccurrence = occurrence ?: state.occurrences.firstOrNull { it.canStart }
+            if (targetOccurrence == null) {
+                // No startable occurrence found
+                if (state.hasInProgressWorkout) {
+                    state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
+                }
                 return@launch
             }
+
+            // Validate: SKIPPED, RESCHEDULED-original, CANCELLED cannot start
+            when (targetOccurrence.status) {
+                CalendarWorkoutStatus.SKIPPED,
+                CalendarWorkoutStatus.CANCELLED -> {
+                    return@launch
+                }
+                CalendarWorkoutStatus.RESCHEDULED -> {
+                    // RESCHEDULED on original date markers cannot start
+                    if (targetOccurrence.isOriginalDateMarker) return@launch
+                }
+                CalendarWorkoutStatus.IN_PROGRESS -> {
+                    // Resume the existing session
+                    if (targetOccurrence.sessionId != null) {
+                        _events.emit(TodayEvent.ResumeWorkout(targetOccurrence.sessionId))
+                    } else {
+                        // Fallback to detectable in-progress session
+                        state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
+                    }
+                    return@launch
+                }
+                CalendarWorkoutStatus.COMPLETED,
+                CalendarWorkoutStatus.PARTIALLY_COMPLETED -> {
+                    // Navigate to workout detail instead of starting
+                    if (targetOccurrence.sessionId != null) {
+                        _events.emit(TodayEvent.NavigateToWorkoutDetail(targetOccurrence.sessionId))
+                    }
+                    return@launch
+                }
+                CalendarWorkoutStatus.SCHEDULED -> {
+                    // Proceed to start
+                }
+            }
+
             try {
-                val occurrence = state.occurrences.firstOrNull { it.canStart }
-                val tid = occurrence?.templateId
+                val tid = targetOccurrence.templateId
                 val sid = if (tid != null) {
                     sessionRepository.createFromTemplate(
                         templateId = tid,
-                        scheduleId = occurrence.scheduleId,
-                        occurrenceDate = occurrence.occurrenceDate?.toEpochDay(),
+                        scheduleId = targetOccurrence.scheduleId,
+                        occurrenceDate = targetOccurrence.occurrenceDate?.toEpochDay(),
                     )
                 } else {
                     sessionRepository.createQuick()
@@ -100,8 +143,8 @@ class TodayViewModel @Inject constructor(
                 _events.emit(
                     TodayEvent.StartWorkout(
                         sessionId = sid,
-                        scheduleId = occurrence?.scheduleId,
-                        occurrenceDate = occurrence?.occurrenceDate?.toEpochDay(),
+                        scheduleId = targetOccurrence.scheduleId,
+                        occurrenceDate = targetOccurrence.occurrenceDate?.toEpochDay(),
                     )
                 )
             } catch (e: Exception) {
@@ -124,5 +167,9 @@ class TodayViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
+    }
+
+    fun refresh() {
+        loadTodayOccurrences()
     }
 }

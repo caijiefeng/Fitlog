@@ -2,6 +2,7 @@ package com.example.fitlog.domain.workout
 
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.data.repository.WorkoutPlanOverrideRepository
+import com.example.fitlog.domain.calendar.OverrideAction
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -45,7 +46,7 @@ class RescheduleWorkoutUseCase @Inject constructor(
             templateId = templateId,
             occurrenceDate = occurrenceEpochDay,
             plannedDate = targetEpochDay,
-            action = "RESCHEDULED",
+            action = OverrideAction.RESCHEDULED,
         )
     }
 

@@ -67,16 +67,17 @@ class CalendarOccurrenceResolver @Inject constructor(
                 val override = overrideIndex[occKey]
                 val session = sessionIndex[occKey]
 
-                val isSkipped = override?.action == "SKIPPED"
-                val isRescheduled = override?.action == "RESCHEDULED"
+                val isSkipped = override?.action == OverrideAction.SKIPPED.name
+                val isRescheduled = override?.action == OverrideAction.RESCHEDULED.name
                 val plannedDate = override?.plannedDate ?: current
 
                 val template = templates[schedule.templateId]
                 val templateName = template?.name ?: "未知训练"
 
-                // If there is a session on this date for this schedule, use its status
+                // Priority: Session state > SKIPPED override > Original date marker (RESCHEDULED) > Default SCHEDULED
                 val status = if (session != null) {
-                    mapSessionStatus(session.status, isSkipped, isRescheduled)
+                    // Session state always takes priority
+                    mapSessionStatus(session.status)
                 } else if (isSkipped) {
                     CalendarWorkoutStatus.SKIPPED
                 } else if (isRescheduled) {
@@ -89,7 +90,8 @@ class CalendarOccurrenceResolver @Inject constructor(
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
-                        displayKey = buildDisplayKey(schedule.id, current, session?.id),
+                        // Use current (original date) for the display key of scheduled/rescheduled-original occurrences
+                        displayKey = buildDisplayKey(schedule.id, current, isOriginalDateMarker = isRescheduled && plannedDate != current),
                         scheduleId = schedule.id,
                         templateId = schedule.templateId,
                         templateName = templateName,
@@ -107,7 +109,7 @@ class CalendarOccurrenceResolver @Inject constructor(
 
             // 2. Overrides rescheduled TO this date (plannedDate matches)
             val rescheduledToToday = overrides.filter { ov ->
-                ov.action == "RESCHEDULED" && ov.plannedDate == current &&
+                ov.action == OverrideAction.RESCHEDULED.name && ov.plannedDate == current &&
                     ov.occurrenceDate != current
             }
             for (override in rescheduledToToday) {
@@ -119,8 +121,9 @@ class CalendarOccurrenceResolver @Inject constructor(
                 val template = templates[override.templateId]
                 val templateName = template?.name ?: "未知训练"
 
+                // Session state takes priority over RESCHEDULED marker
                 val status = if (session != null) {
-                    mapSessionStatus(session.status, isSkipped = false, isRescheduled = true)
+                    mapSessionStatus(session.status)
                 } else {
                     CalendarWorkoutStatus.RESCHEDULED
                 }
@@ -128,7 +131,8 @@ class CalendarOccurrenceResolver @Inject constructor(
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
-                        displayKey = buildDisplayKey(override.scheduleId, override.occurrenceDate, session?.id),
+                        // Use plannedDate (target date) in displayKey to differ from original-date markers
+                        displayKey = buildDisplayKey(override.scheduleId, override.plannedDate ?: override.occurrenceDate, isOriginalDateMarker = false),
                         scheduleId = override.scheduleId,
                         templateId = override.templateId,
                         templateName = templateName,
@@ -162,11 +166,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                         displayDate = date,
                         plannedDate = date,
                         sessionId = session.id,
-                        status = mapSessionStatus(
-                            session.status,
-                            isSkipped = false,
-                            isRescheduled = false,
-                        ),
+                        status = mapSessionStatus(session.status),
                         isQuickWorkout = true,
                         isOriginalDateMarker = false,
                         canStart = false,
@@ -213,22 +213,24 @@ class CalendarOccurrenceResolver @Inject constructor(
     private fun overrideKey(scheduleId: Long, occurrenceDate: Long): String =
         "${scheduleId}:${occurrenceDate}"
 
-    private fun buildDisplayKey(scheduleId: Long?, occurrenceEpochDay: Long?, sessionId: Long?): String =
-        if (scheduleId != null && occurrenceEpochDay != null) {
-            "schedule:${scheduleId}:${occurrenceEpochDay}"
-        } else if (sessionId != null) {
-            "session:${sessionId}"
-        } else {
-            "unknown"
-        }
+    /**
+     * Builds a display key that differs for original-date markers vs target-date markers.
+     * Original markers use the original occurrence date; target markers use the planned date.
+     */
+    private fun buildDisplayKey(
+        scheduleId: Long,
+        dateEpochDay: Long,
+        isOriginalDateMarker: Boolean,
+    ): String {
+        val prefix = if (isOriginalDateMarker) "orig" else "tgt"
+        return "schedule:${scheduleId}:${dateEpochDay}:${prefix}"
+    }
 
-    private fun mapSessionStatus(
-        sessionStatus: String,
-        isSkipped: Boolean,
-        isRescheduled: Boolean,
-    ): CalendarWorkoutStatus = when {
-        isSkipped -> CalendarWorkoutStatus.SKIPPED
-        isRescheduled -> CalendarWorkoutStatus.RESCHEDULED
+    /**
+     * Maps a session status string to a [CalendarWorkoutStatus].
+     * Session state takes priority over any override markers.
+     */
+    private fun mapSessionStatus(sessionStatus: String): CalendarWorkoutStatus = when {
         sessionStatus == "IN_PROGRESS" -> CalendarWorkoutStatus.IN_PROGRESS
         sessionStatus == "COMPLETED" -> CalendarWorkoutStatus.COMPLETED
         sessionStatus == "PARTIALLY_COMPLETED" -> CalendarWorkoutStatus.PARTIALLY_COMPLETED

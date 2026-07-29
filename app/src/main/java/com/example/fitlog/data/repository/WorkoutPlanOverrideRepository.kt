@@ -1,16 +1,20 @@
 package com.example.fitlog.data.repository
 
-import androidx.room.Transaction
+import androidx.room.withTransaction
+import com.example.fitlog.core.database.FitLogDatabase
 import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
+import com.example.fitlog.core.time.AppClock
+import com.example.fitlog.domain.calendar.OverrideAction
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class WorkoutPlanOverrideRepository @Inject constructor(
+    private val db: FitLogDatabase,
     private val overrideDao: WorkoutPlanOverrideDao,
+    private val appClock: AppClock,
 ) {
 
     /**
@@ -21,22 +25,20 @@ class WorkoutPlanOverrideRepository @Inject constructor(
      * The operation is wrapped in a transaction to ensure uniqueness of the
      * (scheduleId, occurrenceDate) pair.
      */
-    @Transaction
     suspend fun saveOverride(
         scheduleId: Long,
         templateId: Long,
         occurrenceDate: Long, // epochDay
         plannedDate: Long?,   // epochDay, null if SKIPPED
-        action: String,       // "RESCHEDULED" or "SKIPPED"
-    ): Long {
+        action: OverrideAction,
+    ): Long = db.withTransaction {
         val existing = overrideDao.getByScheduleAndOccurrence(scheduleId, occurrenceDate)
-        return if (existing != null) {
-            // Preserve id and createdAt
+        if (existing != null) {
+            // Preserve id and createdAt, only update plannedDate/action/updatedAt
             val updated = existing.copy(
-                templateId = templateId,
                 plannedDate = plannedDate,
-                action = action,
-                updatedAt = System.currentTimeMillis(),
+                action = action.name,
+                updatedAt = appClock.nowInstant().toEpochMilli(),
             )
             overrideDao.update(updated)
             existing.id
@@ -47,7 +49,7 @@ class WorkoutPlanOverrideRepository @Inject constructor(
                     templateId = templateId,
                     occurrenceDate = occurrenceDate,
                     plannedDate = plannedDate,
-                    action = action,
+                    action = action.name,
                 )
             )
         }

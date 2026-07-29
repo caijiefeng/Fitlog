@@ -10,10 +10,12 @@ fun PlanScreen(
     onNavigateToExercises: () -> Unit = {},
     onNavigateToTemplates: () -> Unit = {},
     onNavigateToSession: (Long) -> Unit = {},
+    onNavigateToDayDetail: (Long) -> Unit = {},
 ) {
     CalendarScreen(
         onNavigateToExercises = onNavigateToExercises,
         onNavigateToTemplates = onNavigateToTemplates,
         onNavigateToSession = onNavigateToSession,
+        onNavigateToDayDetail = onNavigateToDayDetail,
     )
 }

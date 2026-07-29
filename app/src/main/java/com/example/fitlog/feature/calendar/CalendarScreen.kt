@@ -62,6 +62,7 @@ fun CalendarScreen(
     onNavigateToExercises: () -> Unit = {},
     onNavigateToTemplates: () -> Unit = {},
     onNavigateToSession: (Long) -> Unit = {},
+    onNavigateToDayDetail: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -124,7 +125,10 @@ fun CalendarScreen(
             yearMonth = uiState.yearMonth,
             days = uiState.days,
             selectedDay = uiState.selectedDay,
-            onDayClick = { epochDay -> viewModel.selectDay(epochDay) },
+            onDayClick = { epochDay ->
+                viewModel.selectDay(epochDay)
+                onNavigateToDayDetail(epochDay)
+            },
         )
 
         Spacer(modifier = Modifier.height(12.dp))

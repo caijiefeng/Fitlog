@@ -64,6 +64,7 @@ fun FitLogNavHost(
             TodayScreen(
                 onStartWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
                 onResumeWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
+                onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
             )
         }
         composable(BottomNavItem.Plan.route) {
@@ -71,6 +72,7 @@ fun FitLogNavHost(
                 onNavigateToExercises = { navController.navigate(Routes.EXERCISE_LIST) },
                 onNavigateToTemplates = { navController.navigate(Routes.TEMPLATE_LIST) },
                 onNavigateToSession = { id -> navController.navigate(Routes.workoutExecution(id)) },
+                onNavigateToDayDetail = { epochDay -> navController.navigate(Routes.calendarDay(epochDay)) },
             )
         }
         composable(BottomNavItem.Record.route) {

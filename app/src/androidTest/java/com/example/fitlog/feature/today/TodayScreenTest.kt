@@ -3,7 +3,6 @@ package com.example.fitlog.feature.today
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
-import com.example.fitlog.data.repository.WorkoutScheduleRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.mockk
@@ -21,8 +20,9 @@ class TodayScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val mockScheduleRepo = mockk<WorkoutScheduleRepository>(relaxed = true)
+    private val mockCalendarRepo = mockk<com.example.fitlog.data.repository.CalendarRepository>(relaxed = true)
     private val mockSessionRepo = mockk<com.example.fitlog.data.repository.WorkoutSessionRepository>(relaxed = true)
+    private val mockDateProvider = mockk<com.example.fitlog.core.time.CurrentDateProvider>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -33,7 +33,7 @@ class TodayScreenTest {
     fun todayScreen_displaysTitleAndPlaceholderContent() {
         composeTestRule.setContent {
             FitLogTheme {
-                TodayScreen(viewModel = TodayViewModel(mockScheduleRepo, mockSessionRepo))
+                TodayScreen(viewModel = TodayViewModel(mockCalendarRepo, mockSessionRepo, mockDateProvider))
             }
         }
 

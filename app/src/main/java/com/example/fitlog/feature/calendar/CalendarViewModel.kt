@@ -75,4 +75,8 @@ class CalendarViewModel @Inject constructor(
         loadMonth(yearMonth)
         _uiState.value = _uiState.value.copy(selectedDay = today.toEpochDay())
     }
+
+    fun refresh() {
+        loadMonth(_uiState.value.yearMonth)
+    }
 }

@@ -40,6 +40,7 @@ fun TodayScreen(
     viewModel: TodayViewModel = hiltViewModel(),
     onStartWorkout: (Long) -> Unit = {},
     onResumeWorkout: (Long) -> Unit = {},
+    onNavigateToWorkoutDetail: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,6 +49,7 @@ fun TodayScreen(
             when (event) {
                 is TodayEvent.StartWorkout -> onStartWorkout(event.sessionId)
                 is TodayEvent.ResumeWorkout -> onResumeWorkout(event.sessionId)
+                is TodayEvent.NavigateToWorkoutDetail -> onNavigateToWorkoutDetail(event.sessionId)
             }
         }
     }
@@ -105,8 +107,10 @@ fun TodayScreen(
                     uiState.occurrences.forEach { occurrence ->
                         val isClickable = occurrence.status == CalendarWorkoutStatus.SCHEDULED
                         FitLogCard(
-                            onClick = if (isClickable) {
-                                { viewModel.onStartWorkout() }
+                            onClick = if (isClickable || occurrence.status == CalendarWorkoutStatus.COMPLETED
+                                || occurrence.status == CalendarWorkoutStatus.PARTIALLY_COMPLETED
+                            ) {
+                                { viewModel.onStartWorkout(occurrence) }
                             } else null,
                         ) {
                             Text(

@@ -3,6 +3,7 @@ package com.example.fitlog.feature.calendar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,13 +19,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,12 +38,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +70,9 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -77,16 +87,16 @@ fun CalendarDayDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    var showDatePicker by remember { mutableStateOf(false) }
+    var rescheduleTarget by remember { mutableStateOf<CalendarWorkoutOccurrence?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is CalendarDayDetailEvent.NavigateToExecution -> onNavigateToExecution(event.sessionId)
                 is CalendarDayDetailEvent.NavigateToWorkout -> onNavigateToWorkoutDetail(event.sessionId)
                 is CalendarDayDetailEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
-                is CalendarDayDetailEvent.ShowReschedulePicker -> {
-                    // Reschedule picker can be implemented as a dialog or date picker
-                    snackbarHostState.showSnackbar("改期功能待实现")
-                }
+                is CalendarDayDetailEvent.NavigateBack -> onNavigateBack()
             }
         }
     }
@@ -100,6 +110,48 @@ fun CalendarDayDetailScreen(
         append(stringResource(R.string.calendar_date_day))
         append(" ")
         append(uiState.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.CHINESE))
+    }
+
+    // Reschedule DatePicker Dialog
+    if (showDatePicker && rescheduleTarget != null) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = System.currentTimeMillis(),
+        )
+        DatePickerDialog(
+            onDismissRequest = {
+                showDatePicker = false
+                rescheduleTarget = null
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val selectedMillis = datePickerState.selectedDateMillis
+                        if (selectedMillis != null) {
+                            val targetDate = Instant.ofEpochMilli(selectedMillis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.onReschedule(rescheduleTarget!!, targetDate)
+                        }
+                        showDatePicker = false
+                        rescheduleTarget = null
+                    },
+                ) {
+                    Text(stringResource(R.string.calendar_reschedule_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDatePicker = false
+                        rescheduleTarget = null
+                    },
+                ) {
+                    Text(stringResource(R.string.calendar_reschedule_cancel))
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 
     Scaffold(
@@ -129,52 +181,82 @@ fun CalendarDayDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .padding(innerPadding),
         ) {
-            if (uiState.isLoading) {
-                Text(
-                    text = stringResource(R.string.calendar_detail_loading),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = FitLogTextSecondary,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+            ) {
+                if (uiState.isLoading) {
+                    Text(
+                        text = stringResource(R.string.calendar_detail_loading),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = FitLogTextSecondary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                } else if (uiState.error != null) {
+                    Text(
+                        text = uiState.error ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = FitLogError,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                } else if (uiState.occurrences.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.calendar_no_workouts_detail),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = FitLogTextSecondary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(top = 8.dp),
+                    ) {
+                        items(uiState.occurrences, key = { it.key }) { occurrence ->
+                            OccurrenceDetailCard(
+                                occurrence = occurrence,
+                                onStart = { viewModel.onStartWorkout(occurrence) },
+                                onSkip = { viewModel.onSkip(occurrence) },
+                                onRestore = { viewModel.onRestore(occurrence) },
+                                onContinue = { occurrence.sessionId?.let { viewModel.onContinueWorkout(it) } },
+                                onViewDetail = { occurrence.sessionId?.let { viewModel.onViewDetail(it) } },
+                                onReschedule = {
+                                    rescheduleTarget = occurrence
+                                    showDatePicker = true
+                                },
+                                onPostpone = { viewModel.onPostpone(occurrence) },
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Loading overlay during reschedule
+            if (uiState.isRescheduling) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp),
-                    textAlign = TextAlign.Center,
-                )
-            } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = FitLogError,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            } else if (uiState.occurrences.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.calendar_no_workouts_detail),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = FitLogTextSecondary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp),
-                    textAlign = TextAlign.Center,
-                )
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(top = 8.dp),
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    items(uiState.occurrences, key = { it.key }) { occurrence ->
-                        OccurrenceDetailCard(
-                            occurrence = occurrence,
-                            onStart = { viewModel.onStartWorkout(occurrence) },
-                            onSkip = { viewModel.onSkip(occurrence) },
-                            onRestore = { viewModel.onRestore(occurrence) },
-                            onContinue = { occurrence.sessionId?.let { viewModel.onContinueWorkout(it) } },
-                            onViewDetail = { occurrence.sessionId?.let { viewModel.onViewDetail(it) } },
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = FitLogAccent)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.calendar_reschedule_loading),
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
@@ -191,6 +273,8 @@ private fun OccurrenceDetailCard(
     onRestore: () -> Unit,
     onContinue: () -> Unit,
     onViewDetail: () -> Unit,
+    onReschedule: () -> Unit,
+    onPostpone: () -> Unit,
 ) {
     val (statusColor, statusLabelRes) = when (occurrence.status) {
         CalendarWorkoutStatus.COMPLETED -> FitLogSuccess to R.string.calendar_status_completed
@@ -296,6 +380,38 @@ private fun OccurrenceDetailCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(stringResource(R.string.calendar_action_skip))
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onReschedule,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.calendar_action_reschedule))
+                    }
+                    OutlinedButton(
+                        onClick = onPostpone,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.SkipNext,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.calendar_action_postpone))
                     }
                 }
             }
