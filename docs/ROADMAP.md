@@ -39,21 +39,23 @@
 
 ---
 
-## V2 — Workout Execution & Set Logging
+## V2 — Workout Execution & Set Logging ✅
 
-**Goal**: Users can execute workouts, log sets, use a rest timer, and review history.
+**Status**: Complete (V2.2 validated)
 
-**Scope**:
-- Room entities: WorkoutSession, ExerciseSession, SetRecord, SetType, WorkoutStatus
-- Workout execution UI (full-screen, bottom nav hidden)
-- Set-by-set logging: reps, weight, RPE, RIR, set type (warmup/working/drop/failure)
-- Rest timer between sets
-- Workout completion flow → session saved
-- In-progress workout survives process death
-- History list on Record tab
-- Session detail view (per-set data)
+**Deliverables**:
+- DB Migration 1→2: WorkoutSession, ExerciseSession, SetRecord with snapshots
+- Atomic workout creation with single IN_PROGRESS constraint
+- Full-screen execution UI with interactive set logging
+- Set types: WARMUP/WORKING/DROP/FAILURE with validation
+- Persistent rest timer with +15/-15/skip/recovery
+- Workout completion state machine (COMPLETED/PARTIALLY_COMPLETED/CANCELLED)
+- Workout summary and detail screens (snapshot-based history)
+- Exercise picker for quick workouts
+- Record tab: history list with navigation to detail
+- Bottom nav hidden for non-tab routes
 
-**Tests**: Session execution ViewModel, rest timer logic, SetRecordDao
+**Tests**: 33+ unit tests passing. connectedDebugAndroidTest not executed (no device).
 
 ---
 
