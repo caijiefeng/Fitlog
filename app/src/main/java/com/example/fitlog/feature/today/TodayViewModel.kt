@@ -22,6 +22,7 @@ data class TodayUiState(
     val hasInProgressWorkout: Boolean = false,
     val inProgressSessionId: Long? = null,
     val isLoading: Boolean = true,
+    val error: String? = null,
 )
 
 sealed interface TodayEvent {
@@ -76,8 +77,7 @@ class TodayViewModel @Inject constructor(
                           else sessionRepository.createQuick()
                 _events.emit(TodayEvent.StartWorkout(sid))
             } catch (e: Exception) {
-                val sid = sessionRepository.createQuick()
-                _events.emit(TodayEvent.StartWorkout(sid))
+                _uiState.value = _uiState.value.copy(error = e.message ?: "创建训练失败")
             }
         }
     }

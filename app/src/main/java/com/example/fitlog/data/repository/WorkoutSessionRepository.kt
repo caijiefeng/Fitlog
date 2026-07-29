@@ -1,5 +1,7 @@
 package com.example.fitlog.data.repository
 
+import androidx.room.withTransaction
+import com.example.fitlog.core.database.FitLogDatabase
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.SetRecordDao
@@ -17,15 +19,19 @@ import com.example.fitlog.core.model.WorkoutSession as DomainWorkoutSession
 import com.example.fitlog.core.model.WorkoutSessionDetail
 import com.example.fitlog.core.model.WorkoutStatus
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
+class InvalidSetDataException(message: String) : Exception(message)
+class WorkoutInProgressException(val existingSessionId: Long) :
+    Exception("已有进行中训练")
+
 @Singleton
 class WorkoutSessionRepository @Inject constructor(
+    private val db: FitLogDatabase,
     private val sessionDao: WorkoutSessionDao,
     private val exerciseSessionDao: ExerciseSessionDao,
     private val setRecordDao: SetRecordDao,
@@ -33,88 +39,65 @@ class WorkoutSessionRepository @Inject constructor(
     private val exerciseDao: ExerciseDao,
 ) {
 
-    // ── Create ──────────────────────────────────────────────────────────────
+    // ── Create (atomic) ─────────────────────────────────────────────────────
 
-    suspend fun createFromTemplate(
-        templateId: Long,
-        date: LocalDate = LocalDate.now(),
-    ): Long {
-        val template = templateDao.getByIdWithExercises(templateId)
-            ?: throw IllegalStateException("模板不存在或已停用")
-        if (template.exercises.isEmpty()) throw IllegalStateException("模板没有动作")
+    suspend fun createFromTemplate(templateId: Long, date: LocalDate = LocalDate.now()): Long {
+        return db.withTransaction {
+            val existing = sessionDao.getInProgress()
+            if (existing != null) throw WorkoutInProgressException(existing.id)
 
-        val sessionId = sessionDao.insert(
-            WorkoutSessionEntity(
-                templateId = templateId,
-                templateNameSnapshot = template.template.name,
-                date = date.toEpochDay(),
-                startTime = System.currentTimeMillis(),
+            val template = templateDao.getByIdWithExercises(templateId)
+                ?: throw IllegalStateException("模板不存在或已停用")
+            if (template.exercises.isEmpty()) throw IllegalStateException("模板没有动作")
+
+            val sessionId = sessionDao.insert(WorkoutSessionEntity(
+                templateId = templateId, templateNameSnapshot = template.template.name,
+                date = date.toEpochDay(), startTime = System.currentTimeMillis(),
                 status = WorkoutStatus.IN_PROGRESS.name,
-            )
-        )
-
-        template.exercises.forEachIndexed { index, te ->
-            val ex = exerciseDao.getById(te.exerciseId)
-            val esId = exerciseSessionDao.insert(
-                ExerciseSessionEntity(
-                    sessionId = sessionId,
-                    exerciseId = te.exerciseId,
+            ))
+            template.exercises.forEachIndexed { index, te ->
+                val ex = exerciseDao.getById(te.exerciseId)
+                val esId = exerciseSessionDao.insert(ExerciseSessionEntity(
+                    sessionId = sessionId, exerciseId = te.exerciseId,
                     exerciseNameSnapshot = ex?.name ?: "(已删除)",
                     primaryMuscleGroupSnapshot = ex?.primaryMuscleGroup ?: "FULL_BODY",
-                    targetSets = te.targetSets,
-                    targetRepsMin = te.targetRepsMin,
-                    targetRepsMax = te.targetRepsMax,
-                    targetWeightKg = te.targetWeightKg,
-                    targetRpe = te.targetRpe,
-                    targetRir = te.targetRir,
-                    plannedRestSeconds = te.restSeconds,
-                    notes = te.notes,
-                    sortOrder = index,
-                )
-            )
-            // Create target set placeholders (uncompleted)
-            repeat(te.targetSets) { setNum ->
-                setRecordDao.insert(
-                    SetRecordEntity(
-                        exerciseSessionId = esId,
-                        setNumber = setNum + 1,
-                        setType = "WORKING",
-                        completed = false,
-                    )
-                )
+                    targetSets = te.targetSets, targetRepsMin = te.targetRepsMin,
+                    targetRepsMax = te.targetRepsMax, targetWeightKg = te.targetWeightKg,
+                    targetRpe = te.targetRpe, targetRir = te.targetRir,
+                    plannedRestSeconds = te.restSeconds, notes = te.notes, sortOrder = index,
+                ))
+                repeat(te.targetSets) { setNum ->
+                    setRecordDao.insert(SetRecordEntity(
+                        exerciseSessionId = esId, setNumber = setNum + 1,
+                        setType = "WORKING", completed = false,
+                    ))
+                }
             }
+            sessionId
         }
-
-        return sessionId
     }
 
     suspend fun createQuick(date: LocalDate = LocalDate.now()): Long {
-        return sessionDao.insert(
-            WorkoutSessionEntity(
-                date = date.toEpochDay(),
-                startTime = System.currentTimeMillis(),
-                status = WorkoutStatus.IN_PROGRESS.name,
-                templateNameSnapshot = "快速训练",
-            )
-        )
+        return db.withTransaction {
+            val existing = sessionDao.getInProgress()
+            if (existing != null) throw WorkoutInProgressException(existing.id)
+            sessionDao.insert(WorkoutSessionEntity(
+                date = date.toEpochDay(), startTime = System.currentTimeMillis(),
+                status = WorkoutStatus.IN_PROGRESS.name, templateNameSnapshot = "快速训练",
+            ))
+        }
     }
 
     // ── Read ────────────────────────────────────────────────────────────────
 
-    suspend fun getInProgress(): DomainWorkoutSession? =
-        sessionDao.getInProgress()?.toDomain()
-
-    fun observeInProgress(): Flow<DomainWorkoutSession?> =
-        sessionDao.observeInProgress().map { it?.toDomain() }
-
-    suspend fun getById(id: Long): DomainWorkoutSession? =
-        sessionDao.getById(id)?.toDomain()
+    suspend fun getInProgress(): DomainWorkoutSession? = sessionDao.getInProgress()?.toDomain()
+    fun observeInProgress(): Flow<DomainWorkoutSession?> = sessionDao.observeInProgress().map { it?.toDomain() }
+    suspend fun getById(id: Long): DomainWorkoutSession? = sessionDao.getById(id)?.toDomain()
 
     suspend fun getDetail(id: Long): WorkoutSessionDetail? {
         val sw = sessionDao.getByIdWithExercises(id) ?: return null
-        val exerciseDetails = sw.exercises.map { es ->
+        val details = sw.exercises.map { es ->
             val sets = setRecordDao.getByExerciseSession(es.id)
-            val ex = es.exerciseId?.let { exerciseDao.getById(it) }
             DomainExerciseSession(
                 id = es.id, sessionId = es.sessionId, exerciseId = es.exerciseId,
                 exerciseNameSnapshot = es.exerciseNameSnapshot,
@@ -126,55 +109,133 @@ class WorkoutSessionRepository @Inject constructor(
                 sortOrder = es.sortOrder, isSkipped = es.isSkipped,
             ) to sets.map { it.toDomain() }
         }
-        return WorkoutSessionDetail(session = sw.session.toDomain(), exercises = exerciseDetails)
+        return WorkoutSessionDetail(session = sw.session.toDomain(), exercises = details)
     }
 
-    fun getHistory(): Flow<List<DomainWorkoutSession>> =
-        sessionDao.getHistory().map { list -> list.map { it.toDomain() } }
+    fun getHistory(): Flow<List<DomainWorkoutSession>> = sessionDao.getHistory().map { l -> l.map { it.toDomain() } }
 
-    // ── Update ──────────────────────────────────────────────────────────────
+    // ── Set Operations ──────────────────────────────────────────────────────
+
+    suspend fun completeSet(
+        setRecordId: Long, reps: Int?, weightKg: Double?, rpe: Double?, rir: Int?,
+        setType: String = "WORKING",
+    ) {
+        validateSetData(reps, weightKg, rpe, rir)
+        val s = setRecordDao.getById(setRecordId) ?: throw IllegalStateException("Set不存在")
+        setRecordDao.update(s.copy(
+            reps = reps, weightKg = weightKg, rpe = rpe?.coerceIn(1.0, 10.0),
+            rir = rir?.coerceIn(0, 5), setType = setType,
+            completed = true, updatedAt = System.currentTimeMillis(),
+        ))
+    }
+
+    suspend fun updateSetRecord(
+        setRecordId: Long, reps: Int?, weightKg: Double?, rpe: Double?, rir: Int?,
+    ) {
+        validateSetData(reps, weightKg, rpe, rir)
+        val s = setRecordDao.getById(setRecordId) ?: return
+        setRecordDao.update(s.copy(
+            reps = reps, weightKg = weightKg, rpe = rpe?.coerceIn(1.0, 10.0),
+            rir = rir?.coerceIn(0, 5), updatedAt = System.currentTimeMillis(),
+        ))
+    }
+
+    suspend fun updateSetType(setRecordId: Long, setType: String) {
+        val s = setRecordDao.getById(setRecordId) ?: return
+        setRecordDao.update(s.copy(setType = setType, updatedAt = System.currentTimeMillis()))
+    }
+
+    suspend fun addSet(exerciseSessionId: Long): Long {
+        val sets = setRecordDao.getByExerciseSession(exerciseSessionId)
+        val nextNum = (sets.maxOfOrNull { it.setNumber } ?: 0) + 1
+        return setRecordDao.insert(SetRecordEntity(
+            exerciseSessionId = exerciseSessionId, setNumber = nextNum,
+            setType = "WORKING", completed = false,
+        ))
+    }
+
+    suspend fun deleteIncompleteSet(setRecordId: Long) {
+        setRecordDao.deleteIfIncomplete(setRecordId)
+    }
+
+    suspend fun addExerciseToQuickWorkout(sessionId: Long, exerciseId: Long) {
+        val ex = exerciseDao.getById(exerciseId) ?: throw IllegalStateException("动作不存在")
+        val esId = exerciseSessionDao.insert(ExerciseSessionEntity(
+            sessionId = sessionId, exerciseId = exerciseId,
+            exerciseNameSnapshot = ex.name,
+            primaryMuscleGroupSnapshot = ex.primaryMuscleGroup,
+            targetSets = 3, plannedRestSeconds = 90,
+            sortOrder = (exerciseSessionDao.getBySession(sessionId).size),
+        ))
+        repeat(3) { setNum ->
+            setRecordDao.insert(SetRecordEntity(
+                exerciseSessionId = esId, setNumber = setNum + 1,
+                setType = "WORKING", completed = false,
+            ))
+        }
+    }
+
+    suspend fun skipExercise(exerciseSessionId: Long) {
+        exerciseSessionDao.setSkipped(exerciseSessionId, true)
+    }
+
+    suspend fun updateExerciseNotes(exerciseSessionId: Long, notes: String?) {
+        exerciseSessionDao.updateNotes(exerciseSessionId, notes)
+    }
+
+    // ── Status ──────────────────────────────────────────────────────────────
 
     suspend fun updateStatus(id: Long, status: WorkoutStatus) {
         val s = sessionDao.getById(id) ?: return
-        sessionDao.update(
-            s.copy(
-                status = status.name,
-                endTime = if (status in listOf(WorkoutStatus.COMPLETED, WorkoutStatus.PARTIALLY_COMPLETED, WorkoutStatus.CANCELLED))
-                    System.currentTimeMillis() else s.endTime,
-                updatedAt = System.currentTimeMillis(),
-                activeRestStartedAt = null,
-                activeRestDurationSeconds = null,
-                activeRestSetRecordId = null,
-            )
-        )
+        val isTerminal = status in listOf(WorkoutStatus.COMPLETED, WorkoutStatus.PARTIALLY_COMPLETED, WorkoutStatus.CANCELLED)
+        sessionDao.update(s.copy(
+            status = status.name, updatedAt = System.currentTimeMillis(),
+            endTime = if (isTerminal) System.currentTimeMillis() else s.endTime,
+            activeRestStartedAt = if (isTerminal) null else s.activeRestStartedAt,
+            activeRestDurationSeconds = if (isTerminal) null else s.activeRestDurationSeconds,
+            activeRestSetRecordId = if (isTerminal) null else s.activeRestSetRecordId,
+        ))
     }
 
     suspend fun updateRestState(sessionId: Long, startedAt: Long?, durationSeconds: Int?, setRecordId: Long?) {
         val s = sessionDao.getById(sessionId) ?: return
         sessionDao.update(s.copy(
-            activeRestStartedAt = startedAt,
-            activeRestDurationSeconds = durationSeconds,
-            activeRestSetRecordId = setRecordId,
-            updatedAt = System.currentTimeMillis(),
+            activeRestStartedAt = startedAt, activeRestDurationSeconds = durationSeconds,
+            activeRestSetRecordId = setRecordId, updatedAt = System.currentTimeMillis(),
         ))
     }
 
-    // ── Volume ──────────────────────────────────────────────────────────────
+    suspend fun getRestState(sessionId: Long): Triple<Long?, Int?, Long?> {
+        val s = sessionDao.getById(sessionId) ?: return Triple(null, null, null)
+        return Triple(s.activeRestStartedAt, s.activeRestDurationSeconds, s.activeRestSetRecordId)
+    }
 
-    suspend fun totalVolume(sessionId: Long): Double =
-        setRecordDao.totalVolumeForSession(sessionId) ?: 0.0
+    // ── Stats ───────────────────────────────────────────────────────────────
 
-    suspend fun completedSetCount(sessionId: Long): Int =
-        setRecordDao.completedSetCountForSession(sessionId)
+    suspend fun totalVolume(sessionId: Long): Double = setRecordDao.totalVolumeForSession(sessionId) ?: 0.0
+    suspend fun completedSetCount(sessionId: Long): Int = setRecordDao.completedSetCountForSession(sessionId)
+    suspend fun completedExerciseCount(sessionId: Long): Int {
+        val exercises = exerciseSessionDao.getBySession(sessionId)
+        return exercises.count { es ->
+            setRecordDao.completedSetCount(es.id) > 0
+        }
+    }
+
+    // ── Validation ──────────────────────────────────────────────────────────
+
+    private fun validateSetData(reps: Int?, weightKg: Double?, rpe: Double?, rir: Int?) {
+        if (reps != null && reps < 0) throw InvalidSetDataException("次数不能为负数")
+        if (weightKg != null && weightKg < 0) throw InvalidSetDataException("重量不能为负数")
+        if (rpe != null && (rpe < 1.0 || rpe > 10.0)) throw InvalidSetDataException("RPE范围1.0-10.0")
+        if (rir != null && (rir < 0 || rir > 5)) throw InvalidSetDataException("RIR范围0-5")
+    }
 
     // ── Mapping ─────────────────────────────────────────────────────────────
 
     private fun WorkoutSessionEntity.toDomain() = DomainWorkoutSession(
         id = id, scheduleId = scheduleId, templateId = templateId,
-        templateNameSnapshot = templateNameSnapshot,
-        date = LocalDate.ofEpochDay(date),
-        startTime = Instant.ofEpochMilli(startTime),
-        endTime = endTime?.let { Instant.ofEpochMilli(it) },
+        templateNameSnapshot = templateNameSnapshot, date = LocalDate.ofEpochDay(date),
+        startTime = Instant.ofEpochMilli(startTime), endTime = endTime?.let { Instant.ofEpochMilli(it) },
         status = try { WorkoutStatus.valueOf(status) } catch (_: Exception) { WorkoutStatus.IN_PROGRESS },
         notes = notes,
     )
