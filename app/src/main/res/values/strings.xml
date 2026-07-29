@@ -154,4 +154,26 @@
     <string name="exercise_picker_empty_title">没有动作</string>
     <string name="exercise_picker_empty_subtitle">请先在动作库中创建动作</string>
     <string name="exercise_picker_add">添加</string>
+
+    <!-- Calendar -->
+    <string name="calendar_today">今天</string>
+    <string name="calendar_today_tag">今天</string>
+    <string name="calendar_prev_month">上月</string>
+    <string name="calendar_next_month">下月</string>
+    <string name="calendar_templates">模板</string>
+    <string name="calendar_exercises">动作库</string>
+    <string name="calendar_mon">一</string>
+    <string name="calendar_tue">二</string>
+    <string name="calendar_wed">三</string>
+    <string name="calendar_thu">四</string>
+    <string name="calendar_fri">五</string>
+    <string name="calendar_sat">六</string>
+    <string name="calendar_sun">日</string>
+    <string name="calendar_no_workouts">暂无训练</string>
+    <string name="calendar_status_scheduled">已安排</string>
+    <string name="calendar_status_rescheduled">已调整</string>
+    <string name="calendar_status_skipped">已跳过</string>
+    <string name="calendar_status_in_progress">进行中</string>
+    <string name="calendar_status_completed">已完成</string>
+    <string name="calendar_status_cancelled">已取消</string>
 </resources>

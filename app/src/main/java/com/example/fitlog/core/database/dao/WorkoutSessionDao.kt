@@ -51,4 +51,11 @@ interface WorkoutSessionDao {
 
     @Query("SELECT * FROM workout_sessions WHERE schedule_id = :scheduleId AND occurrence_date = :occurrenceDate LIMIT 1")
     suspend fun getByScheduleAndOccurrence(scheduleId: Long, occurrenceDate: Long): WorkoutSessionEntity?
+
+    @Query("""
+        SELECT * FROM workout_sessions
+        WHERE date >= :startEpochDay AND date <= :endEpochDay
+        ORDER BY date ASC
+    """)
+    suspend fun getByDateRange(startEpochDay: Long, endEpochDay: Long): List<WorkoutSessionEntity>
 }

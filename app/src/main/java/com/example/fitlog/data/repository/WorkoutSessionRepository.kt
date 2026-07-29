@@ -41,10 +41,23 @@ class WorkoutSessionRepository @Inject constructor(
 
     // ── Create (atomic) ─────────────────────────────────────────────────────
 
-    suspend fun createFromTemplate(templateId: Long, date: LocalDate = LocalDate.now()): Long {
+    suspend fun createFromTemplate(
+        templateId: Long,
+        date: LocalDate = LocalDate.now(),
+        scheduleId: Long? = null,
+        occurrenceDate: Long? = null,
+    ): Long {
         return db.withTransaction {
             val existing = sessionDao.getInProgress()
             if (existing != null) throw WorkoutInProgressException(existing.id)
+
+            // Prevent duplicate starts: if scheduleId+occurrenceDate provided, check for existing session
+            if (scheduleId != null && occurrenceDate != null) {
+                val existingScheduleSession = sessionDao.getByScheduleAndOccurrence(scheduleId, occurrenceDate)
+                if (existingScheduleSession != null) {
+                    throw IllegalStateException("该训练日程已有训练记录")
+                }
+            }
 
             val template = templateDao.getByIdWithExercises(templateId)
                 ?: throw IllegalStateException("模板不存在或已停用")
@@ -54,6 +67,7 @@ class WorkoutSessionRepository @Inject constructor(
                 templateId = templateId, templateNameSnapshot = template.template.name,
                 date = date.toEpochDay(), startTime = System.currentTimeMillis(),
                 status = WorkoutStatus.IN_PROGRESS.name,
+                scheduleId = scheduleId, occurrenceDate = occurrenceDate,
             ))
             template.exercises.forEachIndexed { index, te ->
                 val ex = exerciseDao.getById(te.exerciseId)

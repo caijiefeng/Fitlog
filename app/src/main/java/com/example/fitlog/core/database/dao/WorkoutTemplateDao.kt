@@ -17,6 +17,9 @@ interface WorkoutTemplateDao {
     @Query("SELECT * FROM workout_templates WHERE is_active = 1 ORDER BY sort_order ASC, name ASC")
     fun getAllActive(): Flow<List<WorkoutTemplateEntity>>
 
+    @Query("SELECT * FROM workout_templates WHERE is_active = 1 ORDER BY sort_order ASC, name ASC")
+    suspend fun getAllActiveList(): List<WorkoutTemplateEntity>
+
     @Transaction
     @Query("SELECT * FROM workout_templates WHERE is_active = 1 ORDER BY sort_order ASC, name ASC")
     fun getAllWithExercises(): Flow<List<TemplateWithExercises>>
