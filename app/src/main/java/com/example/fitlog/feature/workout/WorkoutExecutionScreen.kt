@@ -61,7 +61,6 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
-import com.example.fitlog.core.designsystem.theme.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
