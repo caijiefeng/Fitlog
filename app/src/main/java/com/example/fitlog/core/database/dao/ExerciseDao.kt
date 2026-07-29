@@ -41,6 +41,12 @@ interface ExerciseDao {
     @Query("SELECT COUNT(*) FROM exercises WHERE is_active = 1 AND name = :name")
     suspend fun countByName(name: String): Int
 
+    @Query("SELECT * FROM exercises ORDER BY sort_order ASC, name ASC")
+    suspend fun getAll(): List<ExerciseEntity>
+
+    @Query("SELECT COUNT(*) FROM exercises")
+    suspend fun countAll(): Int
+
     @Query("SELECT COUNT(*) FROM exercises WHERE is_active = 1")
     suspend fun count(): Int
 }

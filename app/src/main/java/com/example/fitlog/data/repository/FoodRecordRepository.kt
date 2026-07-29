@@ -65,6 +65,11 @@ class FoodRecordRepository @Inject constructor(
         return foodRecordDao.getByDate(date.toEpochDay()).map { it.toDomain() }
     }
 
+    suspend fun getByDateRange(start: LocalDate, end: LocalDate): List<FoodRecord> {
+        return foodRecordDao.getByDateRange(start.toEpochDay(), end.toEpochDay())
+            .map { it.toDomain() }
+    }
+
     fun observeByDate(date: LocalDate): Flow<List<FoodRecord>> {
         return foodRecordDao.observeByDate(date.toEpochDay()).map { list ->
             list.map { it.toDomain() }

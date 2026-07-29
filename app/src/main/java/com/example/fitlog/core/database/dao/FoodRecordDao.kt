@@ -29,6 +29,9 @@ interface FoodRecordDao {
     @Query("SELECT * FROM food_records WHERE date = :epochDay ORDER BY id ASC")
     fun observeByDate(epochDay: Long): Flow<List<FoodRecordEntity>>
 
+    @Query("SELECT * FROM food_records ORDER BY date ASC, id ASC")
+    suspend fun getAll(): List<FoodRecordEntity>
+
     @Query("SELECT SUM(calories) FROM food_records WHERE date = :epochDay")
     suspend fun getTotalCaloriesByDate(epochDay: Long): Double?
 
@@ -40,4 +43,7 @@ interface FoodRecordDao {
 
     @Query("SELECT SUM(fat_grams) FROM food_records WHERE date = :epochDay")
     suspend fun getTotalFatByDate(epochDay: Long): Double?
+
+    @Query("SELECT COUNT(*) FROM food_records")
+    suspend fun count(): Int
 }

@@ -24,4 +24,10 @@ interface CheckInDao {
 
     @Query("SELECT * FROM check_ins WHERE date >= :start AND date <= :end ORDER BY date ASC")
     fun observeByDateRange(start: Long, end: Long): Flow<List<CheckInEntity>>
+
+    @Query("SELECT * FROM check_ins ORDER BY date ASC")
+    suspend fun getAll(): List<CheckInEntity>
+
+    @Query("SELECT COUNT(*) FROM check_ins")
+    suspend fun count(): Int
 }

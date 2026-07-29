@@ -42,4 +42,10 @@ interface WorkoutPlanOverrideDao {
 
     @Query("SELECT * FROM workout_plan_overrides ORDER BY created_at DESC")
     fun observeAll(): Flow<List<WorkoutPlanOverrideEntity>>
+
+    @Query("SELECT * FROM workout_plan_overrides ORDER BY occurrence_date ASC")
+    suspend fun getAll(): List<WorkoutPlanOverrideEntity>
+
+    @Query("SELECT COUNT(*) FROM workout_plan_overrides")
+    suspend fun count(): Int
 }

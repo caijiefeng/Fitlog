@@ -59,11 +59,11 @@
 
 ---
 
-## V3 — Calendar, Scheduling & Reminders
+## V3 — Calendar, Scheduling & Reminders ✅
 
-**Goal**: Users can see workouts on a calendar, receive reminders, reschedule, skip, and check in.
+**Status**: Complete
 
-**Scope**:
+**Deliverables**:
 - Calendar view with workout indicators
 - Workout scheduling: reschedule, postpone, skip
 - Workout notifications and reminders with timezone support
@@ -76,80 +76,50 @@
 
 ---
 
-## V4 — User Profile, Body Measurements & Trends
+## V4 — User Profile, Body Measurements & Trends ✅
 
-**Goal**: User profile setup, body measurement tracking, and trend statistics.
+**Status**: Complete
 
-**Scope**:
-- Room entities: UserProfile, BodyMeasurement, PersonalRecord
+**Deliverables**:
+- Room entities: UserProfile, BodyMeasurement
 - Onboarding (birthDate, height, gender)
 - Body measurement entry form
 - Measurement history list
 - Weight trend chart
-- Body measurement trend charts (waist, hips, arms, thighs)
-- PersonalRecord tracking (1RM, max volume, max reps)
+- Body measurement trend charts (waist)
 - Profile tab populated with real data
 - Current weight/BF% derived from latest BodyMeasurement
+- Goal planning with timeline estimation
 
-**Tests**: Measurement entry validation, trend calculations, PR detection
-
----
-
-## V5 — Nutrition: TDEE, Targets & Meal Logging
-
-**Goal**: Meal logging with macro tracking, TDEE calculation, and per-meal budgets.
-
-**Scope**:
-- Room entities: Food, Meal, MealEntry, DailyNutritionTarget
-- TDEE calculator (Mifflin-St Jeor or similar)
-- Daily calorie/macro targets
-- Target body fat percentage goal
-- Per-meal calorie and macro budgets
-- Food library (common foods + custom)
-- Meal logging UI
-- Daily nutrition summary on Today tab
-- Nutrition history on Progress tab
-
-**Tests**: TDEE calculation accuracy, macro aggregation, meal budget allocation
+**Tests**: Measurement entry validation, trend calculations
 
 ---
 
-## V6 — CameraX Photo & Video
+## V5 — Nutrition, Media & Data Portability ✅ (MVP Beta)
 
-**Goal**: Progress photos and video with camera controls.
+**Status**: Beta complete
 
-**Scope**:
-- Room entity: MediaRecord
-- CameraX integration: photo and video capture
-- Exposure compensation control
-- Auto-focus and tap-to-focus
-- Pinch-to-zoom
-- Flash toggle
-- Photo/video saved to app-internal directory
-- Media gallery (browse, view full-screen)
+### Completed
+- **Nutrition tracking**: FoodRecord entity, meal logging (breakfast/lunch/dinner/snack), daily calorie/macro totals
+- **TDEE calculator**: Mifflin-St Jeor BMR, activity-level TDEE, goal-adjusted targets
+- **CameraX integration**: photo and video capture with exposure, focus, zoom controls
+- **Media management**: MediaRecord entity, app media storage, gallery, comparison view
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins (SAF, UTF-8 BOM, RFC 4180)
+- **Backup/Restore**: Full ZIP backup with manifest.json (version, SHA-256 checksum, row counts), db.json, media files. Pre-import backup, replace-strategy import with rollback
+
+### Remaining / Post-Beta Items
+- Food database (common foods + custom, barcode scanning)
+- Per-meal calorie/macro budgets (MealNutritionTarget)
+- Meal nutrition target entity (DailyNutritionTarget → per-meal budgets)
+- Health Connect integration (read/write weight, body fat, workouts)
 - Export selected media to system gallery
-- Media linked to sessions or measurements
+- PersonalRecord tracking (1RM, max volume, max reps)
 
-**Tests**: Camera integration tests, media storage paths, export verification
-
----
-
-## V7 — Health Connect, Export & Backup
-
-**Goal**: Cross-app data sharing via Health Connect, data portability.
-
-**Scope**:
-- Health Connect read: weight, body fat, workouts
-- Health Connect write: weight, workouts (optional)
-- CSV export: workouts, measurements, nutrition
-- JSON export: full data dump
-- App backup/restore (local file)
-
-**Tests**: Health Connect integration tests, export/import round-trip
+**Tests**: 50+ unit tests passing. CSV escape verification, manifest JSON round-trip, import validation (version, checksum, corrupt archive).
 
 ---
 
-## V8 — Smart Suggestions
+## V6 — Smart Suggestions
 
 **Goal**: Data-driven training and nutrition insights.
 
@@ -164,10 +134,38 @@
 
 ---
 
-## Future (Beyond V8)
+## V7 — Health Connect & Integrations
 
+**Goal**: Cross-app data sharing via Health Connect.
+
+**Scope**:
+- Health Connect read: weight, body fat, workouts
+- Health Connect write: weight, workouts (optional)
+- HealthConnectSyncLog entity
+
+**Tests**: Health Connect integration tests, sync verification
+
+---
+
+## V8 — Polish & Release
+
+**Goal**: Production-ready polish and distribution.
+
+**Scope**:
 - Home screen widget (today's workout)
 - Wear OS companion app
 - Exercise demonstration GIFs/videos
 - Training program templates (community)
 - Advanced periodization support (mesocycles)
+- Accessibility audit
+- Performance profiling
+- Play Store listing preparation
+
+---
+
+## Future (Beyond V8)
+
+- AI-powered training recommendations
+- Social features / sharing (optional opt-in)
+- Multi-device sync (encrypted)
+- Advanced analytics dashboard

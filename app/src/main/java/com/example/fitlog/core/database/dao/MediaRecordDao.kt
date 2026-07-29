@@ -61,4 +61,7 @@ interface MediaRecordDao {
 
     @Query("DELETE FROM media_records WHERE id IN (SELECT id FROM media_records ORDER BY captured_at ASC LIMIT :limit)")
     suspend fun deleteOldest(limit: Int): Int
+
+    @Query("SELECT COUNT(*) FROM media_records")
+    suspend fun count(): Int
 }

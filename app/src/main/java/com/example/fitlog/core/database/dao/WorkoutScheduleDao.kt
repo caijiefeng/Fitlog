@@ -17,6 +17,9 @@ interface WorkoutScheduleDao {
     @Query("SELECT * FROM workout_schedules WHERE is_active = 1 ORDER BY day_of_week ASC")
     suspend fun getAllActiveList(): List<WorkoutScheduleEntity>
 
+    @Query("SELECT * FROM workout_schedules ORDER BY day_of_week ASC")
+    suspend fun getAll(): List<WorkoutScheduleEntity>
+
     @Query("SELECT * FROM workout_schedules WHERE day_of_week = :dayOfWeek AND is_active = 1")
     suspend fun getByDayOfWeek(dayOfWeek: Int): WorkoutScheduleEntity?
 
@@ -53,4 +56,7 @@ interface WorkoutScheduleDao {
 
     @Query("DELETE FROM workout_schedules WHERE day_of_week = :dayOfWeek")
     suspend fun deleteByDayOfWeek(dayOfWeek: Int)
+
+    @Query("SELECT COUNT(*) FROM workout_schedules")
+    suspend fun count(): Int
 }

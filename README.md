@@ -4,7 +4,7 @@ A local-first, privacy-focused strength training tracker for Android.
 
 ## Status
 
-**V2** — Exercise library, templates, workout execution, set logging, rest timer. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan. V2: Workout execution and set logging.
+**V5 (MVP Beta)** — Exercise library, templates, workout execution, set logging, rest timer, calendar, scheduling, reminders, check-ins, user profile, body measurements, nutrition tracking with TDEE calculator, CameraX photo/video, progress photos, data export, and backup/restore. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ A local-first, privacy-focused strength training tracker for Android.
 - **Architecture**: MVVM with UDF, feature-package layout
 - **DI**: Hilt 2.53.1 + KSP
 - **Navigation**: Navigation Compose (string-based routes)
-- **Storage**: Room 2.6.1 (active), DataStore Preferences
+- **Storage**: Room 2.6.1 (database version 7), DataStore Preferences
 - **Build**: Gradle 8.11.1 + AGP 8.7.3 + Version Catalog
 - **Testing**: JUnit 4, MockK, Turbine, Compose Testing, Hilt Testing
 
@@ -37,7 +37,7 @@ A local-first, privacy-focused strength training tracker for Android.
 # Clean build
 ./gradlew clean
 
-# Unit tests (33+ tests)
+# Unit tests (50+ tests)
 ./gradlew test
 
 # Lint
@@ -50,7 +50,7 @@ A local-first, privacy-focused strength training tracker for Android.
 ./gradlew connectedDebugAndroidTest
 ```
 
-## Current Features (V1)
+## Current Features (V5 — MVP Beta)
 
 - 5-tab bottom navigation: 今日, 计划, 记录, 进度, 我的
 - Forced dark theme (black + white + single accent)
@@ -58,21 +58,31 @@ A local-first, privacy-focused strength training tracker for Android.
 - **Exercise library**: 45 built-in exercises across 11 muscle groups, search, filter, custom exercises
 - **Training templates**: create, edit, add exercises with target sets/reps/weight/RPE/RIR/rest
 - **Weekly scheduling**: assign templates to days (Mon-Sun), view on Plan tab
-- **Today**: shows scheduled workout template and exercise count
+- **Today**: shows scheduled workout template, exercise count, quick start, daily check-in
+- **Workout execution**: full-screen UI with set logging, set types (warmup/working/drop/failure), rest timer
+- **Workout history**: summary, detail, progress charts, streak tracking
+- **Calendar**: workout indicators, reschedule, postpone, skip
+- **Reminders**: notification scheduling with day-of-week selection
+- **Check-ins**: daily mood, energy level, notes
+- **User profile**: gender, birthday, height, activity level, goal type
+- **Body measurements**: weight, body fat, muscle, waist tracking with trends
+- **Nutrition**: meal logging, calorie/macro tracking, TDEE-based targets
+- **Progress photos**: camera capture, gallery, comparison view
+- **Trend charts**: weight, body fat, waist, calories, protein, training volume
+- **Goal planning**: target body fat, weight change, timeline estimation
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins via SAF
+- **Backup/Restore**: full ZIP backup with manifest and SHA-256 verification
 
 ## Not Yet Implemented
 
-- Workout execution and set logging (V2)
-- Calendar view, reminders, notifications (V3)
-- Calendar, scheduling, and reminders (V3)
-- User profile and body measurements (V4)
-- Nutrition tracking (V5)
-- CameraX photo/video (V6)
-- Health Connect, export, backup (V7)
+- Health Connect integration (V7)
+- Smart training suggestions (V8)
+- Home screen widget
+- Wear OS companion app
 
 ## Privacy
 
-FitLog is local-first. All data is stored on-device. No analytics, no cloud sync, no network requests. `android:allowBackup` is disabled — user data is only exported through explicit user-initiated actions (planned V7).
+FitLog is local-first. All data is stored on-device. No analytics, no cloud sync, no network requests. `android:allowBackup` is disabled — user data is only exported through explicit user-initiated actions. See [PRIVACY.md](docs/PRIVACY.md) for details.
 
 ## Project Structure
 
@@ -80,25 +90,35 @@ FitLog is local-first. All data is stored on-device. No analytics, no cloud sync
 app/src/main/java/com/example/fitlog/
 ├── core/
 │   ├── common/          # Result, DateTimeUtils
-│   ├── database/        # Room DB (deferred to V1)
+│   ├── database/        # Room DB (version 7, 14 DAOs, 15 entities)
 │   ├── datastore/       # UserPreferences
 │   ├── designsystem/    # Theme + reusable components
 │   ├── di/              # Hilt modules
+│   ├── media/           # Media storage, cleanup manager
 │   ├── model/           # Domain data classes
-│   └── navigation/      # NavHost, BottomBar
-├── feature/             # 5 tab screens
-│   ├── today/
-│   ├── plan/
-│   ├── record/
-│   ├── progress/
-│   └── profile/
-├── domain/              # UseCases
-└── di/                  # App-level Hilt module
+│   ├── navigation/      # NavHost, BottomBar
+│   └── time/            # AppClock, timezone utilities
+├── data/
+│   ├── backup/          # BackupManager, BackupImporter, BackupManifest
+│   ├── export/          # CsvExporter
+│   └── repository/      # 13 repositories
+├── feature/             # 15 feature packages
+├── domain/              # Use cases, domain logic (TDEE, goals, streaks)
+└── di/                  # App-level Hilt modules
 ```
+
+## Known Device Test Gaps
+
+- `connectedDebugAndroidTest` not executed — no device/emulator in CI
+- `ExerciseEditViewModel` save-path tests deferred to instrumentation (viewModelScope coroutine timing in Robolectric)
+- CameraX integration tests require a physical device
+- Media file path resolution tests require external storage
+- Backup/restore round-trip tests require file system I/O
+- Health Connect integration requires Android 14+ with Health Connect app
 
 ## Notes for Contributors
 
 - Do **not** commit `local.properties`, `.gradle/`, `.kotlin/`, `app/build/`, or `*.apk`.
 - These paths are covered by `.gitignore`.
 - See `docs/DECISIONS.md` for architecture decisions.
-- See `docs/DATA_MODEL.md` for the future database schema.
+- See `docs/DATA_MODEL.md` for the database schema.

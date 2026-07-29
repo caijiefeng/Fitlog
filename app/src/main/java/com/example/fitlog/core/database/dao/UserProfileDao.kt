@@ -18,4 +18,10 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profiles LIMIT 1")
     fun observe(): Flow<UserProfileEntity?>
+
+    @Query("SELECT * FROM user_profiles")
+    suspend fun getAll(): List<UserProfileEntity>
+
+    @Query("SELECT COUNT(*) FROM user_profiles")
+    suspend fun count(): Int
 }

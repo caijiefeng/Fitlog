@@ -28,6 +28,9 @@ interface WorkoutTemplateDao {
     @Query("SELECT * FROM workout_templates WHERE id = :id AND is_active = 1")
     suspend fun getByIdWithExercises(id: Long): TemplateWithExercises?
 
+    @Query("SELECT * FROM workout_templates ORDER BY sort_order ASC, name ASC")
+    suspend fun getAll(): List<WorkoutTemplateEntity>
+
     @Query("SELECT * FROM workout_templates WHERE id = :id")
     suspend fun getById(id: Long): WorkoutTemplateEntity?
 
