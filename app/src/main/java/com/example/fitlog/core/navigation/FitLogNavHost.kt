@@ -14,6 +14,8 @@ import com.example.fitlog.feature.plan.PlanScreen
 import com.example.fitlog.feature.profile.ProfileScreen
 import com.example.fitlog.feature.progress.ProgressScreen
 import com.example.fitlog.feature.record.RecordScreen
+import com.example.fitlog.feature.reminder.ReminderEditScreen
+import com.example.fitlog.feature.reminder.ReminderListScreen
 import com.example.fitlog.feature.template.TemplateEditScreen
 import com.example.fitlog.feature.template.TemplateListScreen
 import com.example.fitlog.feature.today.TodayScreen
@@ -39,6 +41,9 @@ object Routes {
     const val WORKOUT_SUMMARY = "workout/summary/{sessionId}"
     const val WORKOUT_DETAIL = "workout/detail/{sessionId}"
     const val EXERCISE_PICKER = "workout/exercise-picker/{sessionId}"
+    const val REMINDER_LIST = "reminder/list"
+    const val REMINDER_CREATE = "reminder/create"
+    const val REMINDER_EDIT = "reminder/edit/{reminderId}"
 
     fun exerciseEdit(id: Long) = "exercise/edit/$id"
     fun templateEdit(id: Long) = "template/edit/$id"
@@ -47,6 +52,7 @@ object Routes {
     fun workoutDetail(id: Long) = "workout/detail/$id"
     fun exercisePicker(id: Long) = "workout/exercise-picker/$id"
     fun calendarDay(epochDay: Long) = "calendar/day/$epochDay"
+    fun reminderEdit(id: Long) = "reminder/edit/$id"
 }
 
 @Composable
@@ -73,6 +79,7 @@ fun FitLogNavHost(
                 onNavigateToTemplates = { navController.navigate(Routes.TEMPLATE_LIST) },
                 onNavigateToSession = { id -> navController.navigate(Routes.workoutExecution(id)) },
                 onNavigateToDayDetail = { epochDay -> navController.navigate(Routes.calendarDay(epochDay)) },
+                onNavigateToReminders = { navController.navigate(Routes.REMINDER_LIST) },
             )
         }
         composable(BottomNavItem.Record.route) {
@@ -126,6 +133,30 @@ fun FitLogNavHost(
             arguments = listOf(navArgument("templateId") { type = NavType.LongType }),
         ) {
             TemplateEditScreen(
+                onSaved = { navController.popBackStack() },
+                onCancelled = { navController.popBackStack() },
+            )
+        }
+
+        // ── Reminder routes ─────────────────────────────────────────────────
+        composable(Routes.REMINDER_LIST) {
+            ReminderListScreen(
+                onNavigateToCreate = { navController.navigate(Routes.REMINDER_CREATE) },
+                onNavigateToEdit = { id -> navController.navigate(Routes.reminderEdit(id)) },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.REMINDER_CREATE) {
+            ReminderEditScreen(
+                onSaved = { navController.popBackStack() },
+                onCancelled = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.REMINDER_EDIT,
+            arguments = listOf(navArgument("reminderId") { type = NavType.LongType }),
+        ) {
+            ReminderEditScreen(
                 onSaved = { navController.popBackStack() },
                 onCancelled = { navController.popBackStack() },
             )

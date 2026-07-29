@@ -33,6 +33,8 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
+import com.example.fitlog.feature.checkin.CheckInCard
+import com.example.fitlog.feature.checkin.CheckInViewModel
 import java.util.Calendar
 
 @Composable
@@ -144,6 +146,8 @@ fun TodayScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+                CheckInCard(viewModel = hiltViewModel())
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionHeader(title = stringResource(R.string.section_quick_actions))
                 FitLogCard(onClick = { viewModel.onQuickStart() }) {

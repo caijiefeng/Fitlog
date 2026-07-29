@@ -63,6 +63,7 @@ fun CalendarScreen(
     onNavigateToTemplates: () -> Unit = {},
     onNavigateToSession: (Long) -> Unit = {},
     onNavigateToDayDetail: (Long) -> Unit = {},
+    topBarExtra: @Composable () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -80,6 +81,7 @@ fun CalendarScreen(
             TextButton(onClick = onNavigateToExercises) {
                 Text(stringResource(R.string.calendar_exercises), color = FitLogAccent)
             }
+            topBarExtra()
         }
 
         Spacer(modifier = Modifier.height(4.dp))

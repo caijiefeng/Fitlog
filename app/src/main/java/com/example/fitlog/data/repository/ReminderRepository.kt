@@ -86,6 +86,25 @@ class ReminderRepository @Inject constructor(
         }
 
     /**
+     * Observes all reminders as a Flow (enabled and disabled).
+     */
+    fun observeAll(): Flow<List<Reminder>> =
+        reminderDao.observeAll().map { list ->
+            list.map { it.toDomain() }
+        }
+
+    suspend fun getById(id: Long): Reminder? =
+        reminderDao.getById(id)?.toDomain()
+
+    /**
+     * Updates only the enabled/disabled state of a reminder.
+     */
+    suspend fun setEnabled(id: Long, enabled: Boolean) {
+        val entity = reminderDao.getById(id) ?: return
+        reminderDao.update(entity.copy(isEnabled = enabled, updatedAt = System.currentTimeMillis()))
+    }
+
+    /**
      * Deletes a reminder by [id].
      */
     suspend fun delete(id: Long) {
