@@ -7,13 +7,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,15 +31,16 @@ import java.util.Calendar
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel = hiltViewModel(),
+    onStartWorkout: (Long) -> Unit = {},
+    onResumeWorkout: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarMessage = stringResource(R.string.snackbar_v2_feature)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is TodayEvent.QuickStartNotAvailable -> snackbarHostState.showSnackbar(message = snackbarMessage)
+                is TodayEvent.StartWorkout -> onStartWorkout(event.sessionId)
+                is TodayEvent.ResumeWorkout -> onResumeWorkout(event.sessionId)
             }
         }
     }
@@ -51,7 +49,6 @@ fun TodayScreen(
 
     Scaffold(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_today)) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
         PageContainer(modifier = Modifier.padding(innerPadding)) {
@@ -62,11 +59,17 @@ fun TodayScreen(
             Spacer(modifier = Modifier.height(24.dp))
             SectionHeader(title = stringResource(R.string.section_todays_workout))
 
-            if (uiState.hasWorkoutToday) {
-                FitLogCard {
+            if (uiState.hasInProgressWorkout) {
+                FitLogCard(onClick = { viewModel.onStartWorkout() }) {
+                    Text("继续训练", style = MaterialTheme.typography.titleMedium, color = FitLogAccent)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("你有一个进行中的训练", style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
+                }
+            } else if (uiState.hasWorkoutToday) {
+                FitLogCard(onClick = { viewModel.onStartWorkout() }) {
                     Text(uiState.todayTemplateName ?: "", style = MaterialTheme.typography.titleMedium, color = FitLogTextPrimary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("${uiState.todayExerciseCount} 个动作", style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
+                    Text("${uiState.todayExerciseCount} 个动作 · 点击开始训练", style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
                 }
             } else {
                 EmptyState(

@@ -13,27 +13,32 @@ import com.example.fitlog.core.navigation.BottomNavItem
 import com.example.fitlog.core.navigation.FitLogBottomBar
 import com.example.fitlog.core.navigation.FitLogNavHost
 
+private val topLevelRoutes = BottomNavItem.items.map { it.route }.toSet()
+
 @Composable
 fun FitLogApp() {
     FitLogTheme {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
+        val showBottomBar = currentRoute in topLevelRoutes
 
         Scaffold(
             bottomBar = {
-                FitLogBottomBar(
-                    currentRoute = currentRoute,
-                    onNavigate = { item ->
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                if (showBottomBar) {
+                    FitLogBottomBar(
+                        currentRoute = currentRoute,
+                        onNavigate = { item ->
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
+                        },
+                    )
+                }
             },
             containerColor = FitLogBackground,
         ) { innerPadding ->

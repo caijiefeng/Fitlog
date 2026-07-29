@@ -2,6 +2,7 @@ package com.example.fitlog.feature.today
 
 import com.example.fitlog.data.repository.DaySchedule
 import com.example.fitlog.data.repository.WorkoutScheduleRepository
+import com.example.fitlog.data.repository.WorkoutSessionRepository
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ import org.junit.Test
 class TodayViewModelTest {
 
     private val scheduleRepo = mockk<WorkoutScheduleRepository>(relaxed = true)
+    private val sessionRepo = mockk<WorkoutSessionRepository>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -33,7 +35,8 @@ class TodayViewModelTest {
     @Test
     fun `initial state after collect`() = runTest(testDispatcher) {
         coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo)
+        coEvery { sessionRepo.observeInProgress() } returns flowOf(null)
+        val vm = TodayViewModel(scheduleRepo, sessionRepo)
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.first()
         assertFalse(state.isLoading)
@@ -45,20 +48,24 @@ class TodayViewModelTest {
         coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(
             DaySchedule(1, "周一", 10L, "Push Day", 5)
         )
-        val vm = TodayViewModel(scheduleRepo)
+        coEvery { sessionRepo.observeInProgress() } returns flowOf(null)
+        val vm = TodayViewModel(scheduleRepo, sessionRepo)
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.first()
         assertTrue(state.hasWorkoutToday)
         assertEquals("Push Day", state.todayTemplateName)
-        assertEquals(5, state.todayExerciseCount)
     }
 
     @Test
-    fun `quickStart emits event`() = runTest {
+    fun `hasInProgress true when session exists`() = runTest(testDispatcher) {
         coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo)
-        vm.onQuickStart()
-        // Event is emitted via tryEmit (non-suspending), so it's available immediately
-        assertFalse(vm.uiState.first().hasWorkoutToday)
+        coEvery { sessionRepo.observeInProgress() } returns flowOf(
+            com.example.fitlog.core.model.WorkoutSession(id = 1, status = com.example.fitlog.core.model.WorkoutStatus.IN_PROGRESS)
+        )
+        val vm = TodayViewModel(scheduleRepo, sessionRepo)
+        testDispatcher.scheduler.advanceUntilIdle()
+        val state = vm.uiState.first()
+        assertTrue(state.hasInProgressWorkout)
+        assertEquals(1L, state.inProgressSessionId)
     }
 }

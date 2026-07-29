@@ -16,6 +16,7 @@ import com.example.fitlog.feature.record.RecordScreen
 import com.example.fitlog.feature.template.TemplateEditScreen
 import com.example.fitlog.feature.template.TemplateListScreen
 import com.example.fitlog.feature.today.TodayScreen
+import com.example.fitlog.feature.workout.WorkoutExecutionScreen
 
 object Routes {
     const val TODAY = "today"
@@ -29,9 +30,15 @@ object Routes {
     const val TEMPLATE_LIST = "template/list"
     const val TEMPLATE_CREATE = "template/create"
     const val TEMPLATE_EDIT = "template/edit/{templateId}"
+    const val WORKOUT_EXECUTION = "workout/session/{sessionId}"
+    const val WORKOUT_SUMMARY = "workout/summary/{sessionId}"
+    const val WORKOUT_DETAIL = "workout/detail/{sessionId}"
 
     fun exerciseEdit(id: Long) = "exercise/edit/$id"
     fun templateEdit(id: Long) = "template/edit/$id"
+    fun workoutExecution(id: Long) = "workout/session/$id"
+    fun workoutSummary(id: Long) = "workout/summary/$id"
+    fun workoutDetail(id: Long) = "workout/detail/$id"
 }
 
 @Composable
@@ -45,7 +52,12 @@ fun FitLogNavHost(
         modifier = modifier,
     ) {
         // ── Top-level tabs ──────────────────────────────────────────────────
-        composable(BottomNavItem.Today.route) { TodayScreen() }
+        composable(BottomNavItem.Today.route) {
+            TodayScreen(
+                onStartWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
+                onResumeWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
+            )
+        }
         composable(BottomNavItem.Plan.route) {
             PlanScreen(
                 onNavigateToExercises = { navController.navigate(Routes.EXERCISE_LIST) },
@@ -101,6 +113,17 @@ fun FitLogNavHost(
             TemplateEditScreen(
                 onSaved = { navController.popBackStack() },
                 onCancelled = { navController.popBackStack() },
+            )
+        }
+
+        // ── Workout routes (full-screen, no bottom nav) ────────────────────
+        composable(
+            route = Routes.WORKOUT_EXECUTION,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType }),
+        ) {
+            WorkoutExecutionScreen(
+                onNavigateToSummary = { id -> navController.navigate(Routes.workoutSummary(id)) },
+                onNavigateBack = { navController.popBackStack() },
             )
         }
     }
