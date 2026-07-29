@@ -50,6 +50,7 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
+import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogCard as FitLogCardColor
@@ -100,12 +101,10 @@ fun NutritionScreen(
                     .padding(32.dp),
             )
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-            ) {
+            PageContainer(modifier = Modifier.padding(innerPadding)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                ) {
                 // Daily Summary Card
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -164,6 +163,7 @@ fun NutritionScreen(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+    }
     }
 
     // Food form dialog

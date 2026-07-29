@@ -43,6 +43,7 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
+import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -98,27 +99,26 @@ fun BodyMeasurementScreen(
                 )
             }
             else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(horizontal = 16.dp),
-                ) {
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SectionHeader(title = stringResource(R.string.body_measurement_history))
-                    }
+                PageContainer(modifier = Modifier.padding(innerPadding)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().weight(1f),
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            SectionHeader(title = stringResource(R.string.body_measurement_history))
+                        }
 
-                    items(uiState.measurements, key = { it.id }) { measurement ->
-                        MeasurementCard(
-                            measurement = measurement,
-                            onEdit = { viewModel.showEditForm(measurement) },
-                            onDelete = { viewModel.deleteMeasurement(measurement) },
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
+                        items(uiState.measurements, key = { it.id }) { measurement ->
+                            MeasurementCard(
+                                measurement = measurement,
+                                onEdit = { viewModel.showEditForm(measurement) },
+                                onDelete = { viewModel.deleteMeasurement(measurement) },
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
 
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
+                    }
                 }
             }
         }

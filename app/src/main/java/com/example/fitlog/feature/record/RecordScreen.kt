@@ -30,6 +30,7 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
+import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -52,58 +53,57 @@ fun RecordScreen(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_record)) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SectionHeader(title = stringResource(R.string.section_recent_training))
-            }
+        PageContainer(modifier = Modifier.padding(innerPadding)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().weight(1f),
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SectionHeader(title = stringResource(R.string.section_recent_training))
+                }
 
-            when {
-                uiState.isLoading -> {
-                    item {
-                        CircularProgressIndicator(
-                            color = FitLogAccent,
-                            modifier = Modifier.padding(32.dp),
-                        )
+                when {
+                    uiState.isLoading -> {
+                        item {
+                            CircularProgressIndicator(
+                                color = FitLogAccent,
+                                modifier = Modifier.padding(32.dp),
+                            )
+                        }
+                    }
+                    uiState.isEmpty -> {
+                        item {
+                            EmptyState(
+                                icon = Icons.Filled.EditNote,
+                                title = stringResource(R.string.empty_record_title),
+                                subtitle = stringResource(R.string.empty_record_subtitle),
+                            )
+                        }
+                    }
+                    else -> {
+                        items(uiState.sessions, key = { it.session.id }) { item ->
+                            HistoryCard(
+                                session = item.session,
+                                volume = item.volume,
+                                completedSetCount = item.completedSetCount,
+                                exerciseCount = item.exerciseCount,
+                                onClick = { onNavigateToWorkoutDetail(item.session.id) },
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
                     }
                 }
-                uiState.isEmpty -> {
-                    item {
-                        EmptyState(
-                            icon = Icons.Filled.EditNote,
-                            title = stringResource(R.string.empty_record_title),
-                            subtitle = stringResource(R.string.empty_record_subtitle),
-                        )
-                    }
-                }
-                else -> {
-                    items(uiState.sessions, key = { it.session.id }) { item ->
-                        HistoryCard(
-                            session = item.session,
-                            volume = item.volume,
-                            completedSetCount = item.completedSetCount,
-                            exerciseCount = item.exerciseCount,
-                            onClick = { onNavigateToWorkoutDetail(item.session.id) },
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
-                }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                SectionHeader(title = stringResource(R.string.section_body_data))
-                Text(
-                    stringResource(R.string.record_placeholder),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = FitLogTextSecondary,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader(title = stringResource(R.string.section_body_data))
+                    Text(
+                        stringResource(R.string.record_placeholder),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = FitLogTextSecondary,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }

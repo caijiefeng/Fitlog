@@ -26,6 +26,7 @@ import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
+import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -62,10 +63,7 @@ fun TodayScreen(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_today)) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(modifier = Modifier.padding(innerPadding)) {
-            Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-            ) {
+        ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(greeting),
@@ -164,7 +162,6 @@ fun TodayScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-            }
         }
     }
 }

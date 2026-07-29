@@ -10,8 +10,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Non-scrolling page container. Use when the page has its own scrolling
+ * mechanism (LazyColumn, LazyVerticalGrid, or its own verticalScroll).
+ */
 @Composable
 fun PageContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        content = content,
+    )
+}
+
+/**
+ * Scrollable page container. Use for pages that need vertical scroll
+ * but lack their own scrolling mechanism.
+ * Do NOT nest another verticalScroll or LazyColumn inside.
+ */
+@Composable
+fun ScrollablePageContainer(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {

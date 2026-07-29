@@ -1,6 +1,7 @@
 package com.example.fitlog
 
 import android.app.Application
+import android.util.Log
 import com.example.fitlog.core.database.seed.SeedInitializer
 import com.example.fitlog.feature.reminder.ReminderScheduler
 import dagger.hilt.android.HiltAndroidApp
@@ -23,9 +24,25 @@ class FitLogApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
         applicationScope.launch {
-            seedInitializer.initialize()
-            reminderScheduler.rescheduleAllEnabled()
+            runCatching {
+                seedInitializer.initialize()
+            }.onFailure {
+                Log.e(TAG, "Seed initialization failed", it)
+            }
         }
+
+        applicationScope.launch {
+            runCatching {
+                reminderScheduler.rescheduleAllEnabled()
+            }.onFailure {
+                Log.e(TAG, "Reminder reschedule failed", it)
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "FitLogApp"
     }
 }

@@ -57,6 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
+import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogError
@@ -194,13 +195,11 @@ fun ReminderListScreen(
                 )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            PageContainer(modifier = Modifier.padding(padding)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
 
                 items(
@@ -218,6 +217,7 @@ fun ReminderListScreen(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+    }
     }
 }
 

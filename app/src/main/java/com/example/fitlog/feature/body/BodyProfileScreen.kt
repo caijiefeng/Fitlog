@@ -1,6 +1,7 @@
 package com.example.fitlog.feature.body
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
+import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
@@ -63,24 +65,23 @@ fun BodyProfileScreen(
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        if (uiState.isLoading) {
-            CircularProgressIndicator(
-                color = FitLogAccent,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-            )
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
+        PageContainer(modifier = Modifier.padding(innerPadding)) {
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = FitLogAccent)
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                // Gender dropdown
+                    // Gender dropdown
                 FitLogCard {
                     Text(
                         text = stringResource(R.string.body_profile_gender),
@@ -248,6 +249,7 @@ fun BodyProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
     }
 }
 

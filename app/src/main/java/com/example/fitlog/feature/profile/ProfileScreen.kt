@@ -24,7 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
-import com.example.fitlog.core.designsystem.component.PageContainer
+import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
@@ -41,7 +41,7 @@ fun ProfileScreen(
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(
+        ScrollablePageContainer(
             modifier = Modifier.padding(innerPadding),
         ) {
             Spacer(modifier = Modifier.height(8.dp))

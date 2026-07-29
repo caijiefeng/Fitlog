@@ -5,12 +5,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import com.example.fitlog.data.repository.ReminderRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.example.fitlog.MainActivity
-import kotlinx.coroutines.runBlocking
-import java.time.DayOfWeek
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -23,32 +20,32 @@ class ReminderScheduler @Inject constructor(
 ) {
 
     companion object {
+        private const val TAG = "ReminderScheduler"
         private const val REQUEST_CODE_BASE = 3000
-
-        /** Custom action used for alarm PendingIntents. */
         const val ACTION_REMINDER_ALARM = "com.example.fitlog.action.REMINDER_ALARM"
     }
 
     private val alarmManager: AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    /**
-     * Schedules a one-shot alarm for the next occurrence of this reminder.
-     * Replaces any previously scheduled alarm for the same [reminder.id].
-     */
     fun scheduleReminder(reminder: com.example.fitlog.domain.reminder.Reminder) {
         if (!reminder.isEnabled) return
         if (reminder.daysOfWeekMask == 0) return
+        val timeMinutes = reminder.timeOfDayMinutes.coerceIn(0, 1439)
+        if (timeMinutes != reminder.timeOfDayMinutes) {
+            Log.w(TAG, "Invalid timeOfDayMinutes ${reminder.timeOfDayMinutes} for reminder ${reminder.id}, clamped to $timeMinutes")
+        }
 
         val zoneId = try {
             ZoneId.of(reminder.zoneId)
         } catch (_: Exception) {
+            Log.w(TAG, "Invalid zoneId '${reminder.zoneId}' for reminder ${reminder.id}, using system default")
             ZoneId.systemDefault()
         }
 
         val nextTrigger = computeNextTrigger(
             daysOfWeekMask = reminder.daysOfWeekMask,
-            timeOfDayMinutes = reminder.timeOfDayMinutes,
+            timeOfDayMinutes = timeMinutes,
             zoneId = zoneId,
         ) ?: return
 
@@ -64,29 +61,21 @@ class ReminderScheduler @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val showIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            data = Uri.parse("fitlog://reminder/${reminder.id}")
+        // Use non-exact alarm (setWindow) — no SCHEDULE_EXACT_ALARM permission needed
+        val triggerMillis = nextTrigger.toEpochSecond() * 1000
+        val windowMillis = 15 * 60 * 1000L
+        try {
+            alarmManager.setWindow(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                windowMillis,
+                pendingIntent,
+            )
+        } catch (e: SecurityException) {
+            Log.e(TAG, "SecurityException scheduling reminder ${reminder.id}", e)
         }
-        val showPendingIntent = PendingIntent.getActivity(
-            context,
-            REQUEST_CODE_BASE + reminder.id.toInt(),
-            showIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        alarmManager.setAlarmClock(
-            AlarmManager.AlarmClockInfo(
-                nextTrigger.toEpochSecond() * 1000,
-                showPendingIntent,
-            ),
-            pendingIntent,
-        )
     }
 
-    /**
-     * Cancels a previously scheduled alarm for [reminderId].
-     */
     fun cancelReminder(reminderId: Long) {
         val intent = Intent(ACTION_REMINDER_ALARM).apply {
             data = Uri.parse("fitlog://reminder/$reminderId")
@@ -105,65 +94,40 @@ class ReminderScheduler @Inject constructor(
     }
 
     /**
-     * Reschedules all enabled reminders.
-     * Call this on app startup and after BOOT_COMPLETED.
+     * Reschedules all enabled reminders. Each failure is logged individually
+     * so one bad reminder cannot prevent others from being scheduled.
      */
-    fun rescheduleAllEnabled() {
-        runBlocking {
-            val reminders = repository.getEnabledReminders()
-            reminders.forEach { scheduleReminder(it) }
+    suspend fun rescheduleAllEnabled() {
+        val reminders = repository.getEnabledReminders()
+        reminders.forEach { reminder ->
+            runCatching {
+                scheduleReminder(reminder)
+            }.onFailure {
+                Log.e(TAG, "Failed to schedule reminder ${reminder.id}", it)
+            }
         }
     }
 
-    /**
-     * Computes the next [ZonedDateTime] when this reminder should fire.
-     * Returns null if no day in the mask matches (mask == 0).
-     */
-    internal fun computeNextTrigger(
+    private fun computeNextTrigger(
         daysOfWeekMask: Int,
         timeOfDayMinutes: Int,
         zoneId: ZoneId,
     ): ZonedDateTime? {
-        if (daysOfWeekMask == 0) return null
+        if (daysOfWeekMask == 0 || daysOfWeekMask !in 1..127) return null
 
         val now = ZonedDateTime.now(zoneId)
-        val today = now.toLocalDate()
-        val targetTime = LocalTime.of(timeOfDayMinutes / 60, timeOfDayMinutes % 60)
+        val hour = timeOfDayMinutes / 60
+        val minute = timeOfDayMinutes % 60
 
-        // Check today first
-        if (isDayInMask(today.dayOfWeek, daysOfWeekMask)) {
-            val todayTrigger = ZonedDateTime.of(today, targetTime, zoneId)
-            if (todayTrigger.isAfter(now)) {
-                return todayTrigger
+        // Check up to 14 days ahead
+        for (offset in 0..13) {
+            val candidate = now.plusDays(offset.toLong())
+                .withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+            val dayBit = 1 shl ((candidate.dayOfWeek.value - 1) % 7)
+            if ((daysOfWeekMask and dayBit) != 0 && candidate.isAfter(now)) {
+                return candidate
             }
         }
-
-        // Find the next day
-        var checkDate = today.plusDays(1)
-        for (_i in 0 until 7) {
-            if (isDayInMask(checkDate.dayOfWeek, daysOfWeekMask)) {
-                return ZonedDateTime.of(checkDate, targetTime, zoneId)
-            }
-            checkDate = checkDate.plusDays(1)
-        }
-
-        return null // should not reach here if mask is valid
-    }
-
-    /**
-     * Returns true if [dayOfWeek]'s bit is set in the 7-bit mask.
-     * Bit 0 = Monday, Bit 6 = Sunday.
-     */
-    internal fun isDayInMask(dayOfWeek: DayOfWeek, mask: Int): Boolean {
-        val bit = when (dayOfWeek) {
-            DayOfWeek.MONDAY -> 0
-            DayOfWeek.TUESDAY -> 1
-            DayOfWeek.WEDNESDAY -> 2
-            DayOfWeek.THURSDAY -> 3
-            DayOfWeek.FRIDAY -> 4
-            DayOfWeek.SATURDAY -> 5
-            DayOfWeek.SUNDAY -> 6
-        }
-        return (mask shr bit) and 1 == 1
+        return null
     }
 }

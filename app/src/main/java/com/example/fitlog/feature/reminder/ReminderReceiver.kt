@@ -40,7 +40,7 @@ class ReminderReceiver : BroadcastReceiver() {
                 "android.intent.action.TIME_SET",
                 Intent.ACTION_TIMEZONE_CHANGED,
                 -> {
-                    scheduler.rescheduleAllEnabled()
+                    kotlinx.coroutines.runBlocking { scheduler.rescheduleAllEnabled() }
                 }
 
                 else -> {
