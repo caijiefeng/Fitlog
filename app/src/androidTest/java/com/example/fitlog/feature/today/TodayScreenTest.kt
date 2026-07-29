@@ -22,6 +22,7 @@ class TodayScreenTest {
     val composeTestRule = createComposeRule()
 
     private val mockScheduleRepo = mockk<WorkoutScheduleRepository>(relaxed = true)
+    private val mockSessionRepo = mockk<com.example.fitlog.data.repository.WorkoutSessionRepository>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -32,7 +33,7 @@ class TodayScreenTest {
     fun todayScreen_displaysTitleAndPlaceholderContent() {
         composeTestRule.setContent {
             FitLogTheme {
-                TodayScreen(viewModel = TodayViewModel(mockScheduleRepo))
+                TodayScreen(viewModel = TodayViewModel(mockScheduleRepo, mockSessionRepo))
             }
         }
 
