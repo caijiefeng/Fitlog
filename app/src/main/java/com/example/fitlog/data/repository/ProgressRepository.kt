@@ -4,8 +4,7 @@ import com.example.fitlog.core.database.dao.BodyMeasurementDao
 import com.example.fitlog.core.database.dao.FoodRecordDao
 import com.example.fitlog.core.database.dao.SetRecordDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
-import com.example.fitlog.core.database.entity.BodyMeasurementEntity
-import com.example.fitlog.core.database.entity.WorkoutSessionEntity
+import com.example.fitlog.core.time.CurrentDateProvider
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,14 +47,16 @@ class ProgressRepository @Inject constructor(
     private val foodRecordDao: FoodRecordDao,
     private val workoutSessionDao: WorkoutSessionDao,
     private val setRecordDao: SetRecordDao,
+    private val currentDateProvider: CurrentDateProvider,
 ) {
 
     /**
      * Returns aggregated trend points within [range], ordered by date ascending.
      *
      * Body measurements join on epochDay.  Food records sum per day in bulk.
-     * Workout volume sums per session in bulk.  The three lists are merged
-     * into [TrendPoint] instances — one per date where any metric exists.
+     * Workout volume sums per day in bulk via [SetRecordDao.getDailyVolumeByDateRange].
+     * The three lists are merged into [TrendPoint] instances — one per date
+     * where any metric exists.
      */
     suspend fun getTrendPoints(range: TrendRange): List<TrendPoint> {
         val (startEpochDay, endEpochDay) = computeRange(range)
@@ -73,28 +74,26 @@ class ProgressRepository @Inject constructor(
 
         // ── Food records — aggregate sums per day in one pass ──────────
         val foodRows = foodRecordDao.getByDateRange(startEpochDay, endEpochDay)
-        val foodSums = mutableMapOf<Long, DoubleArray>() // epochDay -> [calories, protein]
+        // epochDay -> Pair(sum, hasValue) for [calories, protein]
+        val foodSums = mutableMapOf<Long, FoodAccumulator>()
         for (f in foodRows) {
-            val sums = foodSums.getOrPut(f.date) { doubleArrayOf(0.0, 0.0) }
-            f.calories?.let { sums[0] += it }
-            f.proteinGrams?.let { sums[1] += it }
+            val acc = foodSums.getOrPut(f.date) { FoodAccumulator() }
+            f.calories?.let { acc.caloriesSum += it; acc.hasCalories = true }
+            f.proteinGrams?.let { acc.proteinSum += it; acc.hasProtein = true }
         }
-        for ((epochDay, sums) in foodSums) {
+        for ((epochDay, acc) in foodSums) {
             points.getOrPut(epochDay) { TrendPointBuilder() }.apply {
-                calories = sums[0]
-                protein = sums[1]
+                calories = if (acc.hasCalories) acc.caloriesSum else null
+                protein = if (acc.hasProtein) acc.proteinSum else null
             }
         }
 
-        // ── Workout volume — aggregate per session in one pass ─────────
-        val sessions = workoutSessionDao.getByDateRange(startEpochDay, endEpochDay)
-        val terminalStatuses = setOf("COMPLETED", "PARTIALLY_COMPLETED")
-        for (session in sessions) {
-            if (session.status !in terminalStatuses) continue
-            val volume = setRecordDao.totalVolumeForSession(session.id) ?: 0.0
-            if (volume > 0.0) {
-                points.getOrPut(session.date) { TrendPointBuilder() }.apply {
-                    this.volume = (this.volume ?: 0.0) + volume
+        // ── Workout volume — batch query per date range ────────────────
+        val dailyVolumes = setRecordDao.getDailyVolumeByDateRange(startEpochDay, endEpochDay)
+        for (dv in dailyVolumes) {
+            if (dv.volume > 0.0) {
+                points.getOrPut(dv.date) { TrendPointBuilder() }.apply {
+                    volume = (this.volume ?: 0.0) + dv.volume
                 }
             }
         }
@@ -118,13 +117,24 @@ class ProgressRepository @Inject constructor(
     // ── Helpers ────────────────────────────────────────────────────────
 
     private fun computeRange(range: TrendRange): Pair<Long, Long> {
-        val today = LocalDate.now()
+        val today = currentDateProvider.today()
         val start = if (range.days < 0) {
             LocalDate.ofEpochDay(0) // earliest representable
         } else {
             today.minusDays(range.days.toLong() - 1)
         }
         return start.toEpochDay() to today.toEpochDay()
+    }
+
+    /**
+     * Accumulates food-nutrient values per day, tracking whether any non-null
+     * values were seen so the result can be null (not 0) when all values are null.
+     */
+    private class FoodAccumulator {
+        var caloriesSum: Double = 0.0
+        var hasCalories: Boolean = false
+        var proteinSum: Double = 0.0
+        var hasProtein: Boolean = false
     }
 
     /**

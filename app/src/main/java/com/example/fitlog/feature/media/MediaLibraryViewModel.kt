@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitlog.data.repository.MediaRecord
 import com.example.fitlog.data.repository.MediaRepository
+import com.example.fitlog.domain.media.MediaCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,12 +31,12 @@ data class MediaDateGroup(
     val items: List<MediaRecord>,
 )
 
-enum class MediaCategoryFilter(val queryValue: String?, val labelResName: String) {
+enum class MediaCategoryFilter(val queryValue: MediaCategory?, val labelResName: String) {
     ALL(null, "media_category_all"),
-    BODY_PROGRESS("BODY_PROGRESS", "media_category_body_progress"),
-    WORKOUT_FORM("WORKOUT_FORM", "media_category_workout_form"),
-    MEAL("MEAL", "media_category_meal"),
-    GENERAL("GENERAL", "media_category_general"),
+    BODY_PROGRESS(MediaCategory.BODY_PROGRESS, "media_category_body_progress"),
+    WORKOUT_FORM(MediaCategory.WORKOUT_FORM, "media_category_workout_form"),
+    MEAL(MediaCategory.MEAL, "media_category_meal"),
+    GENERAL(MediaCategory.GENERAL, "media_category_general"),
 }
 
 @HiltViewModel

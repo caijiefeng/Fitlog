@@ -1,6 +1,7 @@
 package com.example.fitlog.core.media
 
 import android.content.Context
+import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileOutputStream
@@ -19,8 +20,8 @@ import javax.inject.Singleton
  *
  * Write flow:
  * 1. Call [createPendingPhoto] or [createPendingVideo] to get a temporary
- *    `.pending` output stream.
- * 2. Write the media data.
+ *    `.pending` file handle.
+ * 2. Write the media data using [PendingMedia.file] (append `.pending`).
  * 3. Call [commitPendingMedia] to atomically rename the `.pending` file
  *    to its final name and return the relative path.
  * 4. Call [discardPendingMedia] to delete a `.pending` file if the
@@ -32,39 +33,52 @@ class AppMediaStorage @Inject constructor(
 ) {
 
     companion object {
-        private const val PHOTO_DIR = "Pictures"
-        private const val VIDEO_DIR = "Movies"
+        private const val PICTURES_SUBDIR = "Pictures"
+        private const val VIDEOS_SUBDIR = "Movies"
+        private const val FITLOG_SUBDIR = "FitLog"
         private const val PENDING_SUFFIX = ".pending"
         private const val RANDOM_SUFFIX_LENGTH = 8
-
-        /**
-         * Characters used for the random filename suffix.
-         */
         private val RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray()
     }
 
     private val random = SecureRandom()
 
-    /** Root directory for pictures, relative to the app's external files dir. */
+    /**
+     * Root directory for pictures.
+     * Uses [Context.getExternalFilesDir] with [Environment.DIRECTORY_PICTURES]
+     * and a "FitLog" subdirectory so files are scoped to the app.
+     */
     private val picturesDir: File
         get() = File(
-            context.getExternalFilesDir(null),
-            PHOTO_DIR,
+            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+            FITLOG_SUBDIR,
         ).also { it.mkdirs() }
-
-    /** Root directory for videos, relative to the app's external files dir. */
-    private val videosDir: File
-        get() = File(
-            context.getExternalFilesDir(null),
-            VIDEO_DIR,
-        ).also { it.mkdirs() }
-
-    // ── Pending file creation ─────────────────────────────────────────────
 
     /**
-     * Creates a pending photo file and returns a [PendingMedia] handle
-     * containing the output stream and the target file path (before the
-     * final rename).
+     * Root directory for videos.
+     * Uses [Context.getExternalFilesDir] with [Environment.DIRECTORY_MOVIES]
+     * and a "FitLog" subdirectory so files are scoped to the app.
+     */
+    private val videosDir: File
+        get() = File(
+            context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
+            FITLOG_SUBDIR,
+        ).also { it.mkdirs() }
+
+    // ── Public root accessors ────────────────────────────────────────────────
+
+    /** Returns the canonical root directory for picture media. */
+    fun pictureRoot(): File = picturesDir.canonicalFile
+
+    /** Returns the canonical root directory for video media. */
+    fun videoRoot(): File = videosDir.canonicalFile
+
+    // ── Pending file creation ────────────────────────────────────────────────
+
+    /**
+     * Creates a pending photo file and returns a [PendingMedia] handle.
+     * The output **stream** is no longer part of [PendingMedia]; use
+     * [PendingMedia.file] (with `.pending` suffix) to write data.
      */
     fun createPendingPhoto(
         mimeType: String,
@@ -73,17 +87,19 @@ class AppMediaStorage @Inject constructor(
         val fileName = generateFileName(extension)
         val pendingFile = File(picturesDir, "$fileName$PENDING_SUFFIX")
         pendingFile.parentFile?.mkdirs()
-        val outputStream = FileOutputStream(pendingFile)
+        // Touch the file so it exists on disk
+        pendingFile.createNewFile()
         return PendingMedia(
-            outputStream = outputStream,
             pendingFile = pendingFile,
             finalFile = File(picturesDir, fileName),
-            relativePath = "$PHOTO_DIR/$fileName",
+            relativePath = "$PICTURES_SUBDIR/$FITLOG_SUBDIR/$fileName",
         )
     }
 
     /**
      * Creates a pending video file and returns a [PendingMedia] handle.
+     * The output **stream** is no longer part of [PendingMedia]; use
+     * [PendingMedia.file] (with `.pending` suffix) to write data.
      */
     fun createPendingVideo(
         mimeType: String,
@@ -92,29 +108,22 @@ class AppMediaStorage @Inject constructor(
         val fileName = generateFileName(extension)
         val pendingFile = File(videosDir, "$fileName$PENDING_SUFFIX")
         pendingFile.parentFile?.mkdirs()
-        val outputStream = FileOutputStream(pendingFile)
+        pendingFile.createNewFile()
         return PendingMedia(
-            outputStream = outputStream,
             pendingFile = pendingFile,
             finalFile = File(videosDir, fileName),
-            relativePath = "$VIDEO_DIR/$fileName",
+            relativePath = "$VIDEOS_SUBDIR/$FITLOG_SUBDIR/$fileName",
         )
     }
 
-    // ── Commit / discard ──────────────────────────────────────────────────
+    // ── Commit / discard ─────────────────────────────────────────────────────
 
     /**
      * Atomically renames the pending file to its final name.
-     * The output stream is closed before the rename.
      *
      * @return the relative path that should be stored in the database.
      */
     fun commitPendingMedia(pending: PendingMedia): String {
-        try {
-            pending.outputStream.close()
-        } catch (_: IOException) {
-            // ignore close errors
-        }
         if (!pending.pendingFile.renameTo(pending.finalFile)) {
             throw IOException("Failed to rename ${pending.pendingFile} to ${pending.finalFile}")
         }
@@ -123,28 +132,50 @@ class AppMediaStorage @Inject constructor(
 
     /**
      * Deletes a pending file without committing it.
-     * The output stream is closed first.
      */
     fun discardPendingMedia(pending: PendingMedia) {
-        try {
-            pending.outputStream.close()
-        } catch (_: IOException) {
-            // ignore close errors
-        }
         pending.pendingFile.delete()
     }
 
-    // ── File resolution ───────────────────────────────────────────────────
+    // ── File resolution ──────────────────────────────────────────────────────
 
     /**
      * Resolves a relative path to an absolute [File] on disk.
      *
-     * @throws IllegalArgumentException if [relativePath] contains `..`
-     *         (path traversal protection).
+     * @throws IllegalArgumentException if [relativePath] contains path traversal
+     *         (`..` segments), is an absolute path, or resolves outside the
+     *         canonical storage root.
      */
     fun resolveFile(relativePath: String): File {
-        requireNoPathTraversal(relativePath)
-        return File(context.getExternalFilesDir(null), relativePath)
+        validatePath(relativePath)
+        return File(
+            context.getExternalFilesDir(null),
+            relativePath,
+        )
+    }
+
+    /**
+     * Validates that [path] is safe to resolve:
+     * - Not an absolute path
+     * - Does not contain `..` segments
+     * - Resolves within the canonical external files directory
+     *
+     * @throws IllegalArgumentException if validation fails.
+     */
+    private fun validatePath(path: String) {
+        require(path.isNotBlank()) { "Path must not be blank" }
+        require(!File(path).isAbsolute) { "Absolute path not allowed: $path" }
+        require(".." !in path.split(File.separatorChar)) {
+            "Path traversal detected in: $path"
+        }
+        // Verify the resolved file is within the canonical root
+        val resolved = File(context.getExternalFilesDir(null), path)
+        val canonicalRoot = context.getExternalFilesDir(null)?.canonicalFile
+            ?: throw IOException("External files dir is null")
+        val canonicalResolved = resolved.canonicalFile
+        require(canonicalResolved.startsWith(canonicalRoot)) {
+            "Path $path resolves outside the storage root: $canonicalResolved"
+        }
     }
 
     /**
@@ -184,12 +215,12 @@ class AppMediaStorage @Inject constructor(
             }
         }
 
-        scanDir(picturesDir, PHOTO_DIR)
-        scanDir(videosDir, VIDEO_DIR)
+        scanDir(pictureRoot(), "$PICTURES_SUBDIR/$FITLOG_SUBDIR")
+        scanDir(videoRoot(), "$VIDEOS_SUBDIR/$FITLOG_SUBDIR")
         return result
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Helpers ─────────────────────────────────────────────────────────────
 
     /**
      * Generates a unique filename: `timestamp_<random>.ext`
@@ -215,20 +246,15 @@ class AppMediaStorage @Inject constructor(
     }
 
     /**
-     * Throws [IllegalArgumentException] if [path] contains `..` segments
-     * that could escape the storage root.
-     */
-    private fun requireNoPathTraversal(path: String) {
-        require(".." !in path.split(File.separatorChar)) {
-            "Path traversal detected in: $path"
-        }
-    }
-
-    /**
      * Handle for a pending media file being written.
+     *
+     * @property pendingFile  The temporary file (with `.pending` suffix) that
+     *                        the caller should write data into.
+     * @property finalFile    The target file after commit (no `.pending` suffix).
+     * @property relativePath The relative path (from storage root) that should
+     *                        be stored in the database after commit.
      */
     data class PendingMedia(
-        val outputStream: FileOutputStream,
         val pendingFile: File,
         val finalFile: File,
         val relativePath: String,

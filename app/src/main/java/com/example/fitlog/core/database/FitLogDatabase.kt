@@ -52,7 +52,7 @@ import com.example.fitlog.core.database.entity.MediaRecordEntity
         FoodRecordEntity::class,
         MediaRecordEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

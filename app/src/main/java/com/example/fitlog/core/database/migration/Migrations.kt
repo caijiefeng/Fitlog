@@ -232,4 +232,26 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_category ON media_records (category)")
         }
     }
+
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Deduplicate by relative_path first: keep only the latest row per path
+            db.execSQL("""
+                DELETE FROM media_records WHERE id NOT IN (
+                    SELECT MIN(id) FROM (
+                        SELECT id, relative_path, captured_at
+                        FROM media_records
+                        ORDER BY captured_at DESC
+                    ) GROUP BY relative_path
+                )
+            """)
+
+            // Add unique index on relative_path
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_media_records_relative_path ON media_records (relative_path)")
+
+            // Add indexes for foreign-key-style lookups
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_exercise_session_id ON media_records (exercise_session_id)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_food_record_id ON media_records (food_record_id)")
+        }
+    }
 }

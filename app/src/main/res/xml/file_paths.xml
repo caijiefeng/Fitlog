@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-files-path
-        name="pictures"
-        path="Pictures/" />
+        name="pictures_fitlog"
+        path="Pictures/FitLog/" />
     <external-files-path
-        name="movies"
-        path="Movies/" />
+        name="movies_fitlog"
+        path="Movies/FitLog/" />
 </paths>

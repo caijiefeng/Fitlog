@@ -7,6 +7,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Result of a cleanup operation.
+ */
+data class CleanupResult(
+    /** Number of orphan database records that were removed. */
+    val recordsRemoved: Int = 0,
+    /** Number of orphan files on disk that were deleted. */
+    val filesRemoved: Int = 0,
+    /** Number of stale `.pending` temp files that were removed. */
+    val pendingRemoved: Int = 0,
+)
+
+/**
  * Handles cleanup of media records and files that are no longer needed.
  *
  * * **Orphan records** — database rows whose backing file no longer exists.
@@ -44,11 +56,44 @@ class MediaCleanupManager @Inject constructor(
     }
 
     /**
+     * Deletes database records whose backing file no longer exists on disk.
+     *
+     * @return the number of records deleted.
+     */
+    suspend fun removeOrphanRecords(): Int {
+        val orphans = findOrphanRecords()
+        for (entity in orphans) {
+            mediaRecordDao.delete(entity.id)
+        }
+        return orphans.size
+    }
+
+    /**
+     * Deletes files on disk that have no corresponding record in the database.
+     *
+     * @return the number of files deleted.
+     */
+    suspend fun removeOrphanFiles(): Int {
+        val orphans = findOrphanFiles()
+        var count = 0
+        for (relativePath in orphans) {
+            try {
+                if (mediaStorage.deleteFile(relativePath)) {
+                    count++
+                }
+            } catch (_: Exception) {
+                // Skip files that fail to delete
+            }
+        }
+        return count
+    }
+
+    /**
      * Deletes all `.pending` temp files left over from interrupted captures.
      *
      * @return the number of temp files deleted.
      */
-    fun cleanTempFiles(): Int {
+    fun removePendingFiles(): Int {
         var count = 0
 
         fun cleanDir(dir: File) {
@@ -62,15 +107,20 @@ class MediaCleanupManager @Inject constructor(
             }
         }
 
-        // The pictures and videos directories are always nested under
-        // getExternalFilesDir(Pictures) and getExternalFilesDir(Movies),
-        // but we can also just scan the whole external files area.
-        val baseDir = mediaStorage.resolveFile("").parentFile
-        if (baseDir != null) {
-            cleanDir(File(baseDir, "Pictures"))
-            cleanDir(File(baseDir, "Movies"))
-        }
+        cleanDir(mediaStorage.pictureRoot())
+        cleanDir(mediaStorage.videoRoot())
         return count
+    }
+
+    /**
+     * Runs all three cleanup operations and returns a combined [CleanupResult].
+     */
+    suspend fun cleanupAll(): CleanupResult {
+        return CleanupResult(
+            recordsRemoved = removeOrphanRecords(),
+            filesRemoved = removeOrphanFiles(),
+            pendingRemoved = removePendingFiles(),
+        )
     }
 
     /**

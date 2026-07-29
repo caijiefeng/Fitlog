@@ -3,6 +3,9 @@ package com.example.fitlog.data.repository
 import com.example.fitlog.core.database.dao.MediaRecordDao
 import com.example.fitlog.core.database.entity.MediaRecordEntity
 import com.example.fitlog.core.media.AppMediaStorage
+import com.example.fitlog.domain.media.MediaCategory
+import com.example.fitlog.domain.media.MediaType
+import com.example.fitlog.domain.media.ProgressPose
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,7 +15,7 @@ import javax.inject.Singleton
  */
 data class MediaRecord(
     val id: Long = 0,
-    val mediaType: String, // PHOTO / VIDEO
+    val mediaType: MediaType,
     val relativePath: String,
     val mimeType: String,
     val capturedAt: Long,
@@ -26,11 +29,21 @@ data class MediaRecord(
     val checkInId: Long? = null,
     val exerciseSessionId: Long? = null,
     val foodRecordId: Long? = null,
-    val category: String, // BODY_PROGRESS / WORKOUT_FORM / MEAL / GENERAL
-    val poseTag: String? = null,
+    val category: MediaCategory,
+    val poseTag: ProgressPose? = null,
     val note: String? = null,
     val isFavorite: Boolean = false,
 )
+
+/**
+ * Result of a delete operation on a media record.
+ */
+sealed interface MediaDeleteResult {
+    /** The record and its file were both deleted successfully. */
+    data object Deleted : MediaDeleteResult
+    /** The database record was deleted but the file was already missing on disk. */
+    data object FileAlreadyMissing : MediaDeleteResult
+}
 
 @Singleton
 class MediaRepository @Inject constructor(
@@ -73,27 +86,34 @@ class MediaRepository @Inject constructor(
     }
 
     /**
-     * Deletes a media record: removes the database row **and** deletes the
-     * underlying file on disk.
+     * Deletes a media record: removes the file on disk first, then deletes
+     * the database row.
+     *
+     * If the file exists but cannot be deleted, [MediaDeleteResult.Deleted] is
+     * **not** returned — this throws [java.io.IOException] instead so the
+     * caller (and the DB transaction) can roll back.
+     *
+     * If the file does not exist or is successfully deleted, the database row
+     * is removed and the corresponding [MediaDeleteResult] is returned.
      */
-    suspend fun delete(id: Long) {
-        val entity = mediaRecordDao.getById(id) ?: return
-        mediaStorage.deleteFile(entity.relativePath)
-        mediaRecordDao.delete(id)
-    }
+    suspend fun delete(id: Long): MediaDeleteResult {
+        val entity = mediaRecordDao.getById(id) ?: return MediaDeleteResult.FileAlreadyMissing
 
-    /**
-     * Deletes the file on disk for a given record.  The database row is
-     * kept (orphaned).  Useful when the user just wants to free up space
-     * but keep the metadata.
-     */
-    suspend fun deleteFileOnly(id: Long): Boolean {
-        val entity = mediaRecordDao.getById(id) ?: return false
-        val deleted = mediaStorage.deleteFile(entity.relativePath)
-        if (deleted) {
-            mediaRecordDao.update(entity.copy(sizeBytes = 0L))
+        val file = mediaStorage.resolveFile(entity.relativePath)
+        return if (file.exists()) {
+            // File exists — try to delete it
+            if (file.delete()) {
+                mediaRecordDao.delete(id)
+                MediaDeleteResult.Deleted
+            } else {
+                // File exists but could not be deleted — throw to prevent DB delete
+                throw java.io.IOException("Failed to delete file: ${file.absolutePath}")
+            }
+        } else {
+            // File already missing — delete DB record only
+            mediaRecordDao.delete(id)
+            MediaDeleteResult.FileAlreadyMissing
         }
-        return deleted
     }
 
     /**
@@ -124,8 +144,8 @@ class MediaRepository @Inject constructor(
         return mediaRecordDao.getByDateRange(startEpochDay, endEpochDay).map { it.toDomain() }
     }
 
-    suspend fun getByCategory(category: String): List<MediaRecord> {
-        return mediaRecordDao.getByCategory(category).map { it.toDomain() }
+    suspend fun getByCategory(category: MediaCategory): List<MediaRecord> {
+        return mediaRecordDao.getByCategory(category.name).map { it.toDomain() }
     }
 
     suspend fun getByWorkoutSession(sessionId: Long): List<MediaRecord> {

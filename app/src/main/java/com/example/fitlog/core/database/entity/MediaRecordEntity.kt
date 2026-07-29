@@ -4,6 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.fitlog.domain.media.MediaCategory
+import com.example.fitlog.domain.media.MediaType
+import com.example.fitlog.domain.media.ProgressPose
 
 @Entity(
     tableName = "media_records",
@@ -14,13 +17,16 @@ import androidx.room.PrimaryKey
         Index(value = ["check_in_id"]),
         Index(value = ["media_type"]),
         Index(value = ["category"]),
+        Index(value = ["relative_path"], unique = true),
+        Index(value = ["exercise_session_id"]),
+        Index(value = ["food_record_id"]),
     ],
 )
 data class MediaRecordEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     @ColumnInfo(name = "media_type")
-    val mediaType: String, // PHOTO / VIDEO
+    val mediaType: MediaType,
     @ColumnInfo(name = "relative_path")
     val relativePath: String, // relative to storage root, never absolute
     @ColumnInfo(name = "mime_type")
@@ -48,9 +54,9 @@ data class MediaRecordEntity(
     @ColumnInfo(name = "food_record_id")
     val foodRecordId: Long? = null,
     @ColumnInfo(name = "category")
-    val category: String, // BODY_PROGRESS / WORKOUT_FORM / MEAL / GENERAL
+    val category: MediaCategory,
     @ColumnInfo(name = "pose_tag")
-    val poseTag: String? = null, // FRONT / SIDE_LEFT / SIDE_RIGHT / BACK / OTHER
+    val poseTag: ProgressPose? = null,
     @ColumnInfo(name = "note")
     val note: String? = null,
     @ColumnInfo(name = "is_favorite")

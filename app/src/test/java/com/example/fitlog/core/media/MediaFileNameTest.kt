@@ -28,7 +28,7 @@ class MediaFileNameTest {
             val pending = storage.createPendingPhoto("image/jpeg")
             val relativePath = pending.relativePath
             storage.discardPendingMedia(pending)
-            // relativePath format: "Pictures/<timestamp>_<random>.ext"
+            // relativePath format: "Pictures/FitLog/<timestamp>_<random>.ext"
             assertTrue("Path should start with Pictures/", relativePath.startsWith("Pictures/"))
             assertTrue("Path should end with .jpg", relativePath.endsWith(".jpg"))
             assertTrue("Path should not contain .pending", !relativePath.contains(".pending"))
@@ -55,8 +55,8 @@ class MediaFileNameTest {
     fun `generated filenames use timestamp plus random suffix`() {
         val pending = storage.createPendingPhoto("image/jpeg")
         try {
-            // Extract filename from relative path: "Pictures/<name>.jpg"
-            val fileName = pending.relativePath.removePrefix("Pictures/").removeSuffix(".jpg")
+            // Extract filename from relative path: "Pictures/FitLog/<name>.jpg"
+            val fileName = pending.relativePath.removePrefix("Pictures/FitLog/").removeSuffix(".jpg")
             assertTrue("Filename should contain underscore separator", fileName.contains("_"))
             val parts = fileName.split("_")
             assertTrue("Filename should have at least 2 parts (timestamp_random)", parts.size >= 2)
@@ -70,15 +70,15 @@ class MediaFileNameTest {
 
     @Test
     fun `resolveFile with simple relative path returns valid file`() {
-        val file = storage.resolveFile("Pictures/photo.jpg")
+        val file = storage.resolveFile("Pictures/FitLog/photo.jpg")
         assertNotNull(file)
         assertTrue("Path should be absolute", file.isAbsolute)
     }
 
     @Test
     fun `resolveFile with multiple segments works correctly`() {
-        val file = storage.resolveFile("Pictures/subdir/photo.jpg")
-        assertTrue(file.path.endsWith("Pictures/subdir/photo.jpg"))
+        val file = storage.resolveFile("Pictures/FitLog/subdir/photo.jpg")
+        assertTrue(file.path.endsWith("Pictures/FitLog/subdir/photo.jpg"))
     }
 
     @Test
@@ -91,7 +91,7 @@ class MediaFileNameTest {
     @Test
     fun `resolveFile with deep parent dir traversal throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            storage.resolveFile("Pictures/../../private_file")
+            storage.resolveFile("Pictures/FitLog/../../private_file")
         }
     }
 
@@ -99,6 +99,20 @@ class MediaFileNameTest {
     fun `resolveFile with parent dir only traversal throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
             storage.resolveFile("..")
+        }
+    }
+
+    @Test
+    fun `resolveFile with absolute path throws exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            storage.resolveFile("/absolute/path/file.jpg")
+        }
+    }
+
+    @Test
+    fun `resolveFile with blank path throws exception`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            storage.resolveFile("")
         }
     }
 
@@ -174,9 +188,8 @@ class MediaFileNameTest {
     fun `calculateSize returns correct size`() {
         val pending = storage.createPendingPhoto("image/jpeg")
         try {
-            // Write some data
-            pending.outputStream.write(byteArrayOf(1, 2, 3, 4, 5))
-            pending.outputStream.flush()
+            // Write some data via the pending file
+            pending.pendingFile.writeBytes(byteArrayOf(1, 2, 3, 4, 5))
             val relativePath = storage.commitPendingMedia(pending)
 
             val size = storage.calculateSize(relativePath)
@@ -202,6 +215,32 @@ class MediaFileNameTest {
             assertTrue("Pending file should not appear in scan", !orphans.contains(pending.relativePath))
         } finally {
             storage.discardPendingMedia(pending)
+        }
+    }
+
+    @Test
+    fun `pictureRoot returns canonical directory`() {
+        val root = storage.pictureRoot()
+        assertTrue("pictureRoot should be a directory", root.isDirectory)
+        assertTrue("pictureRoot should be canonical", root.isAbsolute)
+        assertTrue("pictureRoot should end with FitLog", root.name == "FitLog")
+    }
+
+    @Test
+    fun `videoRoot returns canonical directory`() {
+        val root = storage.videoRoot()
+        assertTrue("videoRoot should be a directory", root.isDirectory)
+        assertTrue("videoRoot should be canonical", root.isAbsolute)
+        assertTrue("videoRoot should end with FitLog", root.name == "FitLog")
+    }
+
+    @Test
+    fun `commitPendingMedia with non-existent pending file throws`() {
+        val pending = storage.createPendingPhoto("image/jpeg")
+        // Delete the pending file before commit
+        pending.pendingFile.delete()
+        assertThrows(java.io.IOException::class.java) {
+            storage.commitPendingMedia(pending)
         }
     }
 }

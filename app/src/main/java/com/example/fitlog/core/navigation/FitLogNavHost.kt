@@ -7,14 +7,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.fitlog.feature.calendar.CalendarDayDetailScreen
-import com.example.fitlog.feature.exercise.ExerciseFormScreen
-import com.example.fitlog.feature.exercise.ExerciseListScreen
-import com.example.fitlog.feature.plan.PlanScreen
 import com.example.fitlog.feature.body.BodyMeasurementScreen
 import com.example.fitlog.feature.body.BodyProfileScreen
+import com.example.fitlog.feature.exercise.ExerciseFormScreen
+import com.example.fitlog.feature.exercise.ExerciseListScreen
 import com.example.fitlog.feature.goal.GoalScreen
 import com.example.fitlog.feature.nutrition.NutritionScreen
+import com.example.fitlog.feature.plan.PlanScreen
 import com.example.fitlog.feature.profile.ProfileScreen
 import com.example.fitlog.feature.progress.ProgressScreen
 import com.example.fitlog.feature.record.RecordScreen
@@ -68,8 +67,28 @@ object Routes {
     // Media routes
     const val MEDIA_LIBRARY = "media/library"
     const val MEDIA_DETAIL = "media/detail/{mediaId}"
+    const val CAMERA = "camera"
 
     fun mediaDetail(id: Long) = "media/detail/$id"
+
+    /** Builds a camera route with optional query parameters. */
+    fun camera(
+        category: String? = null,
+        workoutSessionId: Long? = null,
+        bodyMeasurementId: Long? = null,
+        checkInId: Long? = null,
+    ): String = buildString {
+        append(CAMERA)
+        val params = mutableListOf<String>()
+        category?.let { params.add("category=$it") }
+        workoutSessionId?.let { params.add("workoutSessionId=$it") }
+        bodyMeasurementId?.let { params.add("bodyMeasurementId=$it") }
+        checkInId?.let { params.add("checkInId=$it") }
+        if (params.isNotEmpty()) {
+            append("?")
+            append(params.joinToString("&"))
+        }
+    }
 }
 
 @Composable
@@ -184,7 +203,7 @@ fun FitLogNavHost(
             route = Routes.CALENDAR_DAY,
             arguments = listOf(navArgument("epochDay") { type = NavType.LongType }),
         ) {
-            CalendarDayDetailScreen(
+            com.example.fitlog.feature.calendar.CalendarDayDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToExecution = { id -> navController.navigate(Routes.workoutExecution(id)) },
                 onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
@@ -246,6 +265,7 @@ fun FitLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
+        // Progress photo deferred
         composable(Routes.NUTRITION) {
             NutritionScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -257,7 +277,6 @@ fun FitLogNavHost(
             )
         }
 
-        // ── Media routes (deferred to V5.1) ──────────────────────────────────
-        // ── Body Progress Photo (deferred to V5.1) ───────────────────────────
+        // ── Camera, media library, media detail (deferred — V5.x) ──────────
     }
 }
