@@ -6,11 +6,17 @@ import androidx.room.TypeConverters
 import com.example.fitlog.core.database.converter.Converters
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
+import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import com.example.fitlog.core.database.dao.SetRecordDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
+import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
 import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
 import com.example.fitlog.core.database.entity.ExerciseEntity
+import com.example.fitlog.core.database.entity.ExerciseSessionEntity
+import com.example.fitlog.core.database.entity.SetRecordEntity
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
+import com.example.fitlog.core.database.entity.WorkoutSessionEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
 
@@ -21,8 +27,11 @@ import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
         WorkoutTemplateEntity::class,
         WorkoutTemplateExerciseEntity::class,
         WorkoutScheduleEntity::class,
+        WorkoutSessionEntity::class,
+        ExerciseSessionEntity::class,
+        SetRecordEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -32,4 +41,7 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutTemplateDao(): WorkoutTemplateDao
     abstract fun workoutScheduleDao(): WorkoutScheduleDao
+    abstract fun workoutSessionDao(): WorkoutSessionDao
+    abstract fun exerciseSessionDao(): ExerciseSessionDao
+    abstract fun setRecordDao(): SetRecordDao
 }
