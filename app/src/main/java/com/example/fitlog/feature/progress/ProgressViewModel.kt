@@ -2,6 +2,9 @@ package com.example.fitlog.feature.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.data.repository.ProgressRepository
+import com.example.fitlog.data.repository.TrendPoint
+import com.example.fitlog.data.repository.TrendRange
 import com.example.fitlog.data.repository.WorkoutPlanOverrideRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import com.example.fitlog.domain.calendar.OverrideAction
@@ -21,6 +24,11 @@ data class ProgressUiState(
     val bestStreak: Int = 0,
     val adherenceRate: Double = 0.0,
     val isLoaded: Boolean = false,
+    // Trend chart state
+    val trendPoints: List<TrendPoint> = emptyList(),
+    val selectedRange: TrendRange = TrendRange.MONTH_30,
+    val isTrendLoading: Boolean = false,
+    val trendError: String? = null,
 )
 
 @HiltViewModel
@@ -28,6 +36,7 @@ class ProgressViewModel @Inject constructor(
     private val calculator: WorkoutStreakCalculator,
     private val sessionRepository: WorkoutSessionRepository,
     private val overrideRepository: WorkoutPlanOverrideRepository,
+    private val progressRepository: ProgressRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProgressUiState())
@@ -35,6 +44,7 @@ class ProgressViewModel @Inject constructor(
 
     init {
         loadStats()
+        loadTrends()
     }
 
     private fun loadStats() {
@@ -52,13 +62,36 @@ class ProgressViewModel @Inject constructor(
             val bestStreak = calculator.bestStreak(sessions, overrides)
             val adherenceRate = calculator.adherenceRate(sessions, overrides, days = 90)
 
-            _uiState.value = ProgressUiState(
+            _uiState.value = _uiState.value.copy(
                 currentStreak = currentStreak,
                 bestStreak = bestStreak,
                 adherenceRate = adherenceRate,
                 isLoaded = true,
             )
         }
+    }
+
+    fun loadTrends() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isTrendLoading = true, trendError = null)
+            try {
+                val points = progressRepository.getTrendPoints(_uiState.value.selectedRange)
+                _uiState.value = _uiState.value.copy(
+                    trendPoints = points,
+                    isTrendLoading = false,
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isTrendLoading = false,
+                    trendError = e.message,
+                )
+            }
+        }
+    }
+
+    fun setTrendRange(range: TrendRange) {
+        _uiState.value = _uiState.value.copy(selectedRange = range)
+        loadTrends()
     }
 
     private fun com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity.toDomain() =

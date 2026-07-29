@@ -98,6 +98,9 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
+    // Coil (image loading)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // Coroutines
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)

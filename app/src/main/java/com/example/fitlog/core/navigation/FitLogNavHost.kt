@@ -61,8 +61,15 @@ object Routes {
     // Body & Nutrition routes
     const val BODY_PROFILE = "body/profile"
     const val BODY_MEASUREMENT = "body/measurement"
+    const val BODY_PROGRESS_PHOTO = "body/progress-photo"
     const val NUTRITION = "nutrition"
     const val GOAL = "goal"
+
+    // Media routes
+    const val MEDIA_LIBRARY = "media/library"
+    const val MEDIA_DETAIL = "media/detail/{mediaId}"
+
+    fun mediaDetail(id: Long) = "media/detail/$id"
 }
 
 @Composable
@@ -249,5 +256,8 @@ fun FitLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
+
+        // ── Media routes (deferred to V5.1) ──────────────────────────────────
+        // ── Body Progress Photo (deferred to V5.1) ───────────────────────────
     }
 }

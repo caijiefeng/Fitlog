@@ -53,6 +53,9 @@ interface WorkoutTemplateDao {
     @Query("SELECT * FROM workout_template_exercises WHERE template_id = :templateId ORDER BY sort_order ASC")
     suspend fun getExercisesByTemplate(templateId: Long): List<WorkoutTemplateExerciseEntity>
 
+    @Query("SELECT * FROM workout_template_exercises ORDER BY template_id ASC, sort_order ASC")
+    suspend fun getAllTemplateExercises(): List<WorkoutTemplateExerciseEntity>
+
     @Query("SELECT COUNT(*) FROM workout_template_exercises WHERE template_id = :templateId")
     suspend fun exerciseCount(templateId: Long): Int
 }

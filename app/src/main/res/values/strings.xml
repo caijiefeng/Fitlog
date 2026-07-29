@@ -366,4 +366,94 @@
     <string name="action_edit">编辑</string>
     <string name="action_delete">删除</string>
     <string name="action_add">添加</string>
+    <string name="action_back">返回</string>
+    <string name="action_favorite">收藏</string>
+    <string name="action_share">分享</string>
+
+    <!-- Media Library -->
+    <string name="media_library_title">媒体库</string>
+    <string name="media_category_all">全部</string>
+    <string name="media_category_body_progress">身体进度</string>
+    <string name="media_category_workout_form">动作姿势</string>
+    <string name="media_category_meal">饮食</string>
+    <string name="media_category_general">通用</string>
+    <string name="media_sort">排序</string>
+    <string name="media_favorites_only">仅收藏</string>
+    <string name="media_empty_title">还没有媒体文件</string>
+    <string name="media_empty_subtitle">拍照或录像后，媒体文件将在这里显示</string>
+    <string name="media_error_title">加载媒体失败</string>
+    <string name="media_not_found">媒体文件未找到</string>
+    <string name="media_type_photo">照片</string>
+    <string name="media_type_video">视频</string>
+    <string name="media_play_video">播放视频</string>
+
+    <!-- Media Detail -->
+    <string name="media_detail_title">媒体详情</string>
+    <string name="media_detail_date">日期时间</string>
+    <string name="media_detail_category">分类</string>
+    <string name="media_detail_type">类型</string>
+    <string name="media_detail_size">文件大小</string>
+    <string name="media_detail_associations">关联内容</string>
+    <string name="media_detail_pose">姿势标签</string>
+    <string name="media_detail_weight">体重</string>
+    <string name="media_detail_body_fat">体脂率</string>
+    <string name="media_note_label">备注</string>
+    <string name="media_note_empty">暂无备注</string>
+    <string name="media_association_workout">训练</string>
+    <string name="media_association_measurement">测量</string>
+    <string name="media_association_checkin">打卡</string>
+    <string name="media_association_food">饮食</string>
+    <string name="media_association_exercise">动作</string>
+    <string name="media_delete_title">删除确认</string>
+    <string name="media_delete_message">确定要删除此媒体文件吗？此操作不可撤销。</string>
+
+    <!-- Progress Photos -->
+    <string name="progress_photo_title">身体进度照片</string>
+    <string name="progress_photo_empty_title">还没有身体进度照片</string>
+    <string name="progress_photo_empty_subtitle">在记录身体测量时拍照，照片将按日期分组展示</string>
+    <string name="progress_photo_compare">对比选中照片</string>
+    <string name="progress_photo_comparison">对比视图</string>
+    <string name="progress_photo_days_between">间隔天数</string>
+    <string name="progress_photo_days_format" formatted="false">%d 天</string>
+    <string name="progress_photo_weight_change">体重变化</string>
+    <string name="progress_photo_weight_format" formatted="false">%s%.1f kg</string>
+    <string name="progress_photo_bf_change">体脂变化</string>
+    <string name="progress_photo_bf_format" formatted="false">%s%.1f%%</string>
+    <string name="progress_photo_no_pose">未标记姿势</string>
+
+    <!-- Trend Charts -->
+    <string name="trend_range_7d">7天</string>
+    <string name="trend_range_30d">30天</string>
+    <string name="trend_range_90d">90天</string>
+    <string name="trend_range_6m">6个月</string>
+    <string name="trend_range_all">全部</string>
+    <string name="chart_weight">体重</string>
+    <string name="chart_body_fat">体脂率</string>
+    <string name="chart_waist">腰围</string>
+    <string name="chart_calories">热量</string>
+    <string name="chart_protein">蛋白质</string>
+    <string name="chart_volume">训练容量</string>
+    <string name="chart_latest_value" formatted="false">最新: %.1f %s</string>
+    <string name="chart_empty">暂无数据</string>
+
+    <!-- Backup & Export -->
+    <string name="backup_title">备份</string>
+    <string name="backup_creating">正在创建备份…</string>
+    <string name="backup_success">备份成功</string>
+    <string name="backup_error">备份失败</string>
+    <string name="import_title">恢复备份</string>
+    <string name="import_confirm_title">确认恢复</string>
+    <string name="import_confirm_message">恢复将替换所有现有数据，此操作不可撤销。建议先备份当前数据。</string>
+    <string name="import_confirm_continue">继续恢复</string>
+    <string name="import_success">恢复成功</string>
+    <string name="import_error_version">备份版本过新，无法恢复</string>
+    <string name="import_error_checksum">备份文件校验失败，可能已损坏</string>
+    <string name="import_error_corrupt">备份文件损坏：%s</string>
+    <string name="import_error_media">部分媒体文件恢复失败（%d个错误）</string>
+    <string name="export_body_measurements">导出身体测量</string>
+    <string name="export_workouts">导出训练记录</string>
+    <string name="export_nutrition">导出饮食记录</string>
+    <string name="export_checkins">导出打卡记录</string>
+    <string name="export_success">导出成功</string>
+    <string name="export_error">导出失败</string>
 </resources>

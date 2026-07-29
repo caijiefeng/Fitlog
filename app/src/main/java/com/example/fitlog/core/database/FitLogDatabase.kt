@@ -9,6 +9,7 @@ import com.example.fitlog.core.database.dao.BodyMeasurementDao
 import com.example.fitlog.core.database.dao.FoodRecordDao
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
+import com.example.fitlog.core.database.dao.MediaRecordDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
@@ -31,6 +32,7 @@ import com.example.fitlog.core.database.entity.WorkoutSessionEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
 import com.example.fitlog.core.database.entity.FoodRecordEntity
+import com.example.fitlog.core.database.entity.MediaRecordEntity
 
 @Database(
     entities = [
@@ -48,8 +50,9 @@ import com.example.fitlog.core.database.entity.FoodRecordEntity
         UserProfileEntity::class,
         BodyMeasurementEntity::class,
         FoodRecordEntity::class,
+        MediaRecordEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -68,4 +71,5 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun bodyMeasurementDao(): BodyMeasurementDao
     abstract fun foodRecordDao(): FoodRecordDao
+    abstract fun mediaRecordDao(): MediaRecordDao
 }

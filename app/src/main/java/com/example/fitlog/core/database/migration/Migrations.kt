@@ -195,4 +195,41 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_food_records_date ON food_records (date)")
         }
     }
+
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS media_records (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    media_type TEXT NOT NULL,
+                    relative_path TEXT NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    captured_at INTEGER NOT NULL,
+                    date INTEGER NOT NULL,
+                    width INTEGER,
+                    height INTEGER,
+                    duration_millis INTEGER,
+                    size_bytes INTEGER NOT NULL,
+                    workout_session_id INTEGER,
+                    body_measurement_id INTEGER,
+                    check_in_id INTEGER,
+                    exercise_session_id INTEGER,
+                    food_record_id INTEGER,
+                    category TEXT NOT NULL,
+                    pose_tag TEXT,
+                    note TEXT,
+                    is_favorite INTEGER NOT NULL DEFAULT 0,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_captured_at ON media_records (captured_at)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_workout_session_id ON media_records (workout_session_id)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_body_measurement_id ON media_records (body_measurement_id)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_check_in_id ON media_records (check_in_id)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_media_type ON media_records (media_type)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_category ON media_records (category)")
+        }
+    }
 }

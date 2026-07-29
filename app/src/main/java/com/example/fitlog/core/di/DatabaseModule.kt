@@ -16,6 +16,7 @@ import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
+import com.example.fitlog.core.database.dao.MediaRecordDao
 import com.example.fitlog.core.database.migration.Migrations
 import dagger.Module
 import dagger.Provides
@@ -38,7 +39,7 @@ object DatabaseModule {
             FitLogDatabase::class.java,
             "fitlog.db",
         )
-            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5)
+            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6)
             .addCallback(DatabaseCallback())
             .build()
     }
@@ -81,4 +82,7 @@ object DatabaseModule {
 
     @Provides
     fun provideFoodRecordDao(db: FitLogDatabase): FoodRecordDao = db.foodRecordDao()
+
+    @Provides
+    fun provideMediaRecordDao(db: FitLogDatabase): MediaRecordDao = db.mediaRecordDao()
 }

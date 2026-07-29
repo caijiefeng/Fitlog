@@ -16,6 +16,9 @@ interface ExerciseSessionDao {
     @Update
     suspend fun update(entity: ExerciseSessionEntity)
 
+    @Query("SELECT * FROM exercise_sessions ORDER BY session_id ASC, sort_order ASC")
+    suspend fun getAll(): List<ExerciseSessionEntity>
+
     @Query("SELECT * FROM exercise_sessions WHERE session_id = :sessionId ORDER BY sort_order ASC")
     suspend fun getBySession(sessionId: Long): List<ExerciseSessionEntity>
 

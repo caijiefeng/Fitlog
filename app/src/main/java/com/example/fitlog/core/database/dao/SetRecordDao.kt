@@ -22,6 +22,9 @@ interface SetRecordDao {
     @Query("SELECT * FROM set_records WHERE exercise_session_id = :exerciseSessionId ORDER BY set_number ASC")
     fun observeByExerciseSession(exerciseSessionId: Long): Flow<List<SetRecordEntity>>
 
+    @Query("SELECT * FROM set_records ORDER BY exercise_session_id ASC, set_number ASC")
+    suspend fun getAll(): List<SetRecordEntity>
+
     @Query("SELECT * FROM set_records WHERE id = :id")
     suspend fun getById(id: Long): SetRecordEntity?
 

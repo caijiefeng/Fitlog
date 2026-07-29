@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,6 +29,7 @@ import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
+import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 
 @Composable
@@ -40,30 +44,42 @@ fun ProgressScreen(
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(
-            modifier = Modifier.padding(innerPadding),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            PageContainer {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            SectionHeader(title = stringResource(R.string.section_training_stats))
+                // ── Training statistics ──────────────────────────────────
+                SectionHeader(title = stringResource(R.string.section_training_stats))
 
-            if (uiState.isLoaded) {
-                StatsCard(
-                    currentStreak = uiState.currentStreak,
-                    bestStreak = uiState.bestStreak,
-                    adherenceRate = uiState.adherenceRate,
+                if (uiState.isLoaded) {
+                    StatsCard(
+                        currentStreak = uiState.currentStreak,
+                        bestStreak = uiState.bestStreak,
+                        adherenceRate = uiState.adherenceRate,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // ── Body trend charts ────────────────────────────────────
+                SectionHeader(title = stringResource(R.string.section_body_changes))
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TrendChartsContent(
+                    points = uiState.trendPoints,
+                    selectedRange = uiState.selectedRange,
+                    isLoading = uiState.isTrendLoading,
+                    onRangeChange = { viewModel.setTrendRange(it) },
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionHeader(title = stringResource(R.string.section_body_changes))
-
-            Text(
-                text = stringResource(R.string.progress_placeholder),
-                style = MaterialTheme.typography.bodyMedium,
-                color = FitLogTextSecondary,
-            )
         }
     }
 }
