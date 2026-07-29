@@ -172,4 +172,27 @@ object Migrations {
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_body_measurements_date ON body_measurements (date)")
         }
     }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS food_records (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    date INTEGER NOT NULL,
+                    meal_type TEXT NOT NULL,
+                    food_name TEXT NOT NULL,
+                    calories REAL,
+                    protein_grams REAL,
+                    carbs_grams REAL,
+                    fat_grams REAL,
+                    amount TEXT,
+                    note TEXT,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_food_records_date ON food_records (date)")
+        }
+    }
 }

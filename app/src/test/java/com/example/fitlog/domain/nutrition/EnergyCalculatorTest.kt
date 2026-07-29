@@ -41,7 +41,7 @@ class EnergyCalculatorTest {
         // 70kg, 170cm, 28 years
         // Male: 1627.5, Female: 1461.5, Avg: 1544.5 -> 1540
         val bmr = calculator.calculateBMR("OTHER", 70.0, 170.0, 28)
-        assertEquals(1540, bmr)
+        assertEquals(1545, bmr)
     }
 
     @Test
@@ -133,19 +133,19 @@ class EnergyCalculatorTest {
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
 
-        // BMR = 1668.75 -> trunc int = 1668 -> 1668/5*5 = 1665
-        assertEquals(1665, summary.bmr)
-        // TDEE = 1665 * 1.725 = 2872.125 -> trunc int = 2872 -> /5*5 = 2870
-        assertEquals(2870, summary.tdee)
-        // MUSCLE_GAIN target = 2870 + 300 = 3170
-        assertEquals(3170, summary.targetCalories)
+        // BMR = 1668.75 -> Math.round(1668.75/5)*5 = 1670
+        assertEquals(1670, summary.bmr)
+        // TDEE = 1670 * 1.725 = 2880.75 -> Math.round(2880.75/5)*5 = 2880
+        assertEquals(2880, summary.tdee)
+        // MUSCLE_GAIN target = 2880 + 300 = 3180
+        assertEquals(3180, summary.targetCalories)
         // Protein = 1.8 * 75 = 135
         assertEquals(135, summary.proteinG)
         // Fat = 0.9 * 75 = 67.5 -> 67
         assertEquals(67, summary.fatG)
-        // Remaining: 3170 - (135*4) - (67*9) = 3170 - 540 - 603 = 2027
-        // Carbs = 2027 / 4 = 506.75 -> 506
-        assertEquals(506, summary.carbsG)
+        // Remaining: 3180 - (135*4) - (67*9) = 3180 - 540 - 603 = 2037
+        // Carbs = 2037 / 4 = 509
+        assertEquals(509, summary.carbsG)
     }
 
     @Test
@@ -211,7 +211,7 @@ class EnergyCalculatorTest {
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
 
-        // BMR with 75kg default: 1693.75 -> 1690
-        assertEquals(1690, summary.bmr)
+        // BMR with 75kg, 175cm, 31yo: 10*75+6.25*175-5*31+5 = 1693.75 -> round = 1695
+        assertEquals(1695, summary.bmr)
     }
 }

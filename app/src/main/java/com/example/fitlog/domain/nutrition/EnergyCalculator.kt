@@ -6,10 +6,11 @@ import com.example.fitlog.domain.body.GoalType
 import com.example.fitlog.domain.body.UserProfile
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class EnergyCalculator {
+class EnergyCalculator @Inject constructor() {
 
     /**
      * Calculates Basal Metabolic Rate using the Mifflin-St Jeor equation.
@@ -20,11 +21,12 @@ class EnergyCalculator {
      */
     fun calculateBMR(gender: String, weightKg: Double, heightCm: Double, age: Int): Int {
         val base = 10 * weightKg + 6.25 * heightCm - 5 * age
-        return when (gender.uppercase()) {
-            "MALE" -> (base + 5).toInt()
-            "FEMALE" -> (base - 161).toInt()
-            else -> ((base + 5) + (base - 161)) / 2.0 // average
-        }.let { (it / 5).toInt() * 5 } // round to nearest 5
+        val raw = when (gender.uppercase()) {
+            "MALE" -> base + 5
+            "FEMALE" -> base - 161
+            else -> ((base + 5) + (base - 161)) / 2.0
+        }
+        return (Math.round(raw / 5.0) * 5).toInt()
     }
 
     /**

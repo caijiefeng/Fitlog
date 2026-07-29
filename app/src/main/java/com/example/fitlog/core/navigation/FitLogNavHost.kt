@@ -11,6 +11,10 @@ import com.example.fitlog.feature.calendar.CalendarDayDetailScreen
 import com.example.fitlog.feature.exercise.ExerciseFormScreen
 import com.example.fitlog.feature.exercise.ExerciseListScreen
 import com.example.fitlog.feature.plan.PlanScreen
+import com.example.fitlog.feature.body.BodyMeasurementScreen
+import com.example.fitlog.feature.body.BodyProfileScreen
+import com.example.fitlog.feature.goal.GoalScreen
+import com.example.fitlog.feature.nutrition.NutritionScreen
 import com.example.fitlog.feature.profile.ProfileScreen
 import com.example.fitlog.feature.progress.ProgressScreen
 import com.example.fitlog.feature.record.RecordScreen
@@ -53,6 +57,12 @@ object Routes {
     fun exercisePicker(id: Long) = "workout/exercise-picker/$id"
     fun calendarDay(epochDay: Long) = "calendar/day/$epochDay"
     fun reminderEdit(id: Long) = "reminder/edit/$id"
+
+    // Body & Nutrition routes
+    const val BODY_PROFILE = "body/profile"
+    const val BODY_MEASUREMENT = "body/measurement"
+    const val NUTRITION = "nutrition"
+    const val GOAL = "goal"
 }
 
 @Composable
@@ -214,6 +224,28 @@ fun FitLogNavHost(
             arguments = listOf(navArgument("sessionId") { type = NavType.LongType }),
         ) {
             WorkoutDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Body & Nutrition routes ─────────────────────────────────────────
+        composable(Routes.BODY_PROFILE) {
+            BodyProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.BODY_MEASUREMENT) {
+            BodyMeasurementScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.NUTRITION) {
+            NutritionScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.GOAL) {
+            GoalScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

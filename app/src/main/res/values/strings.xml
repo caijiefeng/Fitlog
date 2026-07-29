@@ -273,4 +273,97 @@
     <string name="checkin_save">保存</string>
     <string name="checkin_saving">保存中…</string>
     <string name="checkin_edit">编辑</string>
+    <!-- Body Profile -->
+    <string name="body_profile_title">身体档案</string>
+    <string name="body_profile_gender">性别</string>
+    <string name="body_profile_birthday">出生日期</string>
+    <string name="body_profile_birthday_format">日期格式</string>
+    <string name="body_profile_birthday_hint">格式：yyyy-MM-dd，例如 2000-01-01</string>
+    <string name="body_profile_height">身高</string>
+    <string name="body_profile_weight">体重</string>
+    <string name="body_profile_body_fat">体脂率</string>
+    <string name="body_profile_activity_level">活动水平</string>
+    <string name="body_profile_goal_type">目标类型</string>
+    <string name="body_profile_target_bf">目标体脂率</string>
+    <string name="body_profile_saved">档案已保存</string>
+
+    <!-- Gender -->
+    <string name="gender_male">男</string>
+    <string name="gender_female">女</string>
+    <string name="gender_other">其他</string>
+
+    <!-- Activity Levels -->
+    <string name="activity_sedentary">久坐（很少运动）</string>
+    <string name="activity_light">轻度（每周1-3天）</string>
+    <string name="activity_moderate">中度（每周3-5天）</string>
+    <string name="activity_active">活跃（每周6-7天）</string>
+    <string name="activity_very_active">高强度（每天/体力劳动）</string>
+
+    <!-- Goal Types -->
+    <string name="goal_fat_loss">减脂</string>
+    <string name="goal_maintain">维持</string>
+    <string name="goal_lean_gain">瘦增肌</string>
+    <string name="goal_muscle_gain">增肌</string>
+
+    <!-- Body Measurements -->
+    <string name="body_measurement_title">身体测量</string>
+    <string name="body_measurement_empty_title">还没有测量数据</string>
+    <string name="body_measurement_empty_subtitle">点击右下角按钮添加身体测量记录</string>
+    <string name="body_measurement_history">历史记录</string>
+    <string name="body_measurement_weight">体重</string>
+    <string name="body_measurement_bf">体脂率</string>
+    <string name="body_measurement_muscle">肌肉量</string>
+    <string name="body_measurement_waist">腰围</string>
+    <string name="body_measurement_date">日期</string>
+    <string name="body_measurement_note">备注</string>
+    <string name="body_measurement_add">添加测量</string>
+    <string name="body_measurement_edit">编辑测量</string>
+
+    <!-- Nutrition -->
+    <string name="nutrition_title">饮食记录</string>
+    <string name="nutrition_daily_summary">每日总结</string>
+    <string name="nutrition_calories">热量</string>
+    <string name="nutrition_protein">蛋白质</string>
+    <string name="nutrition_carbs">碳水</string>
+    <string name="nutrition_fat">脂肪</string>
+    <string name="nutrition_empty_title">还没有饮食记录</string>
+    <string name="nutrition_empty_subtitle">点击右下角按钮添加食物记录</string>
+    <string name="nutrition_add_food">添加食物</string>
+    <string name="nutrition_edit_food">编辑食物</string>
+    <string name="nutrition_food_name">食物名称</string>
+    <string name="nutrition_amount">份量</string>
+    <string name="nutrition_amount_hint">例如：1碗、100g</string>
+    <string name="nutrition_note">备注</string>
+
+    <!-- Meals -->
+    <string name="meal_all">全部</string>
+    <string name="meal_breakfast">早餐</string>
+    <string name="meal_lunch">午餐</string>
+    <string name="meal_dinner">晚餐</string>
+    <string name="meal_snack">加餐</string>
+
+    <!-- Goal -->
+    <string name="goal_title">目标规划</string>
+    <string name="goal_subtitle">基于当前身体数据的目标规划</string>
+    <string name="goal_current_state">当前状态</string>
+    <string name="goal_current_weight">当前体重</string>
+    <string name="goal_current_bf">当前体脂率</string>
+    <string name="goal_target_state">目标状态</string>
+    <string name="goal_target_weight">目标体重</string>
+    <string name="goal_target_bf">目标体脂率</string>
+    <string name="goal_weight_diff">体重变化</string>
+    <string name="goal_fat_to_lose">需减脂肪</string>
+    <string name="goal_timeline">预估时间线</string>
+    <string name="goal_estimated_weeks">预计周期</string>
+    <string name="goal_weeks_format" formatted="false">%d 周</string>
+    <string name="goal_recommended_calories">建议每日摄入</string>
+    <string name="goal_calories_format" formatted="false">%d kcal</string>
+    <string name="goal_no_data">请先在身体档案中填写完整信息</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">保存</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_delete">删除</string>
+    <string name="action_add">添加</string>
 </resources>

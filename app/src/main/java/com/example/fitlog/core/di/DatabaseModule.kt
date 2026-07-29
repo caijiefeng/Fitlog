@@ -6,6 +6,7 @@ import com.example.fitlog.core.database.FitLogDatabase
 import com.example.fitlog.core.database.dao.BodyMeasurementDao
 import com.example.fitlog.core.database.dao.CheckInDao
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
+import com.example.fitlog.core.database.dao.FoodRecordDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.database.dao.ReminderDao
@@ -37,7 +38,7 @@ object DatabaseModule {
             FitLogDatabase::class.java,
             "fitlog.db",
         )
-            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4)
+            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5)
             .addCallback(DatabaseCallback())
             .build()
     }
@@ -77,4 +78,7 @@ object DatabaseModule {
 
     @Provides
     fun provideBodyMeasurementDao(db: FitLogDatabase): BodyMeasurementDao = db.bodyMeasurementDao()
+
+    @Provides
+    fun provideFoodRecordDao(db: FitLogDatabase): FoodRecordDao = db.foodRecordDao()
 }
