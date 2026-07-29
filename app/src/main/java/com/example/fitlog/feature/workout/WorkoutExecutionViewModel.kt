@@ -3,9 +3,10 @@ package com.example.fitlog.feature.workout
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import android.util.Log
 import com.example.fitlog.core.model.SetType
 import com.example.fitlog.core.model.WorkoutStatus
+import com.example.fitlog.data.repository.InvalidSetDataException
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,9 +26,12 @@ data class WorkoutExecutionUiState(
     val restTimerState: RestTimerState = RestTimerState(),
     val showCompleteDialog: Boolean = false,
     val showCancelDialog: Boolean = false,
+    val showPartialCompleteDialog: Boolean = false,
     val isSaving: Boolean = false,
     val elapsedSeconds: Long = 0L,
-)
+) {
+    val exerciseCount: Int get() = sessionDetail?.exercises?.size ?: 0
+}
 
 sealed interface WorkoutExecutionEvent {
     data class NavigateToSummary(val sessionId: Long) : WorkoutExecutionEvent
@@ -39,7 +43,6 @@ sealed interface WorkoutExecutionEvent {
 class WorkoutExecutionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sessionRepository: WorkoutSessionRepository,
-    private val exerciseSessionDao: ExerciseSessionDao,
 ) : ViewModel() {
 
     val timer = RestTimerController()
@@ -56,7 +59,14 @@ class WorkoutExecutionViewModel @Inject constructor(
         if (sessionId > 0) loadSession()
         viewModelScope.launch {
             timer.state.collect { s ->
+                val prev = _uiState.value.restTimerState
                 _uiState.update { it.copy(restTimerState = s) }
+                // When timer finishes naturally (was running, now finished), clear persisted rest state
+                if (prev.isRunning && s.isFinished) {
+                    try {
+                        sessionRepository.clearRestState(sessionId)
+                    } catch (_: Exception) { }
+                }
             }
         }
     }
@@ -118,7 +128,11 @@ class WorkoutExecutionViewModel @Inject constructor(
                     setRecordId = setRecordId,
                 )
                 loadSession()
+            } catch (e: InvalidSetDataException) {
+                Log.e("WorkoutExecutionVM", "Invalid set data", e)
+                _events.emit(WorkoutExecutionEvent.ShowError(e.message ?: "数据验证失败"))
             } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to complete set", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Save failed: ${e.message}"))
             }
         }
@@ -130,6 +144,7 @@ class WorkoutExecutionViewModel @Inject constructor(
                 sessionRepository.addSet(exerciseSessionId)
                 loadSession()
             } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to add set", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Failed to add set: ${e.message}"))
             }
         }
@@ -141,6 +156,7 @@ class WorkoutExecutionViewModel @Inject constructor(
                 sessionRepository.deleteIncompleteSet(setRecordId)
                 loadSession()
             } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to delete set", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Failed to delete set: ${e.message}"))
             }
         }
@@ -152,6 +168,7 @@ class WorkoutExecutionViewModel @Inject constructor(
                 sessionRepository.updateSetType(setRecordId, type.name)
                 loadSession()
             } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to update set type", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Failed to update set type: ${e.message}"))
             }
         }
@@ -160,11 +177,10 @@ class WorkoutExecutionViewModel @Inject constructor(
     fun skipExercise(exerciseSessionId: Long) {
         viewModelScope.launch {
             try {
-                val detail = _uiState.value.sessionDetail ?: return@launch
-                val exercise = detail.exercises.find { it.first.id == exerciseSessionId } ?: return@launch
-                exerciseSessionDao.setSkipped(exerciseSessionId, !exercise.first.isSkipped)
+                sessionRepository.skipExercise(sessionId, exerciseSessionId)
                 loadSession()
             } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to skip exercise", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Failed to update exercise: ${e.message}"))
             }
         }
@@ -174,8 +190,9 @@ class WorkoutExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 sessionRepository.updateExerciseNotes(exerciseSessionId, notes)
-            } catch (_: Exception) {
-                // Non-critical — silently ignore note save errors
+            } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to update notes", e)
+                _events.emit(WorkoutExecutionEvent.ShowError("Failed to save notes: ${e.message}"))
             }
         }
     }
@@ -192,8 +209,8 @@ class WorkoutExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 sessionRepository.updateRestState(sessionId, null, null, null)
-            } catch (_: Exception) {
-                // Non-critical — best-effort cleanup of persisted rest state
+            } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to clear rest state on skip", e)
             }
         }
     }
@@ -201,11 +218,25 @@ class WorkoutExecutionViewModel @Inject constructor(
     fun add15Seconds() {
         timer.add15Seconds()
         _uiState.update { it.copy(restTimerState = timer.state.value) }
+        viewModelScope.launch {
+            try {
+                val (_, _, setRecordId) = sessionRepository.getRestState(sessionId)
+                val s = timer.state.value
+                sessionRepository.updateRestState(sessionId, s.startedAt, s.durationSeconds, setRecordId)
+            } catch (_: Exception) { }
+        }
     }
 
     fun subtract15Seconds() {
         timer.subtract15Seconds()
         _uiState.update { it.copy(restTimerState = timer.state.value) }
+        viewModelScope.launch {
+            try {
+                val (_, _, setRecordId) = sessionRepository.getRestState(sessionId)
+                val s = timer.state.value
+                sessionRepository.updateRestState(sessionId, s.startedAt, s.durationSeconds, setRecordId)
+            } catch (_: Exception) { }
+        }
     }
 
     fun showCompleteDialog() {
@@ -228,33 +259,62 @@ class WorkoutExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isSaving = true) }
-                val completedCount = sessionRepository.completedSetCount(sessionId)
-                if (completedCount == 0) {
+
+                val detail = _uiState.value.sessionDetail ?: return@launch
+
+                // Count completed WORKING sets with setNumber <= targetSets per exercise
+                var completedWorkingSetCount = 0
+                var totalTargetSets = 0
+                detail.exercises.forEach { (exercise, sets) ->
+                    if (!exercise.isSkipped) {
+                        totalTargetSets += exercise.targetSets
+                        completedWorkingSetCount += sets.count { set ->
+                            set.completed &&
+                                set.setType == SetType.WORKING &&
+                                set.setNumber <= exercise.targetSets
+                        }
+                    }
+                }
+
+                if (completedWorkingSetCount == 0) {
                     _uiState.update { it.copy(isSaving = false) }
-                    _events.emit(WorkoutExecutionEvent.ShowError("请至少完成一组"))
+                    _events.emit(WorkoutExecutionEvent.ShowError("Complete at least one set"))
                     return@launch
                 }
 
-                // Calculate total target sets from non-skipped exercises
-                val detail = _uiState.value.sessionDetail
-                val totalTargetSets = detail?.exercises?.sumOf { (exercise, _) ->
-                    if (exercise.isSkipped) 0 else exercise.targetSets
-                } ?: 0
-
-                val status = if (completedCount >= totalTargetSets) {
-                    WorkoutStatus.COMPLETED
+                if (completedWorkingSetCount >= totalTargetSets) {
+                    sessionRepository.updateStatus(sessionId, WorkoutStatus.COMPLETED)
+                    timer.reset()
+                    _uiState.update { it.copy(isSaving = false) }
+                    _events.emit(WorkoutExecutionEvent.NavigateToSummary(sessionId))
                 } else {
-                    WorkoutStatus.PARTIALLY_COMPLETED
+                    _uiState.update { it.copy(isSaving = false, showPartialCompleteDialog = true) }
                 }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false) }
+                Log.e("WorkoutExecutionVM", "Failed to complete workout", e)
+                _events.emit(WorkoutExecutionEvent.ShowError("Complete failed: ${e.message}"))
+            }
+        }
+    }
 
-                sessionRepository.updateStatus(sessionId, status)
+    fun confirmPartialComplete() {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isSaving = true, showPartialCompleteDialog = false) }
+                sessionRepository.updateStatus(sessionId, WorkoutStatus.PARTIALLY_COMPLETED)
                 timer.reset()
                 _events.emit(WorkoutExecutionEvent.NavigateToSummary(sessionId))
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }
+                Log.e("WorkoutExecutionVM", "Failed to confirm partial complete", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Complete failed: ${e.message}"))
             }
         }
+    }
+
+    fun dismissPartialCompleteDialog() {
+        _uiState.update { it.copy(showPartialCompleteDialog = false) }
     }
 
     fun cancelWorkout() {
@@ -266,6 +326,7 @@ class WorkoutExecutionViewModel @Inject constructor(
                 _events.emit(WorkoutExecutionEvent.NavigateBack)
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }
+                Log.e("WorkoutExecutionVM", "Failed to cancel workout", e)
                 _events.emit(WorkoutExecutionEvent.ShowError("Cancel failed: ${e.message}"))
             }
         }

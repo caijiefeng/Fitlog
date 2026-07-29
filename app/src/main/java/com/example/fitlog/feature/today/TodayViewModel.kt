@@ -77,20 +77,24 @@ class TodayViewModel @Inject constructor(
                           else sessionRepository.createQuick()
                 _events.emit(TodayEvent.StartWorkout(sid))
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message ?: "创建训练失败")
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
 
     fun onQuickStart() {
         viewModelScope.launch {
-            val state = _uiState.value
-            if (state.hasInProgressWorkout) {
-                state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
-                return@launch
+            try {
+                val state = _uiState.value
+                if (state.hasInProgressWorkout) {
+                    state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
+                    return@launch
+                }
+                val sid = sessionRepository.createQuick()
+                _events.emit(TodayEvent.StartWorkout(sid))
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
-            val sid = sessionRepository.createQuick()
-            _events.emit(TodayEvent.StartWorkout(sid))
         }
     }
 }

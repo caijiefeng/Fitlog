@@ -1,8 +1,10 @@
 package com.example.fitlog.feature.record
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,7 +30,6 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
-import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -35,13 +37,14 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.model.WorkoutSession
 import com.example.fitlog.core.model.WorkoutStatus
+import java.time.Duration
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun RecordScreen(
     viewModel: RecordViewModel = hiltViewModel(),
+    onNavigateToWorkoutDetail: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -49,52 +52,138 @@ fun RecordScreen(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_record)) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(modifier = Modifier.padding(innerPadding)) {
-            Spacer(modifier = Modifier.height(8.dp))
-            SectionHeader(title = stringResource(R.string.section_recent_training))
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                SectionHeader(title = stringResource(R.string.section_recent_training))
+            }
 
             when {
                 uiState.isLoading -> {
-                    CircularProgressIndicator(color = FitLogAccent, modifier = Modifier.padding(32.dp))
+                    item {
+                        CircularProgressIndicator(
+                            color = FitLogAccent,
+                            modifier = Modifier.padding(32.dp),
+                        )
+                    }
                 }
                 uiState.isEmpty -> {
-                    EmptyState(
-                        icon = Icons.Filled.EditNote,
-                        title = stringResource(R.string.empty_record_title),
-                        subtitle = stringResource(R.string.empty_record_subtitle),
-                    )
+                    item {
+                        EmptyState(
+                            icon = Icons.Filled.EditNote,
+                            title = stringResource(R.string.empty_record_title),
+                            subtitle = stringResource(R.string.empty_record_subtitle),
+                        )
+                    }
                 }
                 else -> {
-                    LazyColumn {
-                        items(uiState.sessions, key = { it.id }) { session ->
-                            HistoryCard(session)
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
+                    items(uiState.sessions, key = { it.session.id }) { item ->
+                        HistoryCard(
+                            session = item.session,
+                            volume = item.volume,
+                            completedSetCount = item.completedSetCount,
+                            exerciseCount = item.exerciseCount,
+                            onClick = { onNavigateToWorkoutDetail(item.session.id) },
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            SectionHeader(title = stringResource(R.string.section_body_data))
-            Text(stringResource(R.string.record_placeholder), style = MaterialTheme.typography.bodyMedium, color = FitLogTextSecondary)
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionHeader(title = stringResource(R.string.section_body_data))
+                Text(
+                    stringResource(R.string.record_placeholder),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogTextSecondary,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun HistoryCard(session: WorkoutSession) {
-    FitLogCard(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(session.templateNameSnapshot ?: "训练", style = MaterialTheme.typography.bodyLarge, color = FitLogTextPrimary)
-                Spacer(modifier = Modifier.height(2.dp))
-                Row {
-                    Text(formatDate(session), style = MaterialTheme.typography.bodySmall, color = FitLogTextSecondary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(statusLabel(session.status), style = MaterialTheme.typography.bodySmall, color = FitLogAccent)
-                }
+private fun HistoryCard(
+    session: WorkoutSession,
+    volume: Double,
+    completedSetCount: Int,
+    exerciseCount: Int,
+    onClick: () -> Unit,
+) {
+    FitLogCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+        Column {
+            // Template name
+            Text(
+                text = session.templateNameSnapshot ?: "训练",
+                style = MaterialTheme.typography.bodyLarge,
+                color = FitLogTextPrimary,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Date/time and status
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = formatDate(session),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = FitLogTextSecondary,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = statusLabel(session.status),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor(session.status),
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Stats row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                StatItem(
+                    label = stringResource(R.string.record_duration),
+                    value = formatDuration(session),
+                )
+                StatItem(
+                    label = stringResource(R.string.record_exercise_count),
+                    value = exerciseCount.toString(),
+                )
+                StatItem(
+                    label = stringResource(R.string.record_completed_sets),
+                    value = completedSetCount.toString(),
+                )
+                StatItem(
+                    label = stringResource(R.string.record_volume),
+                    value = formatVolume(volume),
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun StatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            color = FitLogTextPrimary,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = FitLogTextSecondary,
+        )
     }
 }
 
@@ -108,4 +197,33 @@ private fun statusLabel(status: WorkoutStatus): String = when (status) {
     WorkoutStatus.PARTIALLY_COMPLETED -> "部分完成"
     WorkoutStatus.CANCELLED -> "已取消"
     else -> ""
+}
+
+private fun statusColor(status: WorkoutStatus): androidx.compose.ui.graphics.Color = when (status) {
+    WorkoutStatus.COMPLETED -> FitLogAccent
+    WorkoutStatus.PARTIALLY_COMPLETED -> FitLogAccent
+    WorkoutStatus.CANCELLED -> FitLogTextSecondary
+    else -> FitLogTextSecondary
+}
+
+private fun formatDuration(session: WorkoutSession): String {
+    val endTime = session.endTime ?: java.time.Instant.now()
+    val seconds = Duration.between(session.startTime, endTime).seconds
+    val minutes = (seconds / 60).toInt()
+    val secs = (seconds % 60).toInt()
+    return if (minutes > 0) {
+        "%d分%d秒".format(minutes, secs)
+    } else {
+        "%d秒".format(secs)
+    }
+}
+
+private fun formatVolume(volume: Double): String {
+    return if (volume >= 1000) {
+        "%.0f".format(volume)
+    } else if (volume > 0) {
+        "%.1f".format(volume)
+    } else {
+        "-"
+    }
 }

@@ -26,6 +26,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.designsystem.theme.FitLogError
 import java.util.Calendar
 
 @Composable
@@ -57,6 +58,16 @@ fun TodayScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = stringResource(R.string.today_subtitle), style = MaterialTheme.typography.bodyLarge, color = FitLogTextSecondary)
             Spacer(modifier = Modifier.height(24.dp))
+
+            uiState.error?.let { error ->
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogError,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             SectionHeader(title = stringResource(R.string.section_todays_workout))
 
             if (uiState.hasInProgressWorkout) {

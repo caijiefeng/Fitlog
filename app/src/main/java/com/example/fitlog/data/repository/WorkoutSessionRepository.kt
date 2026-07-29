@@ -155,6 +155,11 @@ class WorkoutSessionRepository @Inject constructor(
     }
 
     suspend fun deleteIncompleteSet(setRecordId: Long) {
+        val set = setRecordDao.getById(setRecordId) ?: return
+        val exerciseSession = exerciseSessionDao.getById(set.exerciseSessionId)
+        if (exerciseSession != null && set.setNumber <= exerciseSession.targetSets) {
+            throw InvalidSetDataException("计划组不能删除")
+        }
         setRecordDao.deleteIfIncomplete(setRecordId)
     }
 
@@ -175,8 +180,15 @@ class WorkoutSessionRepository @Inject constructor(
         }
     }
 
-    suspend fun skipExercise(exerciseSessionId: Long) {
-        exerciseSessionDao.setSkipped(exerciseSessionId, true)
+    suspend fun skipExercise(sessionId: Long, exerciseSessionId: Long) {
+        val exercise = exerciseSessionDao.getById(exerciseSessionId)
+        if (exercise != null) {
+            exerciseSessionDao.setSkipped(exerciseSessionId, !exercise.isSkipped)
+        }
+    }
+
+    suspend fun clearRestState(sessionId: Long) {
+        updateRestState(sessionId, null, null, null)
     }
 
     suspend fun updateExerciseNotes(exerciseSessionId: Long, notes: String?) {
@@ -224,7 +236,8 @@ class WorkoutSessionRepository @Inject constructor(
     // ── Validation ──────────────────────────────────────────────────────────
 
     private fun validateSetData(reps: Int?, weightKg: Double?, rpe: Double?, rir: Int?) {
-        if (reps != null && reps < 0) throw InvalidSetDataException("次数不能为负数")
+        if (reps == null) throw InvalidSetDataException("次数不能为空")
+        if (reps < 0) throw InvalidSetDataException("次数不能为负数")
         if (weightKg != null && weightKg < 0) throw InvalidSetDataException("重量不能为负数")
         if (rpe != null && (rpe < 1.0 || rpe > 10.0)) throw InvalidSetDataException("RPE范围1.0-10.0")
         if (rir != null && (rir < 0 || rir > 5)) throw InvalidSetDataException("RIR范围0-5")

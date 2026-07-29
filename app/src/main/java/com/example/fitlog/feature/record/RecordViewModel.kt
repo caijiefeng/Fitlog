@@ -11,8 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class SessionHistoryItem(
+    val session: WorkoutSession,
+    val volume: Double,
+    val completedSetCount: Int,
+    val exerciseCount: Int,
+)
+
 data class RecordUiState(
-    val sessions: List<WorkoutSession> = emptyList(),
+    val sessions: List<SessionHistoryItem> = emptyList(),
     val isLoading: Boolean = true,
     val isEmpty: Boolean = false,
 )
@@ -28,10 +35,18 @@ class RecordViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             sessionRepository.getHistory().collect { sessions ->
+                val items = sessions.map { session ->
+                    SessionHistoryItem(
+                        session = session,
+                        volume = sessionRepository.totalVolume(session.id),
+                        completedSetCount = sessionRepository.completedSetCount(session.id),
+                        exerciseCount = sessionRepository.completedExerciseCount(session.id),
+                    )
+                }
                 _uiState.value = RecordUiState(
-                    sessions = sessions,
+                    sessions = items,
                     isLoading = false,
-                    isEmpty = sessions.isEmpty(),
+                    isEmpty = items.isEmpty(),
                 )
             }
         }

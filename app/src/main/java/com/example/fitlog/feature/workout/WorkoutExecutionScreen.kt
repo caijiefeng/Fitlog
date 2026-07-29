@@ -80,6 +80,7 @@ fun WorkoutExecutionScreen(
     viewModel: WorkoutExecutionViewModel = hiltViewModel(),
     onNavigateToSummary: (Long) -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    onNavigateToExercisePicker: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -157,8 +158,13 @@ fun WorkoutExecutionScreen(
                 }
             }
             uiState.sessionDetail != null -> {
+                val sessionId = uiState.sessionDetail!!.session.id
+                val isInProgress = uiState.sessionDetail!!.session.status ==
+                    com.example.fitlog.core.model.WorkoutStatus.IN_PROGRESS
                 WorkoutContent(
                     detail = uiState.sessionDetail!!,
+                    sessionId = sessionId,
+                    isInProgress = isInProgress,
                     restTimerState = uiState.restTimerState,
                     onTickRest = viewModel::tickRest,
                     onSkipRest = viewModel::skipRest,
@@ -181,6 +187,8 @@ fun WorkoutExecutionScreen(
                     onUpdateSetType = viewModel::updateSetType,
                     onSkipExercise = viewModel::skipExercise,
                     onUpdateNotes = viewModel::updateNotes,
+                    onNavigateToExercisePicker = { onNavigateToExercisePicker(sessionId) },
+                    onCancelWorkout = { viewModel.showCancelDialog() },
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -258,6 +266,42 @@ fun WorkoutExecutionScreen(
             },
         )
     }
+
+    // Partial Complete confirmation dialog
+    if (uiState.showPartialCompleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissPartialCompleteDialog() },
+            title = {
+                Text(
+                    stringResource(R.string.workout_execution_complete_title),
+                    color = FitLogTextPrimary,
+                )
+            },
+            text = {
+                Text(
+                    "仍有计划组未完成，是否将本次训练保存为部分完成？",
+                    color = FitLogTextSecondary,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.confirmPartialComplete() },
+                    enabled = !uiState.isSaving,
+                    colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+                ) {
+                    Text(stringResource(R.string.workout_execution_confirm_complete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissPartialCompleteDialog() }) {
+                    Text(
+                        stringResource(R.string.workout_execution_dismiss),
+                        color = FitLogAccent,
+                    )
+                }
+            },
+        )
+    }
 }
 
 // ─── Content ───────────────────────────────────────────────────────────────────
@@ -265,6 +309,8 @@ fun WorkoutExecutionScreen(
 @Composable
 private fun WorkoutContent(
     detail: com.example.fitlog.core.model.WorkoutSessionDetail,
+    sessionId: Long,
+    isInProgress: Boolean,
     restTimerState: RestTimerState,
     onTickRest: () -> Unit,
     onSkipRest: () -> Unit,
@@ -276,10 +322,47 @@ private fun WorkoutContent(
     onUpdateSetType: (Long, SetType) -> Unit,
     onSkipExercise: (Long) -> Unit,
     onUpdateNotes: (Long, String) -> Unit,
+    onNavigateToExercisePicker: () -> Unit,
+    onCancelWorkout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Track which completed sets are in edit mode (keyed by setRecordId)
     val editingSets = remember { mutableStateMapOf<Long, Boolean>() }
+
+    if (detail.exercises.isEmpty() && isInProgress) {
+        // Empty state: no exercises added yet
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "当前训练还没有动作",
+                style = MaterialTheme.typography.bodyLarge,
+                color = FitLogTextSecondary,
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onNavigateToExercisePicker,
+                colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("添加动作")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onCancelWorkout,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = FitLogError),
+                border = BorderStroke(1.dp, FitLogError),
+            ) {
+                Text("取消训练", color = FitLogError)
+            }
+        }
+        return
+    }
 
     LazyColumn(
         modifier = modifier
@@ -320,6 +403,29 @@ private fun WorkoutContent(
                 },
             )
             Spacer(Modifier.height(8.dp))
+        }
+
+        // Add exercise button (only when IN_PROGRESS)
+        if (isInProgress) {
+            item(key = "add_exercise_button") {
+                TextButton(
+                    onClick = onNavigateToExercisePicker,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = FitLogAccent,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "添加动作",
+                        color = FitLogAccent,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+            }
         }
 
         // Bottom padding for navigation bar
@@ -500,7 +606,7 @@ private fun ExerciseCard(
                             editingSets.remove(setRecord.id)
                         }
                     },
-                    onDelete = if (!setRecord.completed) {
+                    onDelete = if (!setRecord.completed && setRecord.setNumber > exercise.targetSets) {
                         { onDeleteSet(setRecord.id) }
                     } else {
                         null
@@ -680,10 +786,15 @@ private fun EditableSetRow(
         mutableStateOf(setRecord.setType)
     }
     var typeMenuExpanded by remember { mutableStateOf(false) }
+    var showValidations by remember { mutableStateOf(false) }
 
-    // Validation
+    // Validation — only show reps-required error after first attempt
     val weightError = validateWeight(weightText)
-    val repsError = validateReps(repsText)
+    val repsError = if (repsText.isEmpty()) {
+        if (showValidations) "必填" else null
+    } else {
+        validateReps(repsText)
+    }
     val rpeError = validateRpe(rpeText)
     val rirError = validateRir(rirText)
     val hasError = weightError != null || repsError != null || rpeError != null || rirError != null
@@ -829,13 +940,18 @@ private fun EditableSetRow(
             ) {
                 Button(
                     onClick = {
-                        onCompleteSet(
-                            repsText.toIntOrNull(),
-                            weightText.toDoubleOrNull(),
-                            rpeText.toDoubleOrNull(),
-                            rirText.toIntOrNull(),
-                            selectedType,
-                        )
+                        if (repsText.isEmpty()) {
+                            showValidations = true
+                        } else {
+                            showValidations = false
+                            onCompleteSet(
+                                repsText.toIntOrNull(),
+                                weightText.toDoubleOrNull(),
+                                rpeText.toDoubleOrNull(),
+                                rirText.toIntOrNull(),
+                                selectedType,
+                            )
+                        }
                     },
                     enabled = !hasError,
                     colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),

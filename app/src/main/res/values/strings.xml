@@ -42,6 +42,14 @@
     <string name="plan_placeholder">周一到周日 训练安排将在这里显示</string>
 
     <!-- Record -->
+    <string name="record_status_completed">已完成</string>
+    <string name="record_status_partial">部分完成</string>
+    <string name="record_status_cancelled">已取消</string>
+    <string name="record_duration">时长</string>
+    <string name="record_exercise_count">动作数</string>
+    <string name="record_completed_sets">完成组数</string>
+    <string name="record_volume">总容量</string>
+    <string name="record_loading">加载中...</string>
     <string name="record_placeholder">体重、体脂、围度等记录将在这里显示</string>
 
     <!-- Progress -->

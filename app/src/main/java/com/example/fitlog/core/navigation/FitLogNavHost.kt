@@ -69,7 +69,11 @@ fun FitLogNavHost(
                 onNavigateToTemplates = { navController.navigate(Routes.TEMPLATE_LIST) },
             )
         }
-        composable(BottomNavItem.Record.route) { RecordScreen() }
+        composable(BottomNavItem.Record.route) {
+            RecordScreen(
+                onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
+            )
+        }
         composable(BottomNavItem.Progress.route) { ProgressScreen() }
         composable(BottomNavItem.Profile.route) { ProfileScreen() }
 
@@ -129,6 +133,7 @@ fun FitLogNavHost(
             WorkoutExecutionScreen(
                 onNavigateToSummary = { id -> navController.navigate(Routes.workoutSummary(id)) },
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToExercisePicker = { sessionId -> navController.navigate(Routes.exercisePicker(sessionId)) },
             )
         }
         composable(
