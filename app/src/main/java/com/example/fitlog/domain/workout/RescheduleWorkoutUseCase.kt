@@ -1,7 +1,7 @@
 package com.example.fitlog.domain.workout
 
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
-import com.example.fitlog.data.repository.CalendarRepository
+import com.example.fitlog.data.repository.WorkoutPlanOverrideRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -12,7 +12,7 @@ import javax.inject.Inject
  * before creating the RESCHEDULED override.
  */
 class RescheduleWorkoutUseCase @Inject constructor(
-    private val calendarRepository: CalendarRepository,
+    private val overrideRepository: WorkoutPlanOverrideRepository,
     private val sessionDao: WorkoutSessionDao,
 ) {
 
@@ -40,7 +40,7 @@ class RescheduleWorkoutUseCase @Inject constructor(
             }
         }
 
-        calendarRepository.setOverride(
+        overrideRepository.saveOverride(
             scheduleId = scheduleId,
             templateId = templateId,
             occurrenceDate = occurrenceEpochDay,

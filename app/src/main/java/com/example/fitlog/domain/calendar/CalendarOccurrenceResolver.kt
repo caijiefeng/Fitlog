@@ -4,6 +4,7 @@ import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
 import com.example.fitlog.core.database.entity.WorkoutSessionEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
+import com.example.fitlog.core.time.CurrentDateProvider
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
@@ -15,7 +16,9 @@ import javax.inject.Singleton
  * repository so no N+1 database queries are performed.
  */
 @Singleton
-class CalendarOccurrenceResolver @Inject constructor() {
+class CalendarOccurrenceResolver @Inject constructor(
+    private val dateProvider: CurrentDateProvider,
+) {
 
     /**
      * Resolves a date range [startEpochDay] to [endEpochDay] (inclusive) into
@@ -29,7 +32,7 @@ class CalendarOccurrenceResolver @Inject constructor() {
         sessions: List<WorkoutSessionEntity>,
         templates: Map<Long, WorkoutTemplateEntity>,
     ): List<CalendarDay> {
-        val today = LocalDate.now()
+        val today = dateProvider.today()
         val overrideIndex: Map<String, WorkoutPlanOverrideEntity> = overrides.associateBy {
             overrideKey(it.scheduleId, it.occurrenceDate)
         }
@@ -37,7 +40,7 @@ class CalendarOccurrenceResolver @Inject constructor() {
             if (session.scheduleId != null) {
                 overrideKey(session.scheduleId, session.occurrenceDate ?: session.date)
             } else {
-                "adhoc_${session.id}"
+                "session:${session.id}"
             }
         }
 
@@ -82,17 +85,22 @@ class CalendarOccurrenceResolver @Inject constructor() {
                     CalendarWorkoutStatus.SCHEDULED
                 }
 
+                val occurrenceDate = LocalDate.ofEpochDay(current)
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
+                        displayKey = buildDisplayKey(schedule.id, current, session?.id),
                         scheduleId = schedule.id,
                         templateId = schedule.templateId,
                         templateName = templateName,
-                        occurrenceDate = LocalDate.ofEpochDay(current),
+                        occurrenceDate = occurrenceDate,
+                        displayDate = LocalDate.ofEpochDay(plannedDate),
                         plannedDate = LocalDate.ofEpochDay(plannedDate),
                         sessionId = session?.id,
                         status = status,
                         isQuickWorkout = false,
+                        isOriginalDateMarker = isRescheduled && plannedDate != current,
+                        canStart = status == CalendarWorkoutStatus.SCHEDULED,
                     )
                 )
             }
@@ -120,14 +128,18 @@ class CalendarOccurrenceResolver @Inject constructor() {
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
+                        displayKey = buildDisplayKey(override.scheduleId, override.occurrenceDate, session?.id),
                         scheduleId = override.scheduleId,
                         templateId = override.templateId,
                         templateName = templateName,
                         occurrenceDate = LocalDate.ofEpochDay(override.occurrenceDate),
+                        displayDate = date,
                         plannedDate = date,
                         sessionId = session?.id,
                         status = status,
                         isQuickWorkout = false,
+                        isOriginalDateMarker = true,
+                        canStart = status == CalendarWorkoutStatus.SCHEDULED,
                     )
                 )
             }
@@ -137,15 +149,17 @@ class CalendarOccurrenceResolver @Inject constructor() {
                 s.scheduleId == null && s.date == current
             }
             for (session in quickSessions) {
-                val occKey = "adhoc_${session.id}"
+                val occKey = "session:${session.id}"
                 val templateName = session.templateNameSnapshot ?: "快速训练"
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
+                        displayKey = occKey,
                         scheduleId = null,
                         templateId = session.templateId,
                         templateName = templateName,
                         occurrenceDate = date,
+                        displayDate = date,
                         plannedDate = date,
                         sessionId = session.id,
                         status = mapSessionStatus(
@@ -154,6 +168,8 @@ class CalendarOccurrenceResolver @Inject constructor() {
                             isRescheduled = false,
                         ),
                         isQuickWorkout = true,
+                        isOriginalDateMarker = false,
+                        canStart = false,
                     )
                 )
             }
@@ -195,7 +211,16 @@ class CalendarOccurrenceResolver @Inject constructor() {
     // ── Helpers ─────────────────────────────────────────────────────────────
 
     private fun overrideKey(scheduleId: Long, occurrenceDate: Long): String =
-        "${scheduleId}_${occurrenceDate}"
+        "${scheduleId}:${occurrenceDate}"
+
+    private fun buildDisplayKey(scheduleId: Long?, occurrenceEpochDay: Long?, sessionId: Long?): String =
+        if (scheduleId != null && occurrenceEpochDay != null) {
+            "schedule:${scheduleId}:${occurrenceEpochDay}"
+        } else if (sessionId != null) {
+            "session:${sessionId}"
+        } else {
+            "unknown"
+        }
 
     private fun mapSessionStatus(
         sessionStatus: String,

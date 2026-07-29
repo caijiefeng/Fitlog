@@ -2,6 +2,7 @@ package com.example.fitlog.feature.calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.time.CurrentDateProvider
 import com.example.fitlog.data.repository.CalendarRepository
 import com.example.fitlog.domain.calendar.CalendarDay
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 
@@ -18,18 +18,21 @@ data class CalendarUiState(
     val days: List<CalendarDay> = emptyList(),
     val selectedDay: Long? = null,
     val isLoading: Boolean = true,
+    val error: String? = null,
 )
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val calendarRepository: CalendarRepository,
+    private val dateProvider: CurrentDateProvider,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
     init {
-        loadMonth(YearMonth.now())
+        val today = dateProvider.today()
+        loadMonth(YearMonth.of(today.year, today.month))
     }
 
     fun loadMonth(yearMonth: YearMonth) {
@@ -37,12 +40,20 @@ class CalendarViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 yearMonth = yearMonth,
                 isLoading = true,
+                error = null,
             )
-            val days = calendarRepository.getMonth(yearMonth)
-            _uiState.value = _uiState.value.copy(
-                days = days,
-                isLoading = false,
-            )
+            try {
+                val days = calendarRepository.getMonth(yearMonth)
+                _uiState.value = _uiState.value.copy(
+                    days = days,
+                    isLoading = false,
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message,
+                )
+            }
         }
     }
 
@@ -59,8 +70,9 @@ class CalendarViewModel @Inject constructor(
     }
 
     fun goToToday() {
-        val today = YearMonth.now()
-        loadMonth(today)
-        _uiState.value = _uiState.value.copy(selectedDay = LocalDate.now().toEpochDay())
+        val today = dateProvider.today()
+        val yearMonth = YearMonth.of(today.year, today.month)
+        loadMonth(yearMonth)
+        _uiState.value = _uiState.value.copy(selectedDay = today.toEpochDay())
     }
 }

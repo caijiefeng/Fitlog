@@ -176,4 +176,29 @@
     <string name="calendar_status_in_progress">进行中</string>
     <string name="calendar_status_completed">已完成</string>
     <string name="calendar_status_cancelled">已取消</string>
+    <string name="calendar_status_partial">部分完成</string>
+
+    <!-- Calendar Day Detail -->
+    <string name="calendar_nav_back">返回</string>
+    <string name="calendar_date_year">年</string>
+    <string name="calendar_date_month">月</string>
+    <string name="calendar_date_day">日</string>
+    <string name="calendar_detail_loading">加载中...</string>
+    <string name="calendar_no_workouts_detail">该日暂无训练安排</string>
+    <string name="calendar_action_start">开始训练</string>
+    <string name="calendar_action_skip">跳过本次</string>
+    <string name="calendar_action_restore">恢复计划</string>
+    <string name="calendar_action_continue">继续训练</string>
+    <string name="calendar_action_view_detail">查看详情</string>
+
+    <!-- Today (V3 UI) -->
+    <string name="today_workout_in_progress_title">继续训练</string>
+    <string name="today_workout_in_progress_desc">你有一个进行中的训练</string>
+    <string name="today_occurrence_scheduled">点击开始训练</string>
+    <string name="today_occurrence_rescheduled">已调整日期</string>
+    <string name="today_occurrence_skipped">已跳过</string>
+    <string name="today_occurrence_completed">已完成</string>
+    <string name="today_occurrence_partial">部分完成</string>
+    <string name="today_occurrence_cancelled">已取消</string>
+    <string name="today_occurrence_in_progress">进行中</string>
 </resources>

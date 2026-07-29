@@ -1,6 +1,6 @@
 package com.example.fitlog.domain.workout
 
-import com.example.fitlog.data.repository.CalendarRepository
+import com.example.fitlog.data.repository.WorkoutPlanOverrideRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -9,7 +9,7 @@ import javax.inject.Inject
  * schedule behaviour.
  */
 class RestoreWorkoutScheduleUseCase @Inject constructor(
-    private val calendarRepository: CalendarRepository,
+    private val overrideRepository: WorkoutPlanOverrideRepository,
 ) {
 
     /**
@@ -19,7 +19,7 @@ class RestoreWorkoutScheduleUseCase @Inject constructor(
         scheduleId: Long,
         occurrenceDate: LocalDate,
     ) {
-        calendarRepository.removeOverride(
+        overrideRepository.removeOverride(
             scheduleId = scheduleId,
             occurrenceDate = occurrenceDate.toEpochDay(),
         )

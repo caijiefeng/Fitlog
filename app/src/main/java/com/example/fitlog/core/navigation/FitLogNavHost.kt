@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.fitlog.feature.calendar.CalendarDayDetailScreen
 import com.example.fitlog.feature.exercise.ExerciseFormScreen
 import com.example.fitlog.feature.exercise.ExerciseListScreen
 import com.example.fitlog.feature.plan.PlanScreen
@@ -27,6 +28,7 @@ object Routes {
     const val RECORD = "record"
     const val PROGRESS = "progress"
     const val PROFILE = "profile"
+    const val CALENDAR_DAY = "calendar/day/{epochDay}"
     const val EXERCISE_LIST = "exercise/list"
     const val EXERCISE_CREATE = "exercise/create"
     const val EXERCISE_EDIT = "exercise/edit/{exerciseId}"
@@ -44,6 +46,7 @@ object Routes {
     fun workoutSummary(id: Long) = "workout/summary/$id"
     fun workoutDetail(id: Long) = "workout/detail/$id"
     fun exercisePicker(id: Long) = "workout/exercise-picker/$id"
+    fun calendarDay(epochDay: Long) = "calendar/day/$epochDay"
 }
 
 @Composable
@@ -123,6 +126,18 @@ fun FitLogNavHost(
             TemplateEditScreen(
                 onSaved = { navController.popBackStack() },
                 onCancelled = { navController.popBackStack() },
+            )
+        }
+
+        // ── Calendar day detail (full-screen, no bottom nav) ────────────────
+        composable(
+            route = Routes.CALENDAR_DAY,
+            arguments = listOf(navArgument("epochDay") { type = NavType.LongType }),
+        ) {
+            CalendarDayDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToExecution = { id -> navController.navigate(Routes.workoutExecution(id)) },
+                onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
             )
         }
 

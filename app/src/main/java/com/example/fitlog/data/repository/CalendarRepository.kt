@@ -4,7 +4,6 @@ import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
-import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
 import com.example.fitlog.domain.calendar.CalendarDay
 import com.example.fitlog.domain.calendar.CalendarOccurrenceResolver
 import java.time.YearMonth
@@ -53,40 +52,5 @@ class CalendarRepository @Inject constructor(
         val templates = templateDao.getAllActiveList().associateBy { it.id }
 
         return resolver.resolveRange(start, end, schedules, overrides, sessions, templates)
-    }
-
-    /**
-     * Creates or updates a plan override.
-     *
-     * @param action "RESCHEDULED" or "SKIPPED"
-     * @param plannedDate target epochDay (required when RESCHEDULED, null when SKIPPED)
-     */
-    suspend fun setOverride(
-        scheduleId: Long,
-        templateId: Long,
-        occurrenceDate: Long,
-        plannedDate: Long?,
-        action: String,
-    ) {
-        val existing = overrideDao.getByScheduleAndOccurrence(scheduleId, occurrenceDate)
-        if (existing != null) {
-            overrideDao.deleteByScheduleAndDate(scheduleId, occurrenceDate)
-        }
-        overrideDao.insert(
-            WorkoutPlanOverrideEntity(
-                scheduleId = scheduleId,
-                templateId = templateId,
-                occurrenceDate = occurrenceDate,
-                plannedDate = plannedDate,
-                action = action,
-            )
-        )
-    }
-
-    /**
-     * Removes a plan override, effectively restoring the original schedule.
-     */
-    suspend fun removeOverride(scheduleId: Long, occurrenceDate: Long) {
-        overrideDao.deleteByScheduleAndDate(scheduleId, occurrenceDate)
     }
 }

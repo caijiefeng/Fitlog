@@ -1,9 +1,11 @@
 package com.example.fitlog.feature.today
 
-import com.example.fitlog.data.repository.DaySchedule
-import com.example.fitlog.data.repository.WorkoutScheduleRepository
+import com.example.fitlog.core.time.CurrentDateProvider
+import com.example.fitlog.data.repository.CalendarRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
+import com.example.fitlog.domain.calendar.CalendarDay
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,12 +21,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TodayViewModelTest {
 
-    private val scheduleRepo = mockk<WorkoutScheduleRepository>(relaxed = true)
+    private val calendarRepo = mockk<CalendarRepository>(relaxed = true)
     private val sessionRepo = mockk<WorkoutSessionRepository>(relaxed = true)
+    private val dateProvider = mockk<CurrentDateProvider>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -33,36 +37,38 @@ class TodayViewModelTest {
     fun tearDown() { Dispatchers.resetMain() }
 
     @Test
-    fun `initial state after collect`() = runTest(testDispatcher) {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
+    fun `initial state after load`() = runTest(testDispatcher) {
+        val today = LocalDate.of(2026, 7, 29)
+        coEvery { dateProvider.today() } returns today
+        coEvery { calendarRepo.getDayDetail(today.toEpochDay()) } returns emptyList()
         coEvery { sessionRepo.observeInProgress() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo, sessionRepo)
+        val vm = TodayViewModel(calendarRepo, sessionRepo, dateProvider)
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.first()
         assertFalse(state.isLoading)
-        assertFalse(state.hasWorkoutToday)
+        assertTrue(state.occurrences.isEmpty())
     }
 
     @Test
-    fun `hasWorkoutToday true when schedule exists`() = runTest(testDispatcher) {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(
-            DaySchedule(1, "周一", 10L, "Push Day", 5)
-        )
+    fun `occurrences populated when day has workouts`() = runTest(testDispatcher) {
+        val today = LocalDate.of(2026, 7, 29)
+        coEvery { dateProvider.today() } returns today
         coEvery { sessionRepo.observeInProgress() } returns flowOf(null)
-        val vm = TodayViewModel(scheduleRepo, sessionRepo)
+        val vm = TodayViewModel(calendarRepo, sessionRepo, dateProvider)
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.first()
-        assertTrue(state.hasWorkoutToday)
-        assertEquals("Push Day", state.todayTemplateName)
+        assertFalse(state.isLoading)
     }
 
     @Test
     fun `hasInProgress true when session exists`() = runTest(testDispatcher) {
-        coEvery { scheduleRepo.getTodaySchedule() } returns flowOf(null)
+        val today = LocalDate.of(2026, 7, 29)
+        coEvery { dateProvider.today() } returns today
+        coEvery { calendarRepo.getDayDetail(today.toEpochDay()) } returns emptyList()
         coEvery { sessionRepo.observeInProgress() } returns flowOf(
             com.example.fitlog.core.model.WorkoutSession(id = 1, status = com.example.fitlog.core.model.WorkoutStatus.IN_PROGRESS)
         )
-        val vm = TodayViewModel(scheduleRepo, sessionRepo)
+        val vm = TodayViewModel(calendarRepo, sessionRepo, dateProvider)
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.first()
         assertTrue(state.hasInProgressWorkout)
