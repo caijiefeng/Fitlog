@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
         Index(value = ["date"]),
         Index(value = ["status"]),
         Index(value = ["template_id"]),
+        Index(value = ["schedule_id", "occurrence_date"]),
     ],
 )
 data class WorkoutSessionEntity(
@@ -40,6 +41,8 @@ data class WorkoutSessionEntity(
     val activeRestSetRecordId: Long? = null,
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "occurrence_date")
+    val occurrenceDate: Long? = null,
     @ColumnInfo(name = "updated_at")
     val updatedAt: Long = System.currentTimeMillis(),
 )

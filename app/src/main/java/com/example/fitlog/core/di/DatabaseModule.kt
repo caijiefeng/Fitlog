@@ -3,10 +3,13 @@ package com.example.fitlog.core.di
 import android.content.Context
 import androidx.room.Room
 import com.example.fitlog.core.database.FitLogDatabase
+import com.example.fitlog.core.database.dao.CheckInDao
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
+import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
@@ -32,7 +35,7 @@ object DatabaseModule {
             FitLogDatabase::class.java,
             "fitlog.db",
         )
-            .addMigrations(Migrations.MIGRATION_1_2)
+            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
             .addCallback(DatabaseCallback())
             .build()
     }
@@ -57,4 +60,13 @@ object DatabaseModule {
 
     @Provides
     fun provideSetRecordDao(db: FitLogDatabase): SetRecordDao = db.setRecordDao()
+
+    @Provides
+    fun provideWorkoutPlanOverrideDao(db: FitLogDatabase): WorkoutPlanOverrideDao = db.workoutPlanOverrideDao()
+
+    @Provides
+    fun provideReminderDao(db: FitLogDatabase): ReminderDao = db.reminderDao()
+
+    @Provides
+    fun provideCheckInDao(db: FitLogDatabase): CheckInDao = db.checkInDao()
 }

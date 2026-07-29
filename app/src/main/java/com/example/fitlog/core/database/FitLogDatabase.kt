@@ -4,17 +4,23 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.fitlog.core.database.converter.Converters
+import com.example.fitlog.core.database.dao.CheckInDao
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
+import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
+import com.example.fitlog.core.database.entity.CheckInEntity
 import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
 import com.example.fitlog.core.database.entity.ExerciseEntity
 import com.example.fitlog.core.database.entity.ExerciseSessionEntity
+import com.example.fitlog.core.database.entity.ReminderEntity
 import com.example.fitlog.core.database.entity.SetRecordEntity
+import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
 import com.example.fitlog.core.database.entity.WorkoutSessionEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
@@ -30,8 +36,11 @@ import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
         WorkoutSessionEntity::class,
         ExerciseSessionEntity::class,
         SetRecordEntity::class,
+        WorkoutPlanOverrideEntity::class,
+        ReminderEntity::class,
+        CheckInEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -44,4 +53,7 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun workoutSessionDao(): WorkoutSessionDao
     abstract fun exerciseSessionDao(): ExerciseSessionDao
     abstract fun setRecordDao(): SetRecordDao
+    abstract fun workoutPlanOverrideDao(): WorkoutPlanOverrideDao
+    abstract fun reminderDao(): ReminderDao
+    abstract fun checkInDao(): CheckInDao
 }

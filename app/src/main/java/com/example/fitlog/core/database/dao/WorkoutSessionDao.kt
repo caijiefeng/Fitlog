@@ -48,4 +48,7 @@ interface WorkoutSessionDao {
 
     @Query("SELECT * FROM workout_sessions WHERE status = 'PLANNED' AND date = :date")
     suspend fun getPlannedByDate(date: Long): List<WorkoutSessionEntity>
+
+    @Query("SELECT * FROM workout_sessions WHERE schedule_id = :scheduleId AND occurrence_date = :occurrenceDate LIMIT 1")
+    suspend fun getByScheduleAndOccurrence(scheduleId: Long, occurrenceDate: Long): WorkoutSessionEntity?
 }

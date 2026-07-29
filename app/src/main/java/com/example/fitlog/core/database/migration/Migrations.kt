@@ -77,4 +77,65 @@ object Migrations {
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_set_records_session_set ON set_records (exercise_session_id, set_number)")
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE workout_sessions ADD COLUMN occurrence_date INTEGER")
+
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS workout_plan_overrides (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    schedule_id INTEGER NOT NULL,
+                    template_id INTEGER NOT NULL,
+                    occurrence_date INTEGER NOT NULL,
+                    planned_date INTEGER,
+                    action TEXT NOT NULL,
+                    notes TEXT,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (schedule_id) REFERENCES workout_schedules(id) ON DELETE CASCADE,
+                    FOREIGN KEY (template_id) REFERENCES workout_templates(id) ON DELETE RESTRICT
+                )
+            """)
+
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_workout_plan_overrides_schedule_occurrence ON workout_plan_overrides (schedule_id, occurrence_date)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_plan_overrides_planned_date ON workout_plan_overrides (planned_date)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_plan_overrides_action ON workout_plan_overrides (action)")
+
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS reminders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    schedule_id INTEGER,
+                    label TEXT NOT NULL DEFAULT '',
+                    time_of_day_minutes INTEGER NOT NULL DEFAULT 480,
+                    days_of_week_mask INTEGER NOT NULL DEFAULT 0,
+                    zone_id TEXT NOT NULL DEFAULT '',
+                    is_enabled INTEGER NOT NULL DEFAULT 1,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (schedule_id) REFERENCES workout_schedules(id) ON DELETE SET NULL
+                )
+            """)
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_reminders_is_enabled ON reminders (is_enabled)")
+
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS check_ins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    date INTEGER NOT NULL,
+                    session_id INTEGER,
+                    mood INTEGER,
+                    energy_level INTEGER,
+                    notes TEXT,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_check_ins_date ON check_ins (date)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_check_ins_session_id ON check_ins (session_id)")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_sessions_schedule_occurrence ON workout_sessions (schedule_id, occurrence_date)")
+        }
+    }
 }
