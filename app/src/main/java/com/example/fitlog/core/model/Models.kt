@@ -108,24 +108,37 @@ enum class WorkoutStatus { PLANNED, IN_PROGRESS, PARTIALLY_COMPLETED, COMPLETED,
 
 data class WorkoutSession(
     val id: Long = 0,
-    val scheduleId: Long? = null,          // FK → WorkoutSchedule (null = ad-hoc)
-    val templateId: Long? = null,          // FK → WorkoutTemplate (denorm for quick lookup)
+    val scheduleId: Long? = null,
+    val templateId: Long? = null,
+    val templateNameSnapshot: String? = null,
     val date: LocalDate = LocalDate.now(),
-    val startTime: Instant? = null,
+    val startTime: Instant = Instant.now(),
     val endTime: Instant? = null,
-    val durationSeconds: Int? = null,
     val status: WorkoutStatus = WorkoutStatus.PLANNED,
     val notes: String? = null,
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now(),
 )
 
 data class ExerciseSession(
     val id: Long = 0,
-    val sessionId: Long,                   // FK → WorkoutSession
-    val exerciseId: Long,                  // FK → Exercise
+    val sessionId: Long,
+    val exerciseId: Long? = null,
+    val exerciseNameSnapshot: String = "",
+    val primaryMuscleGroupSnapshot: MuscleGroup = MuscleGroup.FULL_BODY,
+    val targetSets: Int = 3,
+    val targetRepsMin: Int? = null,
+    val targetRepsMax: Int? = null,
+    val targetWeightKg: Double? = null,
+    val targetRpe: Double? = null,
+    val targetRir: Int? = null,
+    val plannedRestSeconds: Int = 90,
     val notes: String? = null,
     val sortOrder: Int = 0,
+    val isSkipped: Boolean = false,
+)
+
+data class WorkoutSessionDetail(
+    val session: WorkoutSession,
+    val exercises: List<Pair<ExerciseSession, List<SetRecord>>>,
 )
 
 enum class SetType { WARMUP, WORKING, DROP, FAILURE }
