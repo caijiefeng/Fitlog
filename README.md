@@ -4,7 +4,7 @@ A local-first, privacy-focused strength training tracker for Android.
 
 ## Status
 
-**V1** — Exercise library, training templates, and weekly scheduling. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan. V2: Workout execution and set logging.
+**V2** — Exercise library, templates, workout execution, set logging, rest timer. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan. V2: Workout execution and set logging.
 
 ## Tech Stack
 
