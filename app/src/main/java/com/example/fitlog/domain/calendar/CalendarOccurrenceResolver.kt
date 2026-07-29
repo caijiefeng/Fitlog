@@ -9,44 +9,6 @@ import java.time.YearMonth
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// ── Domain Models ───────────────────────────────────────────────────────────
-
-data class CalendarDay(
-    val epochDay: Long,
-    val dayOfMonth: Int,
-    val dayOfWeek: Int,
-    val month: Int,
-    val year: Int,
-    val isToday: Boolean,
-    val occurrences: List<CalendarOccurrence> = emptyList(),
-)
-
-data class CalendarOccurrence(
-    val key: String,
-    val scheduleId: Long?,
-    val templateId: Long?,
-    val templateName: String,
-    val occurrenceDate: Long,
-    val plannedDate: Long,
-    val sessionId: Long?,
-    val status: String,
-    val isRescheduled: Boolean,
-    val isSkipped: Boolean,
-    val isQuickWorkout: Boolean,
-)
-
-enum class CalendarWorkoutStatus {
-    SCHEDULED,
-    RESCHEDULED,
-    IN_PROGRESS,
-    COMPLETED,
-    PARTIALLY_COMPLETED,
-    SKIPPED,
-    CANCELLED,
-}
-
-// ── Resolver ────────────────────────────────────────────────────────────────
-
 /**
  * Pure Kotlin resolver that turns pre-loaded calendar data into a flat list
  * of [CalendarDay] with resolved occurrences. Accepts collections from the
@@ -91,11 +53,9 @@ class CalendarOccurrenceResolver @Inject constructor() {
             val date = LocalDate.ofEpochDay(current)
             val dayOfWeekIso = date.dayOfWeek.value // 1 (Mon) … 7 (Sun)
             val dayOfMonth = date.dayOfMonth
-            val month = date.monthValue
-            val year = date.year
             val isToday = date == today
 
-            val dayOccurrences = mutableListOf<CalendarOccurrence>()
+            val dayOccurrences = mutableListOf<CalendarWorkoutOccurrence>()
 
             // 1. Scheduled occurrences
             val daySchedules = scheduleByDayOfWeek[dayOfWeekIso] ?: emptyList()
@@ -115,25 +75,23 @@ class CalendarOccurrenceResolver @Inject constructor() {
                 val status = if (session != null) {
                     mapSessionStatus(session.status, isSkipped, isRescheduled)
                 } else if (isSkipped) {
-                    CalendarWorkoutStatus.SKIPPED.name
+                    CalendarWorkoutStatus.SKIPPED
                 } else if (isRescheduled) {
-                    CalendarWorkoutStatus.RESCHEDULED.name
+                    CalendarWorkoutStatus.RESCHEDULED
                 } else {
-                    CalendarWorkoutStatus.SCHEDULED.name
+                    CalendarWorkoutStatus.SCHEDULED
                 }
 
                 dayOccurrences.add(
-                    CalendarOccurrence(
+                    CalendarWorkoutOccurrence(
                         key = occKey,
                         scheduleId = schedule.id,
                         templateId = schedule.templateId,
                         templateName = templateName,
-                        occurrenceDate = current,
-                        plannedDate = plannedDate,
+                        occurrenceDate = LocalDate.ofEpochDay(current),
+                        plannedDate = LocalDate.ofEpochDay(plannedDate),
                         sessionId = session?.id,
                         status = status,
-                        isRescheduled = isRescheduled,
-                        isSkipped = isSkipped,
                         isQuickWorkout = false,
                     )
                 )
@@ -156,21 +114,19 @@ class CalendarOccurrenceResolver @Inject constructor() {
                 val status = if (session != null) {
                     mapSessionStatus(session.status, isSkipped = false, isRescheduled = true)
                 } else {
-                    CalendarWorkoutStatus.RESCHEDULED.name
+                    CalendarWorkoutStatus.RESCHEDULED
                 }
 
                 dayOccurrences.add(
-                    CalendarOccurrence(
+                    CalendarWorkoutOccurrence(
                         key = occKey,
                         scheduleId = override.scheduleId,
                         templateId = override.templateId,
                         templateName = templateName,
-                        occurrenceDate = override.occurrenceDate,
-                        plannedDate = current,
+                        occurrenceDate = LocalDate.ofEpochDay(override.occurrenceDate),
+                        plannedDate = date,
                         sessionId = session?.id,
                         status = status,
-                        isRescheduled = true,
-                        isSkipped = false,
                         isQuickWorkout = false,
                     )
                 )
@@ -184,21 +140,19 @@ class CalendarOccurrenceResolver @Inject constructor() {
                 val occKey = "adhoc_${session.id}"
                 val templateName = session.templateNameSnapshot ?: "快速训练"
                 dayOccurrences.add(
-                    CalendarOccurrence(
+                    CalendarWorkoutOccurrence(
                         key = occKey,
                         scheduleId = null,
                         templateId = session.templateId,
                         templateName = templateName,
-                        occurrenceDate = current,
-                        plannedDate = current,
+                        occurrenceDate = date,
+                        plannedDate = date,
                         sessionId = session.id,
                         status = mapSessionStatus(
                             session.status,
                             isSkipped = false,
                             isRescheduled = false,
                         ),
-                        isRescheduled = false,
-                        isSkipped = false,
                         isQuickWorkout = true,
                     )
                 )
@@ -207,12 +161,12 @@ class CalendarOccurrenceResolver @Inject constructor() {
             result.add(
                 CalendarDay(
                     epochDay = current,
+                    date = date,
                     dayOfMonth = dayOfMonth,
                     dayOfWeek = dayOfWeekIso,
-                    month = month,
-                    year = year,
-                    isToday = isToday,
                     occurrences = dayOccurrences,
+                    hasCheckIn = false, // resolved by repository if needed
+                    isToday = isToday,
                 )
             )
 
@@ -247,14 +201,14 @@ class CalendarOccurrenceResolver @Inject constructor() {
         sessionStatus: String,
         isSkipped: Boolean,
         isRescheduled: Boolean,
-    ): String = when {
-        isSkipped -> CalendarWorkoutStatus.SKIPPED.name
-        isRescheduled -> CalendarWorkoutStatus.RESCHEDULED.name
-        sessionStatus == "IN_PROGRESS" -> CalendarWorkoutStatus.IN_PROGRESS.name
-        sessionStatus == "COMPLETED" -> CalendarWorkoutStatus.COMPLETED.name
-        sessionStatus == "PARTIALLY_COMPLETED" -> CalendarWorkoutStatus.PARTIALLY_COMPLETED.name
-        sessionStatus == "CANCELLED" -> CalendarWorkoutStatus.CANCELLED.name
-        sessionStatus == "SKIPPED" -> CalendarWorkoutStatus.SKIPPED.name
-        else -> CalendarWorkoutStatus.SCHEDULED.name
+    ): CalendarWorkoutStatus = when {
+        isSkipped -> CalendarWorkoutStatus.SKIPPED
+        isRescheduled -> CalendarWorkoutStatus.RESCHEDULED
+        sessionStatus == "IN_PROGRESS" -> CalendarWorkoutStatus.IN_PROGRESS
+        sessionStatus == "COMPLETED" -> CalendarWorkoutStatus.COMPLETED
+        sessionStatus == "PARTIALLY_COMPLETED" -> CalendarWorkoutStatus.PARTIALLY_COMPLETED
+        sessionStatus == "CANCELLED" -> CalendarWorkoutStatus.CANCELLED
+        sessionStatus == "SKIPPED" -> CalendarWorkoutStatus.SKIPPED
+        else -> CalendarWorkoutStatus.SCHEDULED
     }
 }

@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.fitlog.core.database.entity.CheckInEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CheckInDao {
@@ -15,6 +16,12 @@ interface CheckInDao {
     @Query("SELECT * FROM check_ins WHERE date = :epochDay")
     suspend fun getByDate(epochDay: Long): CheckInEntity?
 
+    @Query("SELECT * FROM check_ins WHERE date = :epochDay")
+    fun observeByDate(epochDay: Long): Flow<CheckInEntity?>
+
     @Query("SELECT * FROM check_ins WHERE date >= :start AND date <= :end ORDER BY date ASC")
     suspend fun getByDateRange(start: Long, end: Long): List<CheckInEntity>
+
+    @Query("SELECT * FROM check_ins WHERE date >= :start AND date <= :end ORDER BY date ASC")
+    fun observeByDateRange(start: Long, end: Long): Flow<List<CheckInEntity>>
 }

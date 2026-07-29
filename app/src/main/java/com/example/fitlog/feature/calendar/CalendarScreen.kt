@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogAccentVariant
 import com.example.fitlog.core.designsystem.theme.FitLogCard
@@ -48,9 +49,8 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 import com.example.fitlog.domain.calendar.CalendarDay
-import com.example.fitlog.domain.calendar.CalendarOccurrence
+import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
-import com.example.fitlog.R
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -261,7 +261,7 @@ private fun DayCell(
     dayOfMonth: Int,
     isToday: Boolean,
     isSelected: Boolean,
-    occurrences: List<CalendarOccurrence>,
+    occurrences: List<CalendarWorkoutOccurrence>,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
@@ -289,7 +289,6 @@ private fun DayCell(
             )
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = dayOfMonth.toString(),
@@ -307,7 +306,7 @@ private fun DayCell(
 // ── Status Indicators ──────────────────────────────────────────────────────
 
 @Composable
-private fun StatusIndicators(occurrences: List<CalendarOccurrence>) {
+private fun StatusIndicators(occurrences: List<CalendarWorkoutOccurrence>) {
     val statuses = occurrences.map { it.status }.distinct()
 
     // Use colored dots
@@ -317,13 +316,13 @@ private fun StatusIndicators(occurrences: List<CalendarOccurrence>) {
     ) {
         statuses.forEach { status ->
             val color = when (status) {
-                CalendarWorkoutStatus.IN_PROGRESS.name -> FitLogAccent      // green dot
-                CalendarWorkoutStatus.COMPLETED.name -> FitLogSuccess       // grey check area
-                CalendarWorkoutStatus.PARTIALLY_COMPLETED.name -> FitLogAccent.copy(alpha = 0.7f)
-                CalendarWorkoutStatus.SKIPPED.name -> FitLogTextTertiary
-                CalendarWorkoutStatus.CANCELLED.name -> FitLogTextTertiary
-                CalendarWorkoutStatus.RESCHEDULED.name -> FitLogAccentVariant
-                else -> FitLogTextSecondary // SCHEDULED
+                CalendarWorkoutStatus.IN_PROGRESS -> FitLogAccent
+                CalendarWorkoutStatus.COMPLETED -> FitLogSuccess
+                CalendarWorkoutStatus.PARTIALLY_COMPLETED -> FitLogAccent.copy(alpha = 0.7f)
+                CalendarWorkoutStatus.SKIPPED -> FitLogTextTertiary
+                CalendarWorkoutStatus.CANCELLED -> FitLogTextTertiary
+                CalendarWorkoutStatus.RESCHEDULED -> FitLogAccentVariant
+                CalendarWorkoutStatus.SCHEDULED -> FitLogTextSecondary
             }
             Box(
                 modifier = Modifier
@@ -349,16 +348,15 @@ private fun SelectedDayDetail(
             .background(FitLogSurfaceVariant)
             .padding(16.dp),
     ) {
-        val date = LocalDate.ofEpochDay(day.epochDay)
         val dateStr = buildString {
-            append(day.year)
+            append(day.date.year)
             append("年")
-            append(day.month)
+            append(day.date.monthValue)
             append("月")
             append(day.dayOfMonth)
             append("日 ")
             append(
-                date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.CHINESE)
+                day.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.CHINESE)
             )
         }
 
@@ -408,27 +406,27 @@ private fun SelectedDayDetail(
 
 @Composable
 private fun OccurrenceRow(
-    occurrence: CalendarOccurrence,
+    occurrence: CalendarWorkoutOccurrence,
     onSessionClick: (Long) -> Unit,
 ) {
     val statusColor = when (occurrence.status) {
-        CalendarWorkoutStatus.COMPLETED.name -> FitLogSuccess
-        CalendarWorkoutStatus.IN_PROGRESS.name -> FitLogAccent
-        CalendarWorkoutStatus.SKIPPED.name -> FitLogTextTertiary
-        CalendarWorkoutStatus.RESCHEDULED.name -> FitLogAccentVariant
-        CalendarWorkoutStatus.CANCELLED.name -> FitLogTextTertiary
+        CalendarWorkoutStatus.COMPLETED -> FitLogSuccess
+        CalendarWorkoutStatus.IN_PROGRESS -> FitLogAccent
+        CalendarWorkoutStatus.SKIPPED -> FitLogTextTertiary
+        CalendarWorkoutStatus.RESCHEDULED -> FitLogAccentVariant
+        CalendarWorkoutStatus.CANCELLED -> FitLogTextTertiary
         else -> FitLogTextSecondary
     }
     val statusIcon: @Composable () -> Unit = {
         when {
-            occurrence.status == CalendarWorkoutStatus.COMPLETED.name ->
+            occurrence.status == CalendarWorkoutStatus.COMPLETED ->
                 Icon(
                     Icons.Filled.CheckCircle,
                     contentDescription = null,
                     tint = FitLogSuccess,
                     modifier = Modifier.size(18.dp),
                 )
-            occurrence.isRescheduled ->
+            occurrence.status == CalendarWorkoutStatus.RESCHEDULED ->
                 Icon(
                     Icons.Filled.Schedule,
                     contentDescription = null,
@@ -472,11 +470,11 @@ private fun OccurrenceRow(
                 fontWeight = FontWeight.Medium,
             )
             val statusLabel = when (occurrence.status) {
-                CalendarWorkoutStatus.COMPLETED.name -> stringResource(R.string.calendar_status_completed)
-                CalendarWorkoutStatus.IN_PROGRESS.name -> stringResource(R.string.calendar_status_in_progress)
-                CalendarWorkoutStatus.SKIPPED.name -> stringResource(R.string.calendar_status_skipped)
-                CalendarWorkoutStatus.RESCHEDULED.name -> stringResource(R.string.calendar_status_rescheduled)
-                CalendarWorkoutStatus.CANCELLED.name -> stringResource(R.string.calendar_status_cancelled)
+                CalendarWorkoutStatus.COMPLETED -> stringResource(R.string.calendar_status_completed)
+                CalendarWorkoutStatus.IN_PROGRESS -> stringResource(R.string.calendar_status_in_progress)
+                CalendarWorkoutStatus.SKIPPED -> stringResource(R.string.calendar_status_skipped)
+                CalendarWorkoutStatus.RESCHEDULED -> stringResource(R.string.calendar_status_rescheduled)
+                CalendarWorkoutStatus.CANCELLED -> stringResource(R.string.calendar_status_cancelled)
                 else -> stringResource(R.string.calendar_status_scheduled)
             }
             Text(
@@ -486,9 +484,11 @@ private fun OccurrenceRow(
             )
         }
 
-        if (occurrence.isRescheduled && occurrence.occurrenceDate != occurrence.plannedDate) {
+        if (occurrence.status == CalendarWorkoutStatus.RESCHEDULED &&
+            occurrence.occurrenceDate != occurrence.plannedDate
+        ) {
             Text(
-                text = "→ ${LocalDate.ofEpochDay(occurrence.plannedDate).monthValue}/${LocalDate.ofEpochDay(occurrence.plannedDate).dayOfMonth}",
+                text = "→ ${occurrence.plannedDate.monthValue}/${occurrence.plannedDate.dayOfMonth}",
                 style = MaterialTheme.typography.labelSmall,
                 color = FitLogAccentVariant,
             )

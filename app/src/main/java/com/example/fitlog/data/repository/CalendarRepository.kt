@@ -33,7 +33,7 @@ class CalendarRepository @Inject constructor(
 
         // ── Batch load ──────────────────────────────────────────────────
         val schedules = scheduleDao.getAllActiveList()
-        val overrides = overrideDao.getByDateRange(startEpochDay, endEpochDay)
+        val overrides = overrideDao.getRelevantToDateRange(startEpochDay, endEpochDay)
         val sessions = sessionDao.getByDateRange(startEpochDay, endEpochDay)
         val templates = templateDao.getAllActiveList().associateBy { it.id }
 
@@ -48,7 +48,7 @@ class CalendarRepository @Inject constructor(
         val end = epochDay
 
         val schedules = scheduleDao.getAllActiveList()
-        val overrides = overrideDao.getByDateRange(start, end)
+        val overrides = overrideDao.getRelevantToDateRange(start, end)
         val sessions = sessionDao.getByDateRange(start, end)
         val templates = templateDao.getAllActiveList().associateBy { it.id }
 
@@ -68,11 +68,11 @@ class CalendarRepository @Inject constructor(
         plannedDate: Long?,
         action: String,
     ) {
-        val existing = overrideDao.getByScheduleAndDate(scheduleId, occurrenceDate)
+        val existing = overrideDao.getByScheduleAndOccurrence(scheduleId, occurrenceDate)
         if (existing != null) {
             overrideDao.deleteByScheduleAndDate(scheduleId, occurrenceDate)
         }
-        overrideDao.upsert(
+        overrideDao.insert(
             WorkoutPlanOverrideEntity(
                 scheduleId = scheduleId,
                 templateId = templateId,
