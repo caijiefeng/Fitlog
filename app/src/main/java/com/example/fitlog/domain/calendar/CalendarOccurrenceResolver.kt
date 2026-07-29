@@ -70,6 +70,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                 val isSkipped = override?.action == OverrideAction.SKIPPED.name
                 val isRescheduled = override?.action == OverrideAction.RESCHEDULED.name
                 val plannedDate = override?.plannedDate ?: current
+                val isOriginalDateMarker = isRescheduled && plannedDate != current
 
                 val template = templates[schedule.templateId]
                 val templateName = template?.name ?: "未知训练"
@@ -80,7 +81,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                     mapSessionStatus(session.status)
                 } else if (isSkipped) {
                     CalendarWorkoutStatus.SKIPPED
-                } else if (isRescheduled) {
+                } else if (isOriginalDateMarker) {
                     CalendarWorkoutStatus.RESCHEDULED
                 } else {
                     CalendarWorkoutStatus.SCHEDULED
@@ -91,7 +92,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                     CalendarWorkoutOccurrence(
                         key = occKey,
                         // Use current (original date) for the display key of scheduled/rescheduled-original occurrences
-                        displayKey = buildDisplayKey(schedule.id, current, isOriginalDateMarker = isRescheduled && plannedDate != current),
+                        displayKey = buildDisplayKey(schedule.id, current, isOriginalDateMarker = isOriginalDateMarker),
                         scheduleId = schedule.id,
                         templateId = schedule.templateId,
                         templateName = templateName,
@@ -101,7 +102,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                         sessionId = session?.id,
                         status = status,
                         isQuickWorkout = false,
-                        isOriginalDateMarker = isRescheduled && plannedDate != current,
+                        isOriginalDateMarker = isOriginalDateMarker,
                         canStart = status == CalendarWorkoutStatus.SCHEDULED,
                     )
                 )

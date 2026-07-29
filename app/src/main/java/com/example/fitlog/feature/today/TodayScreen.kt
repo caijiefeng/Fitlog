@@ -90,7 +90,7 @@ fun TodayScreen(
                 SectionHeader(title = stringResource(R.string.section_todays_workout))
 
                 if (uiState.hasInProgressWorkout) {
-                    FitLogCard(onClick = { viewModel.onStartWorkout() }) {
+                    FitLogCard(onClick = { viewModel.onQuickStart() }) {
                         Text(
                             stringResource(R.string.today_workout_in_progress_title),
                             style = MaterialTheme.typography.titleMedium,

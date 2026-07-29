@@ -82,19 +82,10 @@ class TodayViewModel @Inject constructor(
         }
     }
 
-    fun onStartWorkout(occurrence: CalendarWorkoutOccurrence? = null) {
+    fun onStartWorkout(occurrence: CalendarWorkoutOccurrence) {
         viewModelScope.launch {
             val state = _uiState.value
-
-            // If occurrence is provided, use its data
-            val targetOccurrence = occurrence ?: state.occurrences.firstOrNull { it.canStart }
-            if (targetOccurrence == null) {
-                // No startable occurrence found
-                if (state.hasInProgressWorkout) {
-                    state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
-                }
-                return@launch
-            }
+            val targetOccurrence = occurrence
 
             // Validate: SKIPPED, RESCHEDULED-original, CANCELLED cannot start
             when (targetOccurrence.status) {
