@@ -3,8 +3,8 @@ package com.example.fitlog.feature.workout
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.model.SetType
-import com.example.fitlog.core.model.WorkoutSessionDetail
 import com.example.fitlog.core.model.WorkoutStatus
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class WorkoutExecutionUiState(
-    val sessionDetail: WorkoutSessionDetail? = null,
+    val sessionDetail: com.example.fitlog.core.model.WorkoutSessionDetail? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
     val restTimerState: RestTimerState = RestTimerState(),
@@ -39,10 +39,12 @@ sealed interface WorkoutExecutionEvent {
 class WorkoutExecutionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sessionRepository: WorkoutSessionRepository,
+    private val exerciseSessionDao: ExerciseSessionDao,
 ) : ViewModel() {
 
-    private val sessionId: Long = savedStateHandle.get<Long>("sessionId") ?: 0L
     val timer = RestTimerController()
+
+    private val sessionId: Long = savedStateHandle.get<Long>("sessionId") ?: 0L
 
     private val _uiState = MutableStateFlow(WorkoutExecutionUiState())
     val uiState: StateFlow<WorkoutExecutionUiState> = _uiState.asStateFlow()
@@ -52,6 +54,11 @@ class WorkoutExecutionViewModel @Inject constructor(
 
     init {
         if (sessionId > 0) loadSession()
+        viewModelScope.launch {
+            timer.state.collect { s ->
+                _uiState.update { it.copy(restTimerState = s) }
+            }
+        }
     }
 
     private fun loadSession() {
@@ -60,14 +67,17 @@ class WorkoutExecutionViewModel @Inject constructor(
                 val detail = sessionRepository.getDetail(sessionId)
                 if (detail != null) {
                     _uiState.update { it.copy(sessionDetail = detail, isLoading = false) }
-                    // Restore rest timer if active
-                    val s = detail.session
-                    if (s.status == WorkoutStatus.IN_PROGRESS) {
-                        val sessionEntity = sessionRepository.getById(sessionId)
-                        // Restore timer from DB state
+                    if (detail.session.status == WorkoutStatus.IN_PROGRESS) {
+                        val (startedAt, durationSeconds, _) = sessionRepository.getRestState(sessionId)
+                        if (startedAt != null && durationSeconds != null) {
+                            timer.restore(startedAt, durationSeconds)
+                            _uiState.update { it.copy(restTimerState = timer.state.value) }
+                        }
                     }
                 } else {
-                    _uiState.update { it.copy(error = "训练不存在", isLoading = false) }
+                    _uiState.update {
+                        it.copy(error = "Workout session not found", isLoading = false)
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
@@ -76,37 +86,102 @@ class WorkoutExecutionViewModel @Inject constructor(
     }
 
     fun completeSet(
+        sessionId: Long,
         exerciseSessionId: Long,
         setRecordId: Long,
         reps: Int?,
         weightKg: Double?,
         rpe: Double?,
         rir: Int?,
+        setType: SetType,
     ) {
         viewModelScope.launch {
             try {
-                val detail = _uiState.value.sessionDetail ?: return@launch
-                // Find the set record and update it
-                val exercise = detail.exercises.find { it.first.id == exerciseSessionId } ?: return@launch
-                val setRecord = exercise.second.find { it.id == setRecordId } ?: return@launch
+                sessionRepository.completeSet(
+                    setRecordId = setRecordId,
+                    reps = reps,
+                    weightKg = weightKg,
+                    rpe = rpe,
+                    rir = rir,
+                    setType = setType.name,
+                )
 
-                // Update set via repository
-                // sessionRepository.updateSetRecord(setRecordId, reps, weightKg, rpe, rir)
+                val detail = _uiState.value.sessionDetail
+                val exercise = detail?.exercises?.find { it.first.id == exerciseSessionId }
+                val restSeconds = exercise?.first?.plannedRestSeconds ?: 90
 
-                // Reload session
+                startRest(restSeconds)
+                sessionRepository.updateRestState(
+                    sessionId = sessionId,
+                    startedAt = timer.state.value.startedAt,
+                    durationSeconds = restSeconds,
+                    setRecordId = setRecordId,
+                )
                 loadSession()
             } catch (e: Exception) {
-                _events.emit(WorkoutExecutionEvent.ShowError("保存失败: ${e.message}"))
+                _events.emit(WorkoutExecutionEvent.ShowError("Save failed: ${e.message}"))
+            }
+        }
+    }
+
+    fun addSet(exerciseSessionId: Long) {
+        viewModelScope.launch {
+            try {
+                sessionRepository.addSet(exerciseSessionId)
+                loadSession()
+            } catch (e: Exception) {
+                _events.emit(WorkoutExecutionEvent.ShowError("Failed to add set: ${e.message}"))
+            }
+        }
+    }
+
+    fun deleteSet(setRecordId: Long) {
+        viewModelScope.launch {
+            try {
+                sessionRepository.deleteIncompleteSet(setRecordId)
+                loadSession()
+            } catch (e: Exception) {
+                _events.emit(WorkoutExecutionEvent.ShowError("Failed to delete set: ${e.message}"))
+            }
+        }
+    }
+
+    fun updateSetType(setRecordId: Long, type: SetType) {
+        viewModelScope.launch {
+            try {
+                sessionRepository.updateSetType(setRecordId, type.name)
+                loadSession()
+            } catch (e: Exception) {
+                _events.emit(WorkoutExecutionEvent.ShowError("Failed to update set type: ${e.message}"))
+            }
+        }
+    }
+
+    fun skipExercise(exerciseSessionId: Long) {
+        viewModelScope.launch {
+            try {
+                val detail = _uiState.value.sessionDetail ?: return@launch
+                val exercise = detail.exercises.find { it.first.id == exerciseSessionId } ?: return@launch
+                exerciseSessionDao.setSkipped(exerciseSessionId, !exercise.first.isSkipped)
+                loadSession()
+            } catch (e: Exception) {
+                _events.emit(WorkoutExecutionEvent.ShowError("Failed to update exercise: ${e.message}"))
+            }
+        }
+    }
+
+    fun updateNotes(exerciseSessionId: Long, notes: String) {
+        viewModelScope.launch {
+            try {
+                sessionRepository.updateExerciseNotes(exerciseSessionId, notes)
+            } catch (_: Exception) {
+                // Non-critical — silently ignore note save errors
             }
         }
     }
 
     fun startRest(plannedSeconds: Int) {
         timer.start(plannedSeconds)
-        _uiState.update { it.copy(restTimerState = timer.state.value) }
-        viewModelScope.launch {
-            timer.state.collect { s -> _uiState.update { it.copy(restTimerState = s) } }
-        }
     }
 
     fun tickRest() { timer.tick() }
@@ -114,6 +189,13 @@ class WorkoutExecutionViewModel @Inject constructor(
     fun skipRest() {
         timer.skip()
         _uiState.update { it.copy(restTimerState = timer.state.value) }
+        viewModelScope.launch {
+            try {
+                sessionRepository.updateRestState(sessionId, null, null, null)
+            } catch (_: Exception) {
+                // Non-critical — best-effort cleanup of persisted rest state
+            }
+        }
     }
 
     fun add15Seconds() {
@@ -146,15 +228,31 @@ class WorkoutExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isSaving = true) }
-                val detail = _uiState.value.sessionDetail ?: return@launch
                 val completedCount = sessionRepository.completedSetCount(sessionId)
-                val status = if (completedCount > 0) WorkoutStatus.COMPLETED else WorkoutStatus.CANCELLED
+                if (completedCount == 0) {
+                    _uiState.update { it.copy(isSaving = false) }
+                    _events.emit(WorkoutExecutionEvent.ShowError("请至少完成一组"))
+                    return@launch
+                }
+
+                // Calculate total target sets from non-skipped exercises
+                val detail = _uiState.value.sessionDetail
+                val totalTargetSets = detail?.exercises?.sumOf { (exercise, _) ->
+                    if (exercise.isSkipped) 0 else exercise.targetSets
+                } ?: 0
+
+                val status = if (completedCount >= totalTargetSets) {
+                    WorkoutStatus.COMPLETED
+                } else {
+                    WorkoutStatus.PARTIALLY_COMPLETED
+                }
+
                 sessionRepository.updateStatus(sessionId, status)
                 timer.reset()
                 _events.emit(WorkoutExecutionEvent.NavigateToSummary(sessionId))
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(WorkoutExecutionEvent.ShowError("完成失败: ${e.message}"))
+                _events.emit(WorkoutExecutionEvent.ShowError("Complete failed: ${e.message}"))
             }
         }
     }
@@ -162,11 +260,13 @@ class WorkoutExecutionViewModel @Inject constructor(
     fun cancelWorkout() {
         viewModelScope.launch {
             try {
+                _uiState.update { it.copy(isSaving = true) }
                 sessionRepository.updateStatus(sessionId, WorkoutStatus.CANCELLED)
                 timer.reset()
                 _events.emit(WorkoutExecutionEvent.NavigateBack)
             } catch (e: Exception) {
-                _events.emit(WorkoutExecutionEvent.ShowError("取消失败: ${e.message}"))
+                _uiState.update { it.copy(isSaving = false) }
+                _events.emit(WorkoutExecutionEvent.ShowError("Cancel failed: ${e.message}"))
             }
         }
     }

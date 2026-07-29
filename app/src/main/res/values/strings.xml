@@ -63,4 +63,87 @@
 
     <!-- Snackbar -->
     <string name="snackbar_v2_feature">训练执行功能将在 V2 提供</string>
+
+    <!-- Workout Execution -->
+    <string name="workout_execution_title">Workout</string>
+    <string name="workout_execution_exit">Exit workout</string>
+    <string name="workout_execution_complete">Complete</string>
+    <string name="workout_execution_complete_title">Complete Workout</string>
+    <string name="workout_execution_complete_message">Are you sure you want to finish this workout?</string>
+    <string name="workout_execution_cancel_title">Cancel Workout</string>
+    <string name="workout_execution_cancel_message">Are you sure you want to cancel? Progress will be lost.</string>
+    <string name="workout_execution_confirm_complete">Complete</string>
+    <string name="workout_execution_confirm_cancel">Cancel Workout</string>
+    <string name="workout_execution_dismiss">Continue</string>
+    <string name="workout_execution_rest_timer">Rest</string>
+    <string name="workout_execution_rest_finished">Rest Complete</string>
+    <string name="workout_execution_skip_rest">Skip</string>
+    <string name="workout_execution_rest_add">+15s</string>
+    <string name="workout_execution_rest_subtract">-15s</string>
+    <string name="workout_execution_add_set">Add Set</string>
+    <string name="workout_execution_delete_set">Delete set</string>
+    <string name="workout_execution_skip_exercise">Skip Exercise</string>
+    <string name="workout_execution_unskip_exercise">Undo Skip</string>
+    <string name="workout_execution_exercise_skipped">Skipped</string>
+    <string name="workout_execution_notes">Notes</string>
+    <string name="workout_execution_notes_placeholder">Add notes...</string>
+    <string name="workout_execution_weight">Weight</string>
+    <string name="workout_execution_reps">Reps</string>
+    <string name="workout_execution_rpe">RPE</string>
+    <string name="workout_execution_rir">RIR</string>
+    <string name="workout_execution_rpe_hint">1–10</string>
+    <string name="workout_execution_rir_hint">0–5</string>
+    <string name="workout_execution_save">Save</string>
+    <string name="workout_execution_complete_set">Complete Set</string>
+    <string name="workout_execution_edit">Edit</string>
+    <string name="workout_execution_set_number">#%d</string>
+    <string name="workout_execution_target_sets">%d sets</string>
+    <string name="workout_execution_target_reps_range" formatted="false">%d–%d reps</string>
+    <string name="workout_execution_target_reps_min">%d reps</string>
+    <string name="workout_execution_target_weight">%.1f kg</string>
+    <string name="workout_execution_target_rpe_label">RPE</string>
+    <string name="workout_execution_target_rir_label">RIR</string>
+    <string name="workout_execution_target_rest_label">Rest</string>
+    <string name="workout_execution_rpe_value">RPE %.1f</string>
+    <string name="workout_execution_rir_value">RIR %d</string>
+    <string name="set_type_warmup">Warmup</string>
+    <string name="set_type_working">Working</string>
+    <string name="set_type_drop">Drop</string>
+    <string name="set_type_failure">Failure</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">训练摘要</string>
+    <string name="workout_summary_duration">时长</string>
+    <string name="workout_summary_duration_format" formatted="false">%d分%d秒</string>
+    <string name="workout_summary_exercise_count">动作数</string>
+    <string name="workout_summary_completed_sets">完成组数</string>
+    <string name="workout_summary_total_volume">总容量</string>
+    <string name="workout_summary_volume_format">%.0f kg</string>
+    <string name="workout_summary_status_completed">已完成</string>
+    <string name="workout_summary_status_partial">部分完成</string>
+    <string name="workout_summary_status_cancelled">已取消</string>
+    <string name="workout_summary_back">返回</string>
+    <string name="workout_summary_set_progress" formatted="false">%d/%d 组</string>
+    <string name="workout_summary_skipped">已跳过</string>
+    <string name="workout_summary_per_exercise">动作详情</string>
+
+    <!-- Workout Detail -->
+    <string name="workout_detail_title">训练详情</string>
+    <string name="workout_detail_session_info">训练信息</string>
+    <string name="workout_detail_exercise_sets">动作组</string>
+    <string name="workout_detail_set_number">第%d组</string>
+    <string name="workout_detail_weight_reps" formatted="false">%.1f kg × %d</string>
+    <string name="workout_detail_no_reps">- kg × -</string>
+    <string name="workout_detail_skipped">已跳过</string>
+    <string name="workout_detail_no_exercises">无动作记录</string>
+    <string name="workout_detail_back">返回</string>
+
+    <!-- Exercise Picker -->
+    <string name="exercise_picker_title">添加动作</string>
+    <string name="exercise_picker_back">返回</string>
+    <string name="exercise_picker_search_placeholder">搜索动作...</string>
+    <string name="exercise_picker_all_groups">全部</string>
+    <string name="exercise_picker_empty_title">没有动作</string>
+    <string name="exercise_picker_empty_subtitle">请先在动作库中创建动作</string>
+    <string name="exercise_picker_add">添加</string>
 </resources>

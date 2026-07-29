@@ -3,7 +3,6 @@ package com.example.fitlog.feature.workout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
 
 data class RestTimerState(
     val startedAt: Long = 0L,
@@ -21,7 +20,7 @@ class SystemTimeProvider : TimeProvider {
     override fun currentTimeMillis() = System.currentTimeMillis()
 }
 
-class RestTimerController @Inject constructor(
+class RestTimerController(
     private val timeProvider: TimeProvider = SystemTimeProvider(),
 ) {
     private val _state = MutableStateFlow(RestTimerState())
@@ -32,7 +31,7 @@ class RestTimerController @Inject constructor(
         _state.value = RestTimerState(
             startedAt = startedAt,
             durationSeconds = clamped,
-            isRunning = true,
+            isRunning = clamped > 0,
             remainingSeconds = clamped,
             isFinished = clamped == 0,
         )
@@ -66,10 +65,13 @@ class RestTimerController @Inject constructor(
         if (!s.isRunning || s.isFinished) return
         val newDuration = (s.durationSeconds - 15).coerceAtLeast(0)
         val elapsed = ((timeProvider.currentTimeMillis() - s.startedAt) / 1000).toInt()
+        val remaining = (newDuration - elapsed).coerceAtLeast(0)
+        val finished = newDuration <= 0 || remaining <= 0
         _state.value = s.copy(
             durationSeconds = newDuration,
-            remainingSeconds = (newDuration - elapsed).coerceAtLeast(0),
-            isFinished = newDuration <= 0 || (newDuration - elapsed) <= 0,
+            remainingSeconds = remaining,
+            isFinished = finished,
+            isRunning = !finished,
         )
     }
 

@@ -16,7 +16,10 @@ import com.example.fitlog.feature.record.RecordScreen
 import com.example.fitlog.feature.template.TemplateEditScreen
 import com.example.fitlog.feature.template.TemplateListScreen
 import com.example.fitlog.feature.today.TodayScreen
+import com.example.fitlog.feature.workout.ExercisePickerScreen
+import com.example.fitlog.feature.workout.WorkoutDetailScreen
 import com.example.fitlog.feature.workout.WorkoutExecutionScreen
+import com.example.fitlog.feature.workout.WorkoutSummaryScreen
 
 object Routes {
     const val TODAY = "today"
@@ -33,12 +36,14 @@ object Routes {
     const val WORKOUT_EXECUTION = "workout/session/{sessionId}"
     const val WORKOUT_SUMMARY = "workout/summary/{sessionId}"
     const val WORKOUT_DETAIL = "workout/detail/{sessionId}"
+    const val EXERCISE_PICKER = "workout/exercise-picker/{sessionId}"
 
     fun exerciseEdit(id: Long) = "exercise/edit/$id"
     fun templateEdit(id: Long) = "template/edit/$id"
     fun workoutExecution(id: Long) = "workout/session/$id"
     fun workoutSummary(id: Long) = "workout/summary/$id"
     fun workoutDetail(id: Long) = "workout/detail/$id"
+    fun exercisePicker(id: Long) = "workout/exercise-picker/$id"
 }
 
 @Composable
@@ -123,6 +128,38 @@ fun FitLogNavHost(
         ) {
             WorkoutExecutionScreen(
                 onNavigateToSummary = { id -> navController.navigate(Routes.workoutSummary(id)) },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.EXERCISE_PICKER,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType }),
+        ) {
+            ExercisePickerScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Workout Summary ────────────────────────────────────────────────
+        composable(
+            route = Routes.WORKOUT_SUMMARY,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType }),
+        ) {
+            WorkoutSummaryScreen(
+                onNavigateBack = {
+                    navController.navigate(Routes.TODAY) {
+                        popUpTo(Routes.WORKOUT_EXECUTION) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        // ── Workout Detail ─────────────────────────────────────────────────
+        composable(
+            route = Routes.WORKOUT_DETAIL,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType }),
+        ) {
+            WorkoutDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
