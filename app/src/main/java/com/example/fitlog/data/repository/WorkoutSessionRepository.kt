@@ -236,6 +236,20 @@ class WorkoutSessionRepository @Inject constructor(
         return Triple(s.activeRestStartedAt, s.activeRestDurationSeconds, s.activeRestSetRecordId)
     }
 
+    // ── Date-range queries ──────────────────────────────────────────────────
+
+    /**
+     * Returns all [DomainWorkoutSession] whose [date] falls within the given
+     * range, regardless of status.  Useful for stats computations that need
+     * a complete picture of planned, in-progress, and completed sessions.
+     */
+    suspend fun getSessionsInRange(
+        startEpochDay: Long,
+        endEpochDay: Long,
+    ): List<DomainWorkoutSession> {
+        return sessionDao.getByDateRange(startEpochDay, endEpochDay).map { it.toDomain() }
+    }
+
     // ── Stats ───────────────────────────────────────────────────────────────
 
     suspend fun totalVolume(sessionId: Long): Double = setRecordDao.totalVolumeForSession(sessionId) ?: 0.0

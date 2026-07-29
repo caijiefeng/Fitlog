@@ -54,6 +54,11 @@
 
     <!-- Progress -->
     <string name="progress_placeholder">体重趋势、围度变化等图表将在这里显示</string>
+    <string name="stats_current_streak">当前连续</string>
+    <string name="stats_best_streak">最长连续</string>
+    <string name="stats_adherence">完成率</string>
+    <string name="stats_streak_days" formatted="false">%d 天</string>
+    <string name="stats_adherence_percent" formatted="false">%d%%</string>
 
     <!-- Profile -->
     <string name="profile_no_name">未设置昵称</string>
@@ -178,6 +183,51 @@
     <string name="calendar_status_cancelled">已取消</string>
     <string name="calendar_status_partial">部分完成</string>
 
+    <!-- Reminder -->
+    <string name="reminder_title">提醒</string>
+    <string name="reminder_list_title">训练提醒</string>
+    <string name="reminder_create_title">新建提醒</string>
+    <string name="reminder_edit_title">编辑提醒</string>
+    <string name="reminder_empty">暂无提醒</string>
+    <string name="reminder_empty_subtitle">点击右下角按钮创建训练提醒</string>
+    <string name="reminder_add">添加提醒</string>
+    <string name="reminder_save">保存</string>
+    <string name="reminder_delete">删除</string>
+    <string name="reminder_delete_confirm">确定删除该提醒？</string>
+    <string name="reminder_delete_success">已删除</string>
+    <string name="reminder_enabled">已启用</string>
+    <string name="reminder_disabled">已停用</string>
+    <string name="reminder_label">标签</string>
+    <string name="reminder_label_placeholder">例如：练腿日提醒</string>
+    <string name="reminder_time">时间</string>
+    <string name="reminder_select_time">选择时间</string>
+    <string name="reminder_repeat_days">重复日</string>
+    <string name="reminder_monday">一</string>
+    <string name="reminder_tuesday">二</string>
+    <string name="reminder_wednesday">三</string>
+    <string name="reminder_thursday">四</string>
+    <string name="reminder_friday">五</string>
+    <string name="reminder_saturday">六</string>
+    <string name="reminder_sunday">日</string>
+    <string name="reminder_everyday">每天</string>
+    <string name="reminder_weekdays">工作日</string>
+    <string name="reminder_weekends">周末</string>
+    <string name="reminder_link_plan">关联计划</string>
+    <string name="reminder_link_plan_desc">可选：将提醒关联到特定训练计划</string>
+    <string name="reminder_no_plan">不关联</string>
+    <string name="reminder_notification_saved">提醒已保存</string>
+    <string name="reminder_notification_deleted">提醒已删除</string>
+    <string name="reminder_notification_permission_title">发送通知权限</string>
+    <string name="reminder_notification_permission_message">需要通知权限才能发送训练提醒</string>
+    <string name="reminder_notification_permission_deny">暂不开启</string>
+    <string name="reminder_notification_permission_grant">开启</string>
+    <string name="reminder_loading">加载中…</string>
+    <string name="reminder_error_load">加载提醒失败</string>
+    <string name="reminder_error_save">保存失败</string>
+    <string name="reminder_error_validation">请检查输入</string>
+    <string name="reminder_from_plan">计划</string>
+    <string name="reminder_manage">管理提醒</string>
+
     <!-- Calendar Day Detail -->
     <string name="calendar_nav_back">返回</string>
     <string name="calendar_date_year">年</string>
@@ -213,4 +263,14 @@
     <string name="today_occurrence_partial">部分完成</string>
     <string name="today_occurrence_cancelled">已取消</string>
     <string name="today_occurrence_in_progress">进行中</string>
+
+    <!-- Daily Check-In -->
+    <string name="section_daily_checkin">今日打卡</string>
+    <string name="checkin_already_logged">今日已打卡</string>
+    <string name="checkin_mood_label">心情</string>
+    <string name="checkin_energy_label">精力</string>
+    <string name="checkin_notes_placeholder">记录一下今天的状态...（可选）</string>
+    <string name="checkin_save">保存</string>
+    <string name="checkin_saving">保存中…</string>
+    <string name="checkin_edit">编辑</string>
 </resources>
