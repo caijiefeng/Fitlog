@@ -98,7 +98,7 @@ object Migrations {
                 )
             """)
 
-            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_workout_plan_overrides_schedule_occurrence ON workout_plan_overrides (schedule_id, occurrence_date)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_workout_plan_overrides_schedule_id_occurrence_date ON workout_plan_overrides (schedule_id, occurrence_date)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_plan_overrides_planned_date ON workout_plan_overrides (planned_date)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_plan_overrides_action ON workout_plan_overrides (action)")
 
@@ -135,7 +135,7 @@ object Migrations {
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_check_ins_date ON check_ins (date)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_check_ins_session_id ON check_ins (session_id)")
 
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_sessions_schedule_occurrence ON workout_sessions (schedule_id, occurrence_date)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_workout_sessions_schedule_id_occurrence_date ON workout_sessions (schedule_id, occurrence_date)")
         }
     }
 }
