@@ -37,7 +37,7 @@ A local-first, privacy-focused strength training tracker for Android.
 # Clean build
 ./gradlew clean
 
-# Unit tests (4 tests)
+# Unit tests (33+ tests)
 ./gradlew test
 
 # Lint
