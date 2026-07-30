@@ -64,4 +64,10 @@ interface MediaRecordDao {
 
     @Query("SELECT COUNT(*) FROM media_records")
     suspend fun count(): Int
+
+    @Query("UPDATE media_records SET workout_session_id = NULL WHERE workout_session_id = :sessionId")
+    suspend fun unlinkWorkoutSession(sessionId: Long)
+
+    @Query("UPDATE media_records SET exercise_session_id = NULL WHERE exercise_session_id = :exerciseSessionId")
+    suspend fun unlinkExerciseSession(exerciseSessionId: Long)
 }

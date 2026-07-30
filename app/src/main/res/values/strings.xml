@@ -37,6 +37,10 @@
     <string name="today_subtitle">准备开始今天的训练了吗？</string>
     <string name="today_quick_start">快速开始训练</string>
     <string name="today_quick_start_desc">不基于计划，直接开始记录训练</string>
+    <string name="quick_action_start_workout">开始训练</string>
+    <string name="quick_action_nutrition">饮食记录</string>
+    <string name="quick_action_body_measurement">身体测量</string>
+    <string name="quick_action_camera">拍照或录像</string>
 
     <!-- Plan -->
     <string name="plan_placeholder">周一到周日 训练安排将在这里显示</string>
@@ -51,6 +55,9 @@
     <string name="record_volume">总容量</string>
     <string name="record_loading">加载中...</string>
     <string name="record_placeholder">体重、体脂、围度等记录将在这里显示</string>
+    <string name="record_entry_workout">训练记录</string>
+    <string name="record_entry_nutrition">饮食记录</string>
+    <string name="record_entry_body">身体记录</string>
 
     <!-- Progress -->
     <string name="progress_placeholder">体重趋势、围度变化等图表将在这里显示</string>
@@ -68,7 +75,10 @@
     <string name="profile_training_prefs">训练偏好</string>
     <string name="profile_training_prefs_desc">单位、休息时间默认值</string>
     <string name="profile_appearance">外观</string>
-    <string name="profile_appearance_desc">字体大小跟随系统</string>
+    <string name="profile_appearance_desc">明暗主题切换</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">跟随系统</string>
     <string name="profile_data_management">数据管理</string>
     <string name="profile_data_management_desc">导出、备份、恢复</string>
     <string name="profile_about">关于</string>
@@ -78,51 +88,51 @@
     <string name="snackbar_v2_feature">训练执行功能将在 V2 提供</string>
 
     <!-- Workout Execution -->
-    <string name="workout_execution_title">Workout</string>
-    <string name="workout_execution_exit">Exit workout</string>
-    <string name="workout_execution_complete">Complete</string>
-    <string name="workout_execution_complete_title">Complete Workout</string>
-    <string name="workout_execution_complete_message">Are you sure you want to finish this workout?</string>
-    <string name="workout_execution_cancel_title">Cancel Workout</string>
-    <string name="workout_execution_cancel_message">Are you sure you want to cancel? Progress will be lost.</string>
-    <string name="workout_execution_confirm_complete">Complete</string>
-    <string name="workout_execution_confirm_cancel">Cancel Workout</string>
-    <string name="workout_execution_dismiss">Continue</string>
-    <string name="workout_execution_rest_timer">Rest</string>
-    <string name="workout_execution_rest_finished">Rest Complete</string>
-    <string name="workout_execution_skip_rest">Skip</string>
-    <string name="workout_execution_rest_add">+15s</string>
-    <string name="workout_execution_rest_subtract">-15s</string>
-    <string name="workout_execution_add_set">Add Set</string>
-    <string name="workout_execution_delete_set">Delete set</string>
-    <string name="workout_execution_skip_exercise">Skip Exercise</string>
-    <string name="workout_execution_unskip_exercise">Undo Skip</string>
-    <string name="workout_execution_exercise_skipped">Skipped</string>
-    <string name="workout_execution_notes">Notes</string>
-    <string name="workout_execution_notes_placeholder">Add notes...</string>
-    <string name="workout_execution_weight">Weight</string>
-    <string name="workout_execution_reps">Reps</string>
+    <string name="workout_execution_title">训练</string>
+    <string name="workout_execution_exit">退出训练</string>
+    <string name="workout_execution_complete">完成训练</string>
+    <string name="workout_execution_complete_title">完成训练</string>
+    <string name="workout_execution_complete_message">确定要结束本次训练吗？</string>
+    <string name="workout_execution_cancel_title">取消训练</string>
+    <string name="workout_execution_cancel_message">确定要取消吗？进度将丢失。</string>
+    <string name="workout_execution_confirm_complete">完成训练</string>
+    <string name="workout_execution_confirm_cancel">取消训练</string>
+    <string name="workout_execution_dismiss">继续</string>
+    <string name="workout_execution_rest_timer">休息</string>
+    <string name="workout_execution_rest_finished">休息结束</string>
+    <string name="workout_execution_skip_rest">跳过</string>
+    <string name="workout_execution_rest_add">+15秒</string>
+    <string name="workout_execution_rest_subtract">-15秒</string>
+    <string name="workout_execution_add_set">添加组</string>
+    <string name="workout_execution_delete_set">删除组</string>
+    <string name="workout_execution_skip_exercise">跳过动作</string>
+    <string name="workout_execution_unskip_exercise">取消跳过</string>
+    <string name="workout_execution_exercise_skipped">已跳过</string>
+    <string name="workout_execution_notes">备注</string>
+    <string name="workout_execution_notes_placeholder">添加备注...</string>
+    <string name="workout_execution_weight">重量</string>
+    <string name="workout_execution_reps">次数</string>
     <string name="workout_execution_rpe">RPE</string>
     <string name="workout_execution_rir">RIR</string>
     <string name="workout_execution_rpe_hint">1–10</string>
     <string name="workout_execution_rir_hint">0–5</string>
-    <string name="workout_execution_save">Save</string>
-    <string name="workout_execution_complete_set">Complete Set</string>
-    <string name="workout_execution_edit">Edit</string>
-    <string name="workout_execution_set_number">#%d</string>
-    <string name="workout_execution_target_sets">%d sets</string>
-    <string name="workout_execution_target_reps_range" formatted="false">%d–%d reps</string>
-    <string name="workout_execution_target_reps_min">%d reps</string>
+    <string name="workout_execution_save">保存</string>
+    <string name="workout_execution_complete_set">完成组</string>
+    <string name="workout_execution_edit">编辑</string>
+    <string name="workout_execution_set_number">第%d组</string>
+    <string name="workout_execution_target_sets">%d 组</string>
+    <string name="workout_execution_target_reps_range" formatted="false">%d–%d 次</string>
+    <string name="workout_execution_target_reps_min">%d 次</string>
     <string name="workout_execution_target_weight">%.1f kg</string>
     <string name="workout_execution_target_rpe_label">RPE</string>
     <string name="workout_execution_target_rir_label">RIR</string>
-    <string name="workout_execution_target_rest_label">Rest</string>
+    <string name="workout_execution_target_rest_label">休息</string>
     <string name="workout_execution_rpe_value">RPE %.1f</string>
     <string name="workout_execution_rir_value">RIR %d</string>
-    <string name="set_type_warmup">Warmup</string>
-    <string name="set_type_working">Working</string>
-    <string name="set_type_drop">Drop</string>
-    <string name="set_type_failure">Failure</string>
+    <string name="set_type_warmup">热身组</string>
+    <string name="set_type_working">正式组</string>
+    <string name="set_type_drop">递减组</string>
+    <string name="set_type_failure">力竭组</string>
 
     <!-- Workout Summary -->
     <string name="workout_summary_title">训练摘要</string>
@@ -252,6 +262,9 @@
     <string name="calendar_reschedule_error_existing_session">目标日期已有训练记录，无法改期</string>
     <string name="calendar_reschedule_error_missing_info">无法改期：缺少必要信息</string>
     <string name="calendar_reschedule_restore">已恢复原计划</string>
+
+    <!-- FAB -->
+    <string name="fab_camera">拍照或录像</string>
 
     <!-- Today (V3 UI) -->
     <string name="today_workout_in_progress_title">继续训练</string>
@@ -520,6 +533,7 @@
     <string name="export_checkins">导出打卡记录</string>
     <string name="export_success">导出成功</string>
     <string name="export_error">导出失败</string>
+    <string name="import_failed_format">导入失败: %s</string>
 
     <!-- Media Cleanup -->
     <string name="media_stats_title">媒体存储</string>

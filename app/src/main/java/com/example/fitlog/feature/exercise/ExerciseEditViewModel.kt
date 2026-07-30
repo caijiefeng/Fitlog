@@ -3,9 +3,11 @@ package com.example.fitlog.feature.exercise
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.ExerciseCategory
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.core.model.TrackingType
 import com.example.fitlog.data.repository.ExerciseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +30,8 @@ data class ExerciseFormState(
     val error: String? = null,
     val nameError: String? = null,
     val isBuiltIn: Boolean = false,
+    val equipmentType: EquipmentType? = null,
+    val trackingType: TrackingType? = null,
 )
 
 sealed interface ExerciseFormEvent {
@@ -72,6 +76,8 @@ class ExerciseEditViewModel @Inject constructor(
                         notes = exercise.notes ?: "",
                         isLoaded = true,
                         isBuiltIn = !exercise.isCustom,
+                        equipmentType = exercise.equipmentType,
+                        trackingType = exercise.trackingType,
                     )
                 }
             } else {

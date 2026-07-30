@@ -254,4 +254,20 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_media_records_food_record_id ON media_records (food_record_id)")
         }
     }
+
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE exercise_sessions ADD COLUMN is_completed INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE exercise_sessions ADD COLUMN completed_at INTEGER")
+        }
+    }
+
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE exercises ADD COLUMN built_in_key TEXT")
+            db.execSQL("ALTER TABLE exercises ADD COLUMN equipment_type TEXT NOT NULL DEFAULT 'OTHER'")
+            db.execSQL("ALTER TABLE exercises ADD COLUMN tracking_type TEXT NOT NULL DEFAULT 'WEIGHT_REPS'")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_exercises_built_in_key ON exercises (built_in_key)")
+        }
+    }
 }

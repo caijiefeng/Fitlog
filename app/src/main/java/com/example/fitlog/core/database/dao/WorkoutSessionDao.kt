@@ -64,4 +64,7 @@ interface WorkoutSessionDao {
         ORDER BY date ASC
     """)
     suspend fun getByDateRange(startEpochDay: Long, endEpochDay: Long): List<WorkoutSessionEntity>
+
+    @Query("DELETE FROM workout_sessions WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }

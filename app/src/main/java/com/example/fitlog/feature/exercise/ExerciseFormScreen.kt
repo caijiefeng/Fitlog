@@ -42,7 +42,9 @@ import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.core.model.TrackingType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,6 +126,32 @@ fun ExerciseFormScreen(
                     selected = state.secondaryMuscleGroup,
                     enabled = !state.isBuiltIn,
                     onSelected = { viewModel.onSecondaryMuscleGroupChanged(it) },
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Equipment type (read-only display)
+                OutlinedTextField(
+                    value = state.equipmentType?.let { equipmentTypeLabel(it) } ?: "",
+                    onValueChange = {},
+                    label = { Text("器材类型") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false,
+                    singleLine = true,
+                    colors = fieldColors(),
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Tracking type (read-only display)
+                OutlinedTextField(
+                    value = state.trackingType?.let { trackingTypeLabel(it) } ?: "",
+                    onValueChange = {},
+                    label = { Text("记录类型") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false,
+                    singleLine = true,
+                    colors = fieldColors(),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -229,4 +257,22 @@ private fun muscleGroupLabel(group: MuscleGroup): String = when (group) {
     MuscleGroup.CORE -> "核心"
     MuscleGroup.CARDIO -> "有氧"
     MuscleGroup.FULL_BODY -> "全身"
+}
+
+private fun equipmentTypeLabel(type: EquipmentType): String = when (type) {
+    EquipmentType.BARBELL -> "杠铃"
+    EquipmentType.DUMBBELL -> "哑铃"
+    EquipmentType.MACHINE -> "器械"
+    EquipmentType.CABLE -> "绳索"
+    EquipmentType.BODYWEIGHT -> "自重"
+    EquipmentType.KETTLEBELL -> "壶铃"
+    EquipmentType.CARDIO_MACHINE -> "有氧器械"
+    EquipmentType.OTHER -> "其他"
+}
+
+private fun trackingTypeLabel(type: TrackingType): String = when (type) {
+    TrackingType.WEIGHT_REPS -> "重量 × 次数"
+    TrackingType.BODYWEIGHT_REPS -> "自重次数 (可加附加重量)"
+    TrackingType.DURATION -> "计时"
+    TrackingType.DISTANCE_DURATION -> "距离 / 时长"
 }

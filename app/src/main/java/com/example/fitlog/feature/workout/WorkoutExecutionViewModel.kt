@@ -128,6 +128,7 @@ class WorkoutExecutionViewModel @Inject constructor(
                     setRecordId = setRecordId,
                 )
                 loadSession()
+                autoCompleteExerciseIfAllSetsDone(exerciseSessionId)
             } catch (e: InvalidSetDataException) {
                 Log.e("WorkoutExecutionVM", "Invalid set data", e)
                 _events.emit(WorkoutExecutionEvent.ShowError(e.message ?: "数据验证失败"))
@@ -197,6 +198,35 @@ class WorkoutExecutionViewModel @Inject constructor(
         }
     }
 
+    fun markExerciseCompleted(exerciseSessionId: Long) {
+        viewModelScope.launch {
+            try {
+                sessionRepository.markExerciseCompleted(exerciseSessionId, completed = true)
+                loadSession()
+            } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to mark exercise completed", e)
+                _events.emit(WorkoutExecutionEvent.ShowError("操作失败: ${e.message}"))
+            }
+        }
+    }
+
+    private fun autoCompleteExerciseIfAllSetsDone(exerciseSessionId: Long) {
+        viewModelScope.launch {
+            try {
+                val detail = sessionRepository.getDetail(sessionId) ?: return@launch
+                val (exercise, sets) = detail.exercises.find { it.first.id == exerciseSessionId } ?: return@launch
+                if (exercise.isCompleted) return@launch
+                val allPlannedSetsDone = sets.count { it.completed && it.setNumber <= exercise.targetSets } >= exercise.targetSets
+                if (allPlannedSetsDone) {
+                    sessionRepository.markExerciseCompleted(exerciseSessionId, completed = true)
+                    loadSession()
+                }
+            } catch (e: Exception) {
+                Log.e("WorkoutExecutionVM", "Failed to auto-complete exercise", e)
+            }
+        }
+    }
+
     fun startRest(plannedSeconds: Int) {
         timer.start(plannedSeconds)
     }
@@ -258,9 +288,14 @@ class WorkoutExecutionViewModel @Inject constructor(
     fun completeWorkout() {
         viewModelScope.launch {
             try {
-                _uiState.update { it.copy(isSaving = true) }
+                _uiState.update { it.copy(isSaving = true, showCompleteDialog = false) }
 
-                val detail = _uiState.value.sessionDetail ?: return@launch
+                val detail = _uiState.value.sessionDetail
+                if (detail == null) {
+                    _uiState.update { it.copy(isSaving = false) }
+                    _events.emit(WorkoutExecutionEvent.ShowError("训练数据加载失败，请重试"))
+                    return@launch
+                }
 
                 // Count completed WORKING sets with setNumber <= targetSets per exercise
                 var completedWorkingSetCount = 0
@@ -278,7 +313,7 @@ class WorkoutExecutionViewModel @Inject constructor(
 
                 if (completedWorkingSetCount == 0) {
                     _uiState.update { it.copy(isSaving = false) }
-                    _events.emit(WorkoutExecutionEvent.ShowError("Complete at least one set"))
+                    _events.emit(WorkoutExecutionEvent.ShowError("请至少完成一组训练后再结束"))
                     return@launch
                 }
 
@@ -293,7 +328,7 @@ class WorkoutExecutionViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }
                 Log.e("WorkoutExecutionVM", "Failed to complete workout", e)
-                _events.emit(WorkoutExecutionEvent.ShowError("Complete failed: ${e.message}"))
+                _events.emit(WorkoutExecutionEvent.ShowError("操作失败: ${e.message}"))
             }
         }
     }

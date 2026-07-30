@@ -37,6 +37,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -83,18 +85,20 @@ fun WorkoutExecutionScreen(
     onNavigateToExercisePicker: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is WorkoutExecutionEvent.NavigateToSummary -> onNavigateToSummary(event.sessionId)
                 is WorkoutExecutionEvent.NavigateBack -> onNavigateBack()
-                else -> {}
+                is WorkoutExecutionEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -186,6 +190,7 @@ fun WorkoutExecutionScreen(
                     onDeleteSet = viewModel::deleteSet,
                     onUpdateSetType = viewModel::updateSetType,
                     onSkipExercise = viewModel::skipExercise,
+                    onMarkExerciseCompleted = viewModel::markExerciseCompleted,
                     onUpdateNotes = viewModel::updateNotes,
                     onNavigateToExercisePicker = { onNavigateToExercisePicker(sessionId) },
                     onCancelWorkout = { viewModel.showCancelDialog() },
@@ -289,13 +294,13 @@ fun WorkoutExecutionScreen(
                     enabled = !uiState.isSaving,
                     colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
                 ) {
-                    Text(stringResource(R.string.workout_execution_confirm_complete))
+                    Text("保存为部分完成")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissPartialCompleteDialog() }) {
                     Text(
-                        stringResource(R.string.workout_execution_dismiss),
+                        "继续训练",
                         color = FitLogAccent,
                     )
                 }
@@ -321,6 +326,7 @@ private fun WorkoutContent(
     onDeleteSet: (Long) -> Unit,
     onUpdateSetType: (Long, SetType) -> Unit,
     onSkipExercise: (Long) -> Unit,
+    onMarkExerciseCompleted: (Long) -> Unit,
     onUpdateNotes: (Long, String) -> Unit,
     onNavigateToExercisePicker: () -> Unit,
     onCancelWorkout: () -> Unit,
@@ -397,6 +403,7 @@ private fun WorkoutContent(
                 onDeleteSet = onDeleteSet,
                 onUpdateSetType = onUpdateSetType,
                 onSkipExercise = onSkipExercise,
+                onMarkExerciseCompleted = onMarkExerciseCompleted,
                 onUpdateNotes = onUpdateNotes,
                 onToggleEdit = { setId ->
                     editingSets[setId] = !(editingSets[setId] ?: false)
@@ -530,11 +537,17 @@ private fun ExerciseCard(
     onDeleteSet: (Long) -> Unit,
     onUpdateSetType: (Long, SetType) -> Unit,
     onSkipExercise: (Long) -> Unit,
+    onMarkExerciseCompleted: (Long) -> Unit,
     onUpdateNotes: (Long, String) -> Unit,
     onToggleEdit: (Long) -> Unit,
 ) {
     var notesText by remember(exercise.id, exercise.notes) {
         mutableStateOf(exercise.notes ?: "")
+    }
+    var showCompleteConfirmDialog by remember { mutableStateOf(false) }
+
+    val allPlannedSetsDone = if (exercise.isCompleted) true else {
+        sets.count { it.completed && it.setNumber <= exercise.targetSets } >= exercise.targetSets
     }
 
     FitLogCard {
@@ -655,6 +668,63 @@ private fun ExerciseCard(
                     stringResource(R.string.workout_execution_skip_exercise),
                     color = FitLogTextSecondary,
                     style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            // ── Complete Exercise button ──────────────────────────────────────
+            TextButton(
+                onClick = {
+                    if (exercise.isCompleted || allPlannedSetsDone) return@TextButton
+                    val incompletePlanned = sets.count { !it.completed && it.setNumber <= exercise.targetSets }
+                    if (incompletePlanned > 0) {
+                        showCompleteConfirmDialog = true
+                    } else {
+                        onMarkExerciseCompleted(exercise.id)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !exercise.isCompleted,
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (exercise.isCompleted) FitLogSuccess else FitLogAccent,
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    if (exercise.isCompleted) "已完成" else "完成动作",
+                    color = if (exercise.isCompleted) FitLogSuccess else FitLogAccent,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            // ── Confirmation dialog for manual complete ───────────────────────
+            if (showCompleteConfirmDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCompleteConfirmDialog = false },
+                    title = {
+                        Text("完成动作", color = FitLogTextPrimary)
+                    },
+                    text = {
+                        Text("还有计划组未完成，确定要标记为已完成吗？", color = FitLogTextSecondary)
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showCompleteConfirmDialog = false
+                                onMarkExerciseCompleted(exercise.id)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+                        ) {
+                            Text("标记完成")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCompleteConfirmDialog = false }) {
+                            Text("取消", color = FitLogAccent)
+                        }
+                    },
                 )
             }
 

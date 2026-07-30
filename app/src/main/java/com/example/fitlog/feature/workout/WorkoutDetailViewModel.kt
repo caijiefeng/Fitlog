@@ -17,6 +17,8 @@ data class WorkoutDetailUiState(
     val detail: WorkoutSessionDetail? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
+    val showDeleteDialog: Boolean = false,
+    val isDeleted: Boolean = false,
 )
 
 @HiltViewModel
@@ -45,6 +47,25 @@ class WorkoutDetailViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+
+    fun showDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = true) }
+    }
+
+    fun dismissDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = false) }
+    }
+
+    fun deleteSession() {
+        viewModelScope.launch {
+            try {
+                sessionRepository.deleteById(sessionId)
+                _uiState.update { it.copy(showDeleteDialog = false, isDeleted = true) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(showDeleteDialog = false, error = "删除失败: ${e.message}") }
             }
         }
     }

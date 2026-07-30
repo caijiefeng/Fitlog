@@ -51,6 +51,10 @@ data class ExerciseSessionEntity(
     val sortOrder: Int = 0,
     @ColumnInfo(name = "is_skipped")
     val isSkipped: Boolean = false,
+    @ColumnInfo(name = "is_completed", defaultValue = "0")
+    val isCompleted: Boolean = false,
+    @ColumnInfo(name = "completed_at")
+    val completedAt: Long? = null,
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "updated_at")

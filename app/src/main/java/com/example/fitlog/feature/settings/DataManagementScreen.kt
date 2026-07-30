@@ -125,7 +125,7 @@ fun DataManagementScreen(
         uiState.importResult?.let { result ->
             val message = when (result) {
                 is com.example.fitlog.data.backup.ImportResult.Success -> result.message
-                is com.example.fitlog.data.backup.ImportResult.Error -> "Import failed: ${result.message}"
+                is com.example.fitlog.data.backup.ImportResult.Error -> context.getString(R.string.import_failed_format, result.message)
             }
             snackbarHostState.showSnackbar(message)
             viewModel.dismissImportResult()

@@ -1,5 +1,6 @@
 package com.example.fitlog.feature.record
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +53,8 @@ import java.time.format.DateTimeFormatter
 fun RecordScreen(
     viewModel: RecordViewModel = hiltViewModel(),
     onNavigateToWorkoutDetail: (Long) -> Unit = {},
+    onNavigateToNutrition: () -> Unit = {},
+    onNavigateToBodyMeasurement: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -59,6 +68,29 @@ fun RecordScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RecordEntryCard(
+                            icon = Icons.Filled.FitnessCenter,
+                            label = stringResource(R.string.record_entry_workout),
+                            onClick = { /* Already on Record screen showing workouts */ },
+                        )
+                        RecordEntryCard(
+                            icon = Icons.Filled.Restaurant,
+                            label = stringResource(R.string.record_entry_nutrition),
+                            onClick = onNavigateToNutrition,
+                        )
+                        RecordEntryCard(
+                            icon = Icons.Filled.MonitorWeight,
+                            label = stringResource(R.string.record_entry_body),
+                            onClick = onNavigateToBodyMeasurement,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     SectionHeader(title = stringResource(R.string.section_recent_training))
                 }
 
@@ -225,5 +257,35 @@ private fun formatVolume(volume: Double): String {
         "%.1f".format(volume)
     } else {
         "-"
+    }
+}
+
+@Composable
+private fun RecordEntryCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    FitLogCard(
+        onClick = onClick,
+        modifier = Modifier.width(120.dp),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(12.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = FitLogAccent,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = FitLogTextPrimary,
+            )
+        }
     }
 }

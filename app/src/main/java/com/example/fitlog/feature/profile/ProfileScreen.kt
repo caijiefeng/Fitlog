@@ -1,5 +1,6 @@
 package com.example.fitlog.feature.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,21 +9,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,10 +30,12 @@ import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
+import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
+import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
-import kotlinx.coroutines.launch
+import com.example.fitlog.core.designsystem.theme.ThemeMode
 
 @Composable
 fun ProfileScreen(
@@ -42,14 +44,11 @@ fun ProfileScreen(
     onNavigateToDataManagement: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             FitLogTopAppBar(title = stringResource(R.string.nav_profile))
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
         ScrollablePageContainer(
@@ -115,9 +114,7 @@ fun ProfileScreen(
             FitLogCard(
                 modifier = Modifier.padding(vertical = 4.dp),
                 onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("训练偏好功能即将推出")
-                    }
+                    // TODO: Implement training preferences screen
                 },
             ) {
                 Text(
@@ -132,14 +129,10 @@ fun ProfileScreen(
                 )
             }
 
-            // Appearance
+            // Appearance (theme selector)
             FitLogCard(
                 modifier = Modifier.padding(vertical = 4.dp),
-                onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("外观设置功能即将推出")
-                    }
-                },
+                onClick = null,
             ) {
                 Text(
                     text = stringResource(R.string.profile_appearance),
@@ -150,6 +143,11 @@ fun ProfileScreen(
                     text = stringResource(R.string.profile_appearance_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = FitLogTextSecondary,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                ThemeModeSelector(
+                    currentMode = uiState.themeMode,
+                    onModeSelected = { viewModel.setThemeMode(it) },
                 )
             }
 
@@ -174,9 +172,7 @@ fun ProfileScreen(
             FitLogCard(
                 modifier = Modifier.padding(vertical = 4.dp),
                 onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("FitLog v0.1.0")
-                    }
+                    // TODO: Show about dialog
                 },
             ) {
                 Text(
@@ -188,6 +184,43 @@ fun ProfileScreen(
                     text = stringResource(R.string.profile_about_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = FitLogTextSecondary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeModeSelector(
+    currentMode: ThemeMode,
+    onModeSelected: (ThemeMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        ThemeMode.entries.forEach { mode ->
+            val isSelected = mode == currentMode
+            val label = when (mode) {
+                ThemeMode.LIGHT -> stringResource(R.string.theme_light)
+                ThemeMode.DARK -> stringResource(R.string.theme_dark)
+                ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
+            }
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp)
+                    .clickable { onModeSelected(mode) },
+                shape = RoundedCornerShape(8.dp),
+                color = if (isSelected) FitLogAccent else FitLogSurfaceVariant,
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isSelected) FitLogBackground else FitLogTextPrimary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
         }

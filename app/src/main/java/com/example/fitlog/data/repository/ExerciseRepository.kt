@@ -2,8 +2,10 @@ package com.example.fitlog.data.repository
 
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.entity.ExerciseEntity
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.core.model.TrackingType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -25,6 +27,12 @@ class ExerciseRepository @Inject constructor(
 
     suspend fun getById(id: Long): Exercise? =
         exerciseDao.getActiveById(id)?.toDomain()
+
+    suspend fun getByBuiltInKey(key: String): Exercise? =
+        exerciseDao.getByBuiltInKey(key)?.toDomain()
+
+    suspend fun getAllBuiltIn(): List<Exercise> =
+        exerciseDao.getAllBuiltIn().map { it.toDomain() }
 
     suspend fun create(exercise: Exercise): Long {
         val entity = exercise.toEntity()
@@ -55,6 +63,9 @@ private fun ExerciseEntity.toDomain() = Exercise(
     isCustom = isCustom,
     isActive = isActive,
     sortOrder = sortOrder,
+    builtInKey = builtInKey,
+    equipmentType = try { EquipmentType.valueOf(equipmentType) } catch (_: Exception) { EquipmentType.OTHER },
+    trackingType = try { TrackingType.valueOf(trackingType) } catch (_: Exception) { TrackingType.WEIGHT_REPS },
     createdAt = java.time.Instant.ofEpochMilli(createdAt),
     updatedAt = java.time.Instant.ofEpochMilli(updatedAt),
 )
@@ -69,6 +80,9 @@ private fun Exercise.toEntity() = ExerciseEntity(
     isCustom = isCustom,
     isActive = isActive,
     sortOrder = sortOrder,
+    builtInKey = builtInKey,
+    equipmentType = equipmentType.name,
+    trackingType = trackingType.name,
     createdAt = createdAt.toEpochMilli(),
     updatedAt = updatedAt.toEpochMilli(),
 )

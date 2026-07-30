@@ -37,6 +37,9 @@ interface ExerciseSessionDao {
     @Query("UPDATE exercise_sessions SET notes = :notes WHERE id = :id")
     suspend fun updateNotes(id: Long, notes: String?)
 
+    @Query("UPDATE exercise_sessions SET is_completed = :completed, completed_at = :completedAt, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateCompletionStatus(id: Long, completed: Boolean, completedAt: Long?, updatedAt: Long)
+
     @Query("SELECT COUNT(*) FROM exercise_sessions")
     suspend fun count(): Int
 }

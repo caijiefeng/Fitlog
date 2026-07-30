@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +45,9 @@ fun TemplateListScreen(
     onNavigateToCreate: () -> Unit = {},
     onNavigateToEdit: (Long) -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    // Picker mode (used from TodayScreen "从训练模板开始")
+    isPickerMode: Boolean = false,
+    onTemplateSelected: (templateId: Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -59,10 +63,26 @@ fun TemplateListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("训练模板", color = FitLogTextPrimary) },
+                title = {
+                    Text(
+                        if (isPickerMode) "选择模板" else "训练模板",
+                        color = FitLogTextPrimary,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回",
+                            tint = FitLogTextPrimary,
+                        )
+                    }
+                },
                 actions = {
-                    IconButton(onClick = { viewModel.onCreateNew() }) {
-                        Icon(Icons.Filled.Add, "新建模板", tint = FitLogAccent)
+                    if (!isPickerMode) {
+                        IconButton(onClick = { viewModel.onCreateNew() }) {
+                            Icon(Icons.Filled.Add, "新建模板", tint = FitLogAccent)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = FitLogSurface),
@@ -79,8 +99,8 @@ fun TemplateListScreen(
             uiState.templates.isEmpty() -> {
                 EmptyState(
                     icon = Icons.Filled.FitnessCenter,
-                    title = "还没有训练模板",
-                    subtitle = "创建训练模板来组织你的训练动作",
+                    title = if (isPickerMode) "还没有训练模板" else "还没有训练模板",
+                    subtitle = if (isPickerMode) "请先在「计划」页面创建训练模板" else "创建训练模板来组织你的训练动作",
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
@@ -98,15 +118,27 @@ fun TemplateListScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            onClick = { viewModel.onTemplateClicked(template.id) },
+                            onClick = {
+                                if (isPickerMode) {
+                                    onTemplateSelected(template.id)
+                                } else {
+                                    viewModel.onTemplateClicked(template.id)
+                                }
+                            },
                         ) {
-                            Text(template.name, style = MaterialTheme.typography.bodyLarge, color = FitLogTextPrimary)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                template.notes ?: "无备注",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = FitLogTextSecondary,
-                            )
+                            Column {
+                                Text(
+                                    template.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = FitLogTextPrimary,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    template.notes ?: "无备注",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = FitLogTextSecondary,
+                                )
+                            }
                         }
                     }
                     item { Spacer(modifier = Modifier.height(80.dp)) }

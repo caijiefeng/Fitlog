@@ -14,7 +14,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,10 +28,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,6 +50,7 @@ import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
+import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
@@ -61,6 +72,14 @@ fun WorkoutDetailScreen(
     onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showMenu by remember { mutableStateOf(false) }
+
+    // Navigate back when deleted
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            onNavigateBack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -73,6 +92,32 @@ fun WorkoutDetailScreen(
                             contentDescription = stringResource(R.string.workout_detail_back),
                             tint = FitLogTextPrimary,
                         )
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                Icons.Filled.MoreVert,
+                                contentDescription = "更多操作",
+                                tint = FitLogTextPrimary,
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("删除记录", color = FitLogError) },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.showDeleteDialog()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Delete, contentDescription = null, tint = FitLogError)
+                                },
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = FitLogSurface),
@@ -102,6 +147,27 @@ fun WorkoutDetailScreen(
                 )
             }
         }
+    }
+
+    // Delete confirmation dialog
+    if (uiState.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteDialog() },
+            title = { Text("删除训练记录") },
+            text = {
+                Text("删除这条训练记录？动作、组数和容量记录将一起删除，此操作无法撤销。")
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.deleteSession() }) {
+                    Text("删除", color = FitLogError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 

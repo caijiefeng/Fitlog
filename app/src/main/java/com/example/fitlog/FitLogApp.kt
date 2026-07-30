@@ -1,23 +1,33 @@
 package com.example.fitlog
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.fitlog.core.datastore.UserPreferencesRepository
+import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
-import com.example.fitlog.core.designsystem.theme.FitLogTheme
+import com.example.fitlog.core.designsystem.theme.FitLogAppTheme
 import com.example.fitlog.core.navigation.BottomNavItem
 import com.example.fitlog.core.navigation.FitLogBottomBar
 import com.example.fitlog.core.navigation.FitLogNavHost
+import androidx.compose.foundation.layout.padding
+import com.example.fitlog.core.navigation.Routes
 
 private val topLevelRoutes = BottomNavItem.items.map { it.route }.toSet()
 
 @Composable
-fun FitLogApp() {
-    FitLogTheme {
+fun FitLogApp(
+    preferencesRepository: UserPreferencesRepository,
+) {
+    FitLogAppTheme(preferencesRepository = preferencesRepository) {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -38,6 +48,19 @@ fun FitLogApp() {
                             }
                         },
                     )
+                }
+            },
+            floatingActionButton = {
+                if (showBottomBar) {
+                    FloatingActionButton(
+                        onClick = { navController.navigate(Routes.camera(category = "GENERAL")) },
+                        containerColor = FitLogAccent,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CameraAlt,
+                            contentDescription = stringResource(R.string.fab_camera),
+                        )
+                    }
                 }
             },
             containerColor = FitLogBackground,

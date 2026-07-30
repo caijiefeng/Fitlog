@@ -23,6 +23,7 @@ data class TodayUiState(
     val inProgressSessionId: Long? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
+    val showStartWorkoutDialog: Boolean = false,
 )
 
 sealed interface TodayEvent {
@@ -35,6 +36,10 @@ sealed interface TodayEvent {
     data class ResumeWorkout(val sessionId: Long) : TodayEvent
 
     data class NavigateToWorkoutDetail(val sessionId: Long) : TodayEvent
+
+    data object NavigateToTemplatePicker : TodayEvent
+
+    data object NavigateToQuickSetup : TodayEvent
 }
 
 @HiltViewModel
@@ -145,18 +150,24 @@ class TodayViewModel @Inject constructor(
     }
 
     fun onQuickStart() {
+        _uiState.value = _uiState.value.copy(showStartWorkoutDialog = true)
+    }
+
+    fun onDismissStartDialog() {
+        _uiState.value = _uiState.value.copy(showStartWorkoutDialog = false)
+    }
+
+    fun onStartFromTemplate() {
+        _uiState.value = _uiState.value.copy(showStartWorkoutDialog = false)
         viewModelScope.launch {
-            try {
-                val state = _uiState.value
-                if (state.hasInProgressWorkout) {
-                    state.inProgressSessionId?.let { _events.emit(TodayEvent.ResumeWorkout(it)) }
-                    return@launch
-                }
-                val sid = sessionRepository.createQuick()
-                _events.emit(TodayEvent.StartWorkout(sessionId = sid))
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
-            }
+            _events.emit(TodayEvent.NavigateToTemplatePicker)
+        }
+    }
+
+    fun onStartFreeWorkout() {
+        _uiState.value = _uiState.value.copy(showStartWorkoutDialog = false)
+        viewModelScope.launch {
+            _events.emit(TodayEvent.NavigateToQuickSetup)
         }
     }
 

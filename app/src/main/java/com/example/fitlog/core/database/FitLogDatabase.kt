@@ -33,6 +33,7 @@ import com.example.fitlog.core.database.entity.WorkoutTemplateEntity
 import com.example.fitlog.core.database.entity.WorkoutTemplateExerciseEntity
 import com.example.fitlog.core.database.entity.FoodRecordEntity
 import com.example.fitlog.core.database.entity.MediaRecordEntity
+import com.example.fitlog.core.database.migration.Migrations
 
 @Database(
     entities = [
@@ -52,7 +53,7 @@ import com.example.fitlog.core.database.entity.MediaRecordEntity
         FoodRecordEntity::class,
         MediaRecordEntity::class,
     ],
-    version = 7,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

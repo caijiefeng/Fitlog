@@ -43,8 +43,10 @@ import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.core.model.TrackingType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,7 +174,7 @@ private fun ExerciseRow(exercise: Exercise, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(exercise.name, style = MaterialTheme.typography.bodyLarge, color = FitLogTextPrimary)
                 Text(
-                    "${muscleGroupLabel(exercise.primaryMuscleGroup)}${if (exercise.isCustom) " · 自定义" else ""}",
+                    trackingTypeDescription(exercise),
                     style = MaterialTheme.typography.bodySmall,
                     color = FitLogTextSecondary,
                 )
@@ -180,6 +182,46 @@ private fun ExerciseRow(exercise: Exercise, onClick: () -> Unit) {
             Text("›", color = FitLogTextSecondary)
         }
     }
+}
+
+private fun trackingTypeDescription(exercise: Exercise): String {
+    val muscleLabel = muscleGroupLabel(exercise.primaryMuscleGroup)
+    val customTag = if (exercise.isCustom) " · 自定义" else ""
+    return when (exercise.equipmentType) {
+        EquipmentType.BARBELL, EquipmentType.DUMBBELL,
+        EquipmentType.MACHINE, EquipmentType.CABLE,
+        EquipmentType.KETTLEBELL -> {
+            "${equipmentLabel(exercise.equipmentType)} · $muscleLabel · 重量×次数$customTag"
+        }
+        EquipmentType.BODYWEIGHT -> {
+            when (exercise.trackingType) {
+                TrackingType.BODYWEIGHT_REPS -> "自重次数 + 附加重量(可选)$customTag"
+                TrackingType.DURATION -> "计时 · 保持姿势$customTag"
+                else -> "自重 · $muscleLabel$customTag"
+            }
+        }
+        EquipmentType.CARDIO_MACHINE -> {
+            when (exercise.trackingType) {
+                TrackingType.DISTANCE_DURATION -> "有氧 · 距离/时长$customTag"
+                TrackingType.DURATION -> "有氧 · 计时$customTag"
+                else -> "有氧 · $muscleLabel$customTag"
+            }
+        }
+        EquipmentType.OTHER -> {
+            "$muscleLabel$customTag"
+        }
+    }
+}
+
+private fun equipmentLabel(type: EquipmentType): String = when (type) {
+    EquipmentType.BARBELL -> "杠铃"
+    EquipmentType.DUMBBELL -> "哑铃"
+    EquipmentType.MACHINE -> "器械"
+    EquipmentType.CABLE -> "绳索"
+    EquipmentType.BODYWEIGHT -> "自重"
+    EquipmentType.KETTLEBELL -> "壶铃"
+    EquipmentType.CARDIO_MACHINE -> "有氧"
+    EquipmentType.OTHER -> "其他"
 }
 
 private fun muscleGroupLabel(group: MuscleGroup): String = when (group) {

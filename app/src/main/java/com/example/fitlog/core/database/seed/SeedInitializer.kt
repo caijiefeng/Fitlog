@@ -5,7 +5,7 @@ import javax.inject.Singleton
 
 /**
  * Invoked from FitLogApplication.onCreate() to ensure seed data
- * is inserted exactly once. Idempotent by design.
+ * is synced on every app launch. Idempotent by design.
  */
 @Singleton
 class SeedInitializer @Inject constructor(
@@ -13,6 +13,6 @@ class SeedInitializer @Inject constructor(
 ) {
 
     suspend fun initialize() {
-        seedDataProvider.seedIfEmpty()
+        seedDataProvider.syncBuiltInExercises()
     }
 }

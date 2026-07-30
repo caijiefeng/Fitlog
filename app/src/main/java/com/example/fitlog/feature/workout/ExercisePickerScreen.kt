@@ -46,8 +46,10 @@ import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.core.model.TrackingType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,7 +184,7 @@ private fun ExerciseRow(
                     color = FitLogTextPrimary,
                 )
                 Text(
-                    muscleGroupLabel(exercise.primaryMuscleGroup),
+                    trackingTypeDescription(exercise),
                     style = MaterialTheme.typography.bodySmall,
                     color = FitLogTextSecondary,
                 )
@@ -197,18 +199,56 @@ private fun ExerciseRow(
     }
 }
 
+internal fun trackingTypeDescription(exercise: Exercise): String {
+    return when (exercise.equipmentType) {
+        EquipmentType.BARBELL, EquipmentType.DUMBBELL,
+        EquipmentType.MACHINE, EquipmentType.CABLE,
+        EquipmentType.KETTLEBELL -> {
+            "${equipmentLabel(exercise.equipmentType)} · ${muscleGroupLabel(exercise.primaryMuscleGroup)} · 重量×次数"
+        }
+        EquipmentType.BODYWEIGHT -> {
+            when (exercise.trackingType) {
+                TrackingType.BODYWEIGHT_REPS -> "自重次数 + 附加重量(可选)"
+                TrackingType.DURATION -> "计时 · 保持姿势"
+                else -> "自重 · ${muscleGroupLabel(exercise.primaryMuscleGroup)}"
+            }
+        }
+        EquipmentType.CARDIO_MACHINE -> {
+            when (exercise.trackingType) {
+                TrackingType.DISTANCE_DURATION -> "有氧 · 距离/时长"
+                TrackingType.DURATION -> "有氧 · 计时"
+                else -> "有氧 · ${muscleGroupLabel(exercise.primaryMuscleGroup)}"
+            }
+        }
+        EquipmentType.OTHER -> {
+            muscleGroupLabel(exercise.primaryMuscleGroup)
+        }
+    }
+}
+
+internal fun equipmentLabel(type: EquipmentType): String = when (type) {
+    EquipmentType.BARBELL -> "杠铃"
+    EquipmentType.DUMBBELL -> "哑铃"
+    EquipmentType.MACHINE -> "器械"
+    EquipmentType.CABLE -> "绳索"
+    EquipmentType.BODYWEIGHT -> "自重"
+    EquipmentType.KETTLEBELL -> "壶铃"
+    EquipmentType.CARDIO_MACHINE -> "有氧"
+    EquipmentType.OTHER -> "其他"
+}
+
 internal fun muscleGroupLabel(group: MuscleGroup): String = when (group) {
-    MuscleGroup.CHEST -> "Chest"
-    MuscleGroup.BACK -> "Back"
-    MuscleGroup.SHOULDERS -> "Shoulders"
-    MuscleGroup.BICEPS -> "Biceps"
-    MuscleGroup.TRICEPS -> "Triceps"
-    MuscleGroup.FOREARMS -> "Forearms"
-    MuscleGroup.QUADRICEPS -> "Quadriceps"
-    MuscleGroup.HAMSTRINGS -> "Hamstrings"
-    MuscleGroup.GLUTES -> "Glutes"
-    MuscleGroup.CALVES -> "Calves"
-    MuscleGroup.CORE -> "Core"
-    MuscleGroup.CARDIO -> "Cardio"
-    MuscleGroup.FULL_BODY -> "Full Body"
+    MuscleGroup.CHEST -> "胸"
+    MuscleGroup.BACK -> "背"
+    MuscleGroup.SHOULDERS -> "肩"
+    MuscleGroup.BICEPS -> "肱二头肌"
+    MuscleGroup.TRICEPS -> "肱三头肌"
+    MuscleGroup.FOREARMS -> "前臂"
+    MuscleGroup.QUADRICEPS -> "股四头肌"
+    MuscleGroup.HAMSTRINGS -> "腘绳肌"
+    MuscleGroup.GLUTES -> "臀"
+    MuscleGroup.CALVES -> "小腿"
+    MuscleGroup.CORE -> "核心"
+    MuscleGroup.CARDIO -> "有氧"
+    MuscleGroup.FULL_BODY -> "全身"
 }

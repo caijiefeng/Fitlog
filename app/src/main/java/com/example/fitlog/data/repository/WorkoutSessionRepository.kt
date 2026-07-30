@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.example.fitlog.core.database.FitLogDatabase
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
 import com.example.fitlog.core.database.dao.ExerciseDao
+import com.example.fitlog.core.database.dao.MediaRecordDao
 import com.example.fitlog.core.database.dao.SetRecordDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
 import com.example.fitlog.core.database.dao.WorkoutTemplateDao
@@ -35,6 +36,7 @@ class WorkoutSessionRepository @Inject constructor(
     private val sessionDao: WorkoutSessionDao,
     private val exerciseSessionDao: ExerciseSessionDao,
     private val setRecordDao: SetRecordDao,
+    private val mediaRecordDao: MediaRecordDao,
     private val templateDao: WorkoutTemplateDao,
     private val exerciseDao: ExerciseDao,
 ) {
@@ -121,12 +123,40 @@ class WorkoutSessionRepository @Inject constructor(
                 targetRpe = es.targetRpe, targetRir = es.targetRir,
                 plannedRestSeconds = es.plannedRestSeconds, notes = es.notes,
                 sortOrder = es.sortOrder, isSkipped = es.isSkipped,
+                isCompleted = es.isCompleted,
+                completedAt = es.completedAt?.let { Instant.ofEpochMilli(it) },
             ) to sets.map { it.toDomain() }
         }
         return WorkoutSessionDetail(session = sw.session.toDomain(), exercises = details)
     }
 
     fun getHistory(): Flow<List<DomainWorkoutSession>> = sessionDao.getHistory().map { l -> l.map { it.toDomain() } }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+
+    /**
+     * Deletes a workout session and all its related data.
+     *
+     * 1. Unlinks media records (keeps files on disk, just nullifies the FK columns).
+     * 2. Deletes the session (exercise_sessions and set_records are CASCADE-deleted
+     *    by Room / the database schema).
+     */
+    suspend fun deleteById(id: Long) {
+        val detail = getDetail(id) ?: return
+        db.withTransaction {
+            // Unlink media: nullify workout_session_id on media_records
+            val sessionMedia = mediaRecordDao.getByWorkoutSession(id)
+            sessionMedia.forEach { _ -> mediaRecordDao.unlinkWorkoutSession(id) }
+
+            // Unlink per-exercise media: nullify exercise_session_id
+            detail.exercises.forEach { (exerciseSession, _) ->
+                mediaRecordDao.unlinkExerciseSession(exerciseSession.id)
+            }
+
+            // Delete the session (CASCADE removes exercise_sessions and set_records)
+            sessionDao.deleteById(id)
+        }
+    }
 
     // ── Set Operations ──────────────────────────────────────────────────────
 
@@ -207,6 +237,15 @@ class WorkoutSessionRepository @Inject constructor(
 
     suspend fun updateExerciseNotes(exerciseSessionId: Long, notes: String?) {
         exerciseSessionDao.updateNotes(exerciseSessionId, notes)
+    }
+
+    suspend fun markExerciseCompleted(exerciseSessionId: Long, completed: Boolean) {
+        exerciseSessionDao.updateCompletionStatus(
+            id = exerciseSessionId,
+            completed = completed,
+            completedAt = if (completed) System.currentTimeMillis() else null,
+            updatedAt = System.currentTimeMillis(),
+        )
     }
 
     // ── Status ──────────────────────────────────────────────────────────────

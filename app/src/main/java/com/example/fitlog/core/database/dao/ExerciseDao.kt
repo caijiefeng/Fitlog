@@ -44,6 +44,12 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises ORDER BY sort_order ASC, name ASC")
     suspend fun getAll(): List<ExerciseEntity>
 
+    @Query("SELECT * FROM exercises WHERE built_in_key = :key LIMIT 1")
+    suspend fun getByBuiltInKey(key: String): ExerciseEntity?
+
+    @Query("SELECT * FROM exercises WHERE built_in_key IS NOT NULL")
+    suspend fun getAllBuiltIn(): List<ExerciseEntity>
+
     @Query("SELECT COUNT(*) FROM exercises")
     suspend fun countAll(): Int
 

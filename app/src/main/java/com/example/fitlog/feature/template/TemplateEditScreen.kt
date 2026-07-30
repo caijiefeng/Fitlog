@@ -1,5 +1,6 @@
 package com.example.fitlog.feature.template
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -205,34 +205,58 @@ private fun ExerciseConfigCard(
     onRemove: () -> Unit,
 ) {
     FitLogCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("${index + 1}. ${item.exerciseName}", style = MaterialTheme.typography.titleSmall, color = FitLogTextPrimary)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    NumberField("组", item.targetSets, 60.dp) { onFieldChanged("targetSets", it) }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    NumberField("min次", item.targetRepsMin, 60.dp) { onFieldChanged("targetRepsMin", it) }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    NumberField("max次", item.targetRepsMax, 60.dp) { onFieldChanged("targetRepsMax", it) }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    NumberField("休息s", item.restSeconds, 60.dp) { onFieldChanged("restSeconds", it) }
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${index + 1}. ${item.exerciseName}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = FitLogTextPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Filled.Delete, "删除", tint = FitLogTextSecondary)
                 }
             }
-            IconButton(onClick = onRemove) {
-                Icon(Icons.Filled.Delete, "删除", tint = FitLogTextSecondary)
+            Spacer(modifier = Modifier.height(8.dp))
+            // Row 1: 组数 / 最小次数 / 最大次数
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                NumberField("组数", item.targetSets, Modifier.weight(1f)) { onFieldChanged("targetSets", it) }
+                NumberField("最少次数", item.targetRepsMin, Modifier.weight(1f)) { onFieldChanged("targetRepsMin", it) }
+                NumberField("最多次数", item.targetRepsMax, Modifier.weight(1f)) { onFieldChanged("targetRepsMax", it) }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            // Row 2: 重量 / RPE / RIR
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                NumberField("重量 (kg)", item.targetWeightKg, Modifier.weight(1f)) { onFieldChanged("targetWeightKg", it) }
+                NumberField("RPE", item.targetRpe, Modifier.weight(1f)) { onFieldChanged("targetRpe", it) }
+                NumberField("RIR", item.targetRir, Modifier.weight(1f)) { onFieldChanged("targetRir", it) }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            // Row 3: 休息时间 / 备注
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                NumberField("休息 (秒)", item.restSeconds, Modifier.weight(1f)) { onFieldChanged("restSeconds", it) }
+                NumberField("备注", item.notes, Modifier.weight(1f)) { onFieldChanged("notes", it) }
             }
         }
     }
 }
 
 @Composable
-private fun NumberField(label: String, value: String, width: androidx.compose.ui.unit.Dp, onChanged: (String) -> Unit) {
+private fun NumberField(label: String, value: String, modifier: Modifier, onChanged: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = onChanged,
         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        modifier = Modifier.width(width),
+        modifier = modifier,
         singleLine = true,
         colors = fieldColors(),
     )

@@ -2,10 +2,18 @@ package com.example.fitlog.core.database.seed
 
 import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
-import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
 import com.example.fitlog.core.database.entity.ExerciseEntity
 import javax.inject.Inject
 import javax.inject.Singleton
+
+data class BuiltInExerciseDef(
+    val builtInKey: String,
+    val name: String,
+    val primaryMuscleGroup: String,
+    val sortOrder: Int,
+    val equipmentType: String = "OTHER",
+    val trackingType: String = "WEIGHT_REPS",
+)
 
 @Singleton
 class SeedDataProvider @Inject constructor(
@@ -14,74 +22,137 @@ class SeedDataProvider @Inject constructor(
 ) {
 
     /**
-     * Inserts built-in exercises. Idempotent: skips if exercises already exist.
+     * Syncs built-in exercises using [builtInKey] as the stable identifier.
+     * - New exercises are inserted.
+     * - Existing exercises are updated (name, muscle group, equipment, tracking).
+     * - Built-in exercises no longer in the seed list are set inactive.
+     * - Custom exercises (built_in_key is null) are never touched.
      */
-    suspend fun seedIfEmpty() {
-        val count = exerciseDao.count()
-        if (count > 0) return
+    suspend fun syncBuiltInExercises() {
+        val allBuiltInDb = exerciseDao.getAllBuiltIn()
+        val keyToDb = allBuiltInDb.filter { it.builtInKey != null }.associateBy { it.builtInKey!! }
 
-        exerciseDao.insertAll(BUILT_IN_EXERCISES)
+        val currentKeys = mutableSetOf<String>()
+
+        for (def in BUILT_IN_DEFS) {
+            currentKeys.add(def.builtInKey)
+            val existing = keyToDb[def.builtInKey]
+            if (existing != null) {
+                // Update existing
+                exerciseDao.update(existing.copy(
+                    name = def.name,
+                    primaryMuscleGroup = def.primaryMuscleGroup,
+                    sortOrder = def.sortOrder,
+                    equipmentType = def.equipmentType,
+                    trackingType = def.trackingType,
+                    isActive = true,
+                    updatedAt = System.currentTimeMillis(),
+                ))
+            } else {
+                // Insert new
+                exerciseDao.insert(ExerciseEntity(
+                    name = def.name,
+                    primaryMuscleGroup = def.primaryMuscleGroup,
+                    sortOrder = def.sortOrder,
+                    builtInKey = def.builtInKey,
+                    equipmentType = def.equipmentType,
+                    trackingType = def.trackingType,
+                    isActive = true,
+                ))
+            }
+        }
+
+        // Deactivate built-in exercises that are no longer in the seed list
+        for (existing in allBuiltInDb) {
+            val key = existing.builtInKey
+            if (key != null && key !in currentKeys && existing.isActive) {
+                exerciseDao.update(existing.copy(
+                    isActive = false,
+                    updatedAt = System.currentTimeMillis(),
+                ))
+            }
+        }
     }
 
     companion object {
-        val BUILT_IN_EXERCISES = listOf(
+        val BUILT_IN_DEFS = listOf(
             // Chest
-            ExerciseEntity(name = "杠铃卧推", primaryMuscleGroup = "CHEST", sortOrder = 0),
-            ExerciseEntity(name = "上斜哑铃卧推", primaryMuscleGroup = "CHEST", sortOrder = 1),
-            ExerciseEntity(name = "下斜杠铃卧推", primaryMuscleGroup = "CHEST", sortOrder = 2),
-            ExerciseEntity(name = "器械夹胸", primaryMuscleGroup = "CHEST", sortOrder = 3),
-            ExerciseEntity(name = "俯卧撑", primaryMuscleGroup = "CHEST", sortOrder = 4),
-            ExerciseEntity(name = "哑铃飞鸟", primaryMuscleGroup = "CHEST", sortOrder = 5),
+            BuiltInExerciseDef("barbell_bench_press", "杠铃卧推", "CHEST", 0, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_incline_bench_press", "上斜哑铃卧推", "CHEST", 1, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("machine_chest_fly", "器械夹胸", "CHEST", 2, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("push_up", "俯卧撑", "CHEST", 4, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_fly", "哑铃飞鸟", "CHEST", 5, "DUMBBELL", "WEIGHT_REPS"),
+
             // Back
-            ExerciseEntity(name = "引体向上", primaryMuscleGroup = "BACK", sortOrder = 10),
-            ExerciseEntity(name = "高位下拉", primaryMuscleGroup = "BACK", sortOrder = 11),
-            ExerciseEntity(name = "杠铃划船", primaryMuscleGroup = "BACK", sortOrder = 12),
-            ExerciseEntity(name = "坐姿划船", primaryMuscleGroup = "BACK", sortOrder = 13),
-            ExerciseEntity(name = "单臂哑铃划船", primaryMuscleGroup = "BACK", sortOrder = 14),
-            ExerciseEntity(name = "硬拉", primaryMuscleGroup = "BACK", sortOrder = 15),
-            // Shoulders
-            ExerciseEntity(name = "杠铃推举", primaryMuscleGroup = "SHOULDERS", sortOrder = 20),
-            ExerciseEntity(name = "哑铃推举", primaryMuscleGroup = "SHOULDERS", sortOrder = 21),
-            ExerciseEntity(name = "哑铃侧平举", primaryMuscleGroup = "SHOULDERS", sortOrder = 22),
-            ExerciseEntity(name = "反向飞鸟", primaryMuscleGroup = "SHOULDERS", sortOrder = 23),
-            ExerciseEntity(name = "前平举", primaryMuscleGroup = "SHOULDERS", sortOrder = 24),
+            BuiltInExerciseDef("pull_up", "引体向上", "BACK", 10, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("lat_pulldown", "高位下拉", "BACK", 11, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("barbell_row", "杠铃划船", "BACK", 12, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("seated_cable_row", "坐姿划船", "BACK", 13, "CABLE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_one_arm_row", "单臂哑铃划船", "BACK", 14, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("deadlift", "硬拉", "BACK", 15, "BARBELL", "WEIGHT_REPS"),
+
+            // Shoulders — original
+            BuiltInExerciseDef("barbell_overhead_press", "杠铃推举", "SHOULDERS", 20, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_overhead_press", "哑铃推举", "SHOULDERS", 21, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_lateral_raise", "哑铃侧平举", "SHOULDERS", 22, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("reverse_pec_deck_fly", "反向飞鸟", "SHOULDERS", 23, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("front_raise", "前平举", "SHOULDERS", 24, "DUMBBELL", "WEIGHT_REPS"),
+
+            // Shoulders — new additions
+            BuiltInExerciseDef("barbell_shoulder_press", "杠铃肩上推举", "SHOULDERS", 25, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_shoulder_press", "哑铃肩上推举", "SHOULDERS", 26, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("arnold_press", "阿诺德推举", "SHOULDERS", 27, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_front_raise", "哑铃前平举", "SHOULDERS", 28, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("cable_lateral_raise", "绳索侧平举", "SHOULDERS", 29, "CABLE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("machine_lateral_raise", "器械侧平举", "SHOULDERS", 30, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("reverse_pec_deck", "反向蝴蝶机", "SHOULDERS", 31, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("cable_face_pull", "绳索面拉", "SHOULDERS", 32, "CABLE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("bent_over_dumbbell_reverse_fly", "俯身哑铃反向飞鸟", "SHOULDERS", 33, "DUMBBELL", "WEIGHT_REPS"),
+
             // Biceps
-            ExerciseEntity(name = "杠铃弯举", primaryMuscleGroup = "BICEPS", sortOrder = 30),
-            ExerciseEntity(name = "哑铃弯举", primaryMuscleGroup = "BICEPS", sortOrder = 31),
-            ExerciseEntity(name = "锤式弯举", primaryMuscleGroup = "BICEPS", sortOrder = 32),
+            BuiltInExerciseDef("barbell_curl", "杠铃弯举", "BICEPS", 40, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dumbbell_curl", "哑铃弯举", "BICEPS", 41, "DUMBBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("hammer_curl", "锤式弯举", "BICEPS", 42, "DUMBBELL", "WEIGHT_REPS"),
+
             // Triceps
-            ExerciseEntity(name = "绳索下压", primaryMuscleGroup = "TRICEPS", sortOrder = 40),
-            ExerciseEntity(name = "双杠臂屈伸", primaryMuscleGroup = "TRICEPS", sortOrder = 41),
-            ExerciseEntity(name = "窄距卧推", primaryMuscleGroup = "TRICEPS", sortOrder = 42),
-            ExerciseEntity(name = "法式弯举", primaryMuscleGroup = "TRICEPS", sortOrder = 43),
+            BuiltInExerciseDef("cable_triceps_pushdown", "绳索下压", "TRICEPS", 50, "CABLE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("dip", "双杠臂屈伸", "TRICEPS", 51, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("close_grip_bench_press", "窄距卧推", "TRICEPS", 52, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("french_press", "法式弯举", "TRICEPS", 53, "DUMBBELL", "WEIGHT_REPS"),
+
             // Quadriceps
-            ExerciseEntity(name = "杠铃深蹲", primaryMuscleGroup = "QUADRICEPS", sortOrder = 50),
-            ExerciseEntity(name = "腿举", primaryMuscleGroup = "QUADRICEPS", sortOrder = 51),
-            ExerciseEntity(name = "腿屈伸", primaryMuscleGroup = "QUADRICEPS", sortOrder = 52),
-            ExerciseEntity(name = "前蹲", primaryMuscleGroup = "QUADRICEPS", sortOrder = 53),
-            ExerciseEntity(name = "保加利亚分腿蹲", primaryMuscleGroup = "QUADRICEPS", sortOrder = 54),
+            BuiltInExerciseDef("barbell_squat", "杠铃深蹲", "QUADRICEPS", 60, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("leg_press", "腿举", "QUADRICEPS", 61, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("leg_extension", "腿屈伸", "QUADRICEPS", 62, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("front_squat", "前蹲", "QUADRICEPS", 63, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("bulgarian_split_squat", "保加利亚分腿蹲", "QUADRICEPS", 64, "DUMBBELL", "WEIGHT_REPS"),
+
             // Hamstrings
-            ExerciseEntity(name = "罗马尼亚硬拉", primaryMuscleGroup = "HAMSTRINGS", sortOrder = 60),
-            ExerciseEntity(name = "腿弯举", primaryMuscleGroup = "HAMSTRINGS", sortOrder = 61),
-            ExerciseEntity(name = "北欧弯举", primaryMuscleGroup = "HAMSTRINGS", sortOrder = 62),
+            BuiltInExerciseDef("romanian_deadlift", "罗马尼亚硬拉", "HAMSTRINGS", 70, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("leg_curl", "腿弯举", "HAMSTRINGS", 71, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("nordic_curl", "北欧弯举", "HAMSTRINGS", 72, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+
             // Glutes
-            ExerciseEntity(name = "臀推", primaryMuscleGroup = "GLUTES", sortOrder = 70),
-            ExerciseEntity(name = "臀桥", primaryMuscleGroup = "GLUTES", sortOrder = 71),
-            ExerciseEntity(name = "壶铃摆荡", primaryMuscleGroup = "GLUTES", sortOrder = 72),
+            BuiltInExerciseDef("hip_thrust", "臀推", "GLUTES", 80, "BARBELL", "WEIGHT_REPS"),
+            BuiltInExerciseDef("glute_bridge", "臀桥", "GLUTES", 81, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("kettlebell_swing", "壶铃摆荡", "GLUTES", 82, "KETTLEBELL", "WEIGHT_REPS"),
+
             // Calves
-            ExerciseEntity(name = "站姿提踵", primaryMuscleGroup = "CALVES", sortOrder = 80),
-            ExerciseEntity(name = "坐姿提踵", primaryMuscleGroup = "CALVES", sortOrder = 81),
+            BuiltInExerciseDef("standing_calf_raise", "站姿提踵", "CALVES", 90, "MACHINE", "WEIGHT_REPS"),
+            BuiltInExerciseDef("seated_calf_raise", "坐姿提踵", "CALVES", 91, "MACHINE", "WEIGHT_REPS"),
+
             // Core
-            ExerciseEntity(name = "平板支撑", primaryMuscleGroup = "CORE", sortOrder = 90),
-            ExerciseEntity(name = "卷腹", primaryMuscleGroup = "CORE", sortOrder = 91),
-            ExerciseEntity(name = "悬垂举腿", primaryMuscleGroup = "CORE", sortOrder = 92),
-            ExerciseEntity(name = "俄罗斯转体", primaryMuscleGroup = "CORE", sortOrder = 93),
+            BuiltInExerciseDef("plank", "平板支撑", "CORE", 100, "BODYWEIGHT", "DURATION"),
+            BuiltInExerciseDef("crunch", "卷腹", "CORE", 101, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("hanging_leg_raise", "悬垂举腿", "CORE", 102, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+            BuiltInExerciseDef("russian_twist", "俄罗斯转体", "CORE", 103, "BODYWEIGHT", "BODYWEIGHT_REPS"),
+
             // Cardio
-            ExerciseEntity(name = "跑步", primaryMuscleGroup = "CARDIO", sortOrder = 100),
-            ExerciseEntity(name = "椭圆机", primaryMuscleGroup = "CARDIO", sortOrder = 101),
-            ExerciseEntity(name = "自行车", primaryMuscleGroup = "CARDIO", sortOrder = 102),
-            ExerciseEntity(name = "划船机", primaryMuscleGroup = "CARDIO", sortOrder = 103),
-            ExerciseEntity(name = "跳绳", primaryMuscleGroup = "CARDIO", sortOrder = 104),
+            BuiltInExerciseDef("running", "跑步", "CARDIO", 110, "CARDIO_MACHINE", "DISTANCE_DURATION"),
+            BuiltInExerciseDef("elliptical", "椭圆机", "CARDIO", 111, "CARDIO_MACHINE", "DISTANCE_DURATION"),
+            BuiltInExerciseDef("cycling", "自行车", "CARDIO", 112, "CARDIO_MACHINE", "DISTANCE_DURATION"),
+            BuiltInExerciseDef("rower", "划船机", "CARDIO", 113, "CARDIO_MACHINE", "DISTANCE_DURATION"),
+            BuiltInExerciseDef("jump_rope", "跳绳", "CARDIO", 114, "BODYWEIGHT", "DURATION"),
         )
     }
 }

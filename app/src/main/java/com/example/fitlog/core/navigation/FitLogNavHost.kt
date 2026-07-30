@@ -1,12 +1,16 @@
 package com.example.fitlog.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.feature.body.BodyMeasurementScreen
 import com.example.fitlog.feature.body.BodyProfileScreen
 import com.example.fitlog.feature.body.ProgressPhotoScreen
@@ -28,6 +32,7 @@ import com.example.fitlog.feature.template.TemplateEditScreen
 import com.example.fitlog.feature.template.TemplateListScreen
 import com.example.fitlog.feature.today.TodayScreen
 import com.example.fitlog.feature.workout.ExercisePickerScreen
+import com.example.fitlog.feature.workout.QuickWorkoutSetupScreen
 import com.example.fitlog.feature.workout.WorkoutDetailScreen
 import com.example.fitlog.feature.workout.WorkoutExecutionScreen
 import com.example.fitlog.feature.workout.WorkoutSummaryScreen
@@ -49,6 +54,11 @@ object Routes {
     const val WORKOUT_SUMMARY = "workout/summary/{sessionId}"
     const val WORKOUT_DETAIL = "workout/detail/{sessionId}"
     const val EXERCISE_PICKER = "workout/exercise-picker/{sessionId}"
+    const val QUICK_WORKOUT_SETUP = "workout/quick-setup"
+    const val TEMPLATE_PICKER = "template/picker"
+    const val START_FROM_TEMPLATE = "workout/start-from-template/{templateId}"
+
+    fun startFromTemplate(templateId: Long) = "workout/start-from-template/$templateId"
     const val REMINDER_LIST = "reminder/list"
     const val REMINDER_CREATE = "reminder/create"
     const val REMINDER_EDIT = "reminder/edit/{reminderId}"
@@ -115,6 +125,11 @@ fun FitLogNavHost(
                 onStartWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
                 onResumeWorkout = { id -> navController.navigate(Routes.workoutExecution(id)) },
                 onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
+                onNavigateToNutrition = { navController.navigate(Routes.NUTRITION) },
+                onNavigateToBodyMeasurement = { navController.navigate(Routes.BODY_MEASUREMENT) },
+                onNavigateToCamera = { navController.navigate(Routes.camera(category = "GENERAL")) },
+                onNavigateToTemplatePicker = { navController.navigate(Routes.TEMPLATE_PICKER) },
+                onNavigateToQuickSetup = { navController.navigate(Routes.QUICK_WORKOUT_SETUP) },
             )
         }
         composable(BottomNavItem.Plan.route) {
@@ -129,6 +144,8 @@ fun FitLogNavHost(
         composable(BottomNavItem.Record.route) {
             RecordScreen(
                 onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
+                onNavigateToNutrition = { navController.navigate(Routes.NUTRITION) },
+                onNavigateToBodyMeasurement = { navController.navigate(Routes.BODY_MEASUREMENT) },
             )
         }
         composable(BottomNavItem.Progress.route) { ProgressScreen() }
@@ -241,6 +258,59 @@ fun FitLogNavHost(
             ExercisePickerScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
+        }
+
+        // ── Quick Workout Setup ────────────────────────────────────────────
+        composable(Routes.QUICK_WORKOUT_SETUP) {
+            QuickWorkoutSetupScreen(
+                onNavigateToExecution = { sessionId ->
+                    navController.navigate(Routes.workoutExecution(sessionId)) {
+                        popUpTo(Routes.QUICK_WORKOUT_SETUP) { inclusive = true }
+                    }
+                },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Template Picker (from TodayScreen) ─────────────────────────────
+        composable(Routes.TEMPLATE_PICKER) {
+            TemplateListScreen(
+                isPickerMode = true,
+                onTemplateSelected = { templateId ->
+                    navController.navigate(Routes.startFromTemplate(templateId)) {
+                        popUpTo(Routes.TEMPLATE_PICKER) { inclusive = true }
+                    }
+                },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Start from Template (creates session, redirects to execution) ──
+        composable(
+            route = Routes.START_FROM_TEMPLATE,
+            arguments = listOf(navArgument("templateId") { type = NavType.LongType }),
+        ) {
+            val templateId = it.arguments?.getLong("templateId") ?: return@composable
+            val startVm: com.example.fitlog.feature.workout.WorkoutStartViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel()
+            val sid by startVm.sessionId.collectAsStateWithLifecycle()
+            val error by startVm.error.collectAsStateWithLifecycle()
+
+            LaunchedEffect(templateId) {
+                startVm.createFromTemplate(templateId)
+            }
+
+            LaunchedEffect(sid) {
+                sid?.let { id ->
+                    navController.navigate(Routes.workoutExecution(id)) {
+                        popUpTo(Routes.START_FROM_TEMPLATE) { inclusive = true }
+                    }
+                }
+            }
+
+            LaunchedEffect(error) {
+                error?.let { navController.popBackStack() }
+            }
         }
 
         // ── Workout Summary ────────────────────────────────────────────────

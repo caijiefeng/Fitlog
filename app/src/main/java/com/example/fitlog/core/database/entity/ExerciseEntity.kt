@@ -42,6 +42,12 @@ data class ExerciseEntity(
     val isActive: Boolean = true,
     @ColumnInfo(name = "sort_order")
     val sortOrder: Int = 0,
+    @ColumnInfo(name = "built_in_key")
+    val builtInKey: String? = null,
+    @ColumnInfo(name = "equipment_type")
+    val equipmentType: String = "OTHER",
+    @ColumnInfo(name = "tracking_type")
+    val trackingType: String = "WEIGHT_REPS",
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "updated_at")

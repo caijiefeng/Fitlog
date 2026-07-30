@@ -43,9 +43,20 @@ data class Exercise(
     val isCustom: Boolean = false,
     val isActive: Boolean = true,
     val sortOrder: Int = 0,
+    val builtInKey: String? = null,
+    val equipmentType: EquipmentType = EquipmentType.OTHER,
+    val trackingType: TrackingType = TrackingType.WEIGHT_REPS,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )
+
+enum class EquipmentType {
+    BARBELL, DUMBBELL, MACHINE, CABLE, BODYWEIGHT, KETTLEBELL, CARDIO_MACHINE, OTHER
+}
+
+enum class TrackingType {
+    WEIGHT_REPS, BODYWEIGHT_REPS, DURATION, DISTANCE_DURATION
+}
 
 data class ExerciseCategory(
     val id: Long = 0,
@@ -134,6 +145,8 @@ data class ExerciseSession(
     val notes: String? = null,
     val sortOrder: Int = 0,
     val isSkipped: Boolean = false,
+    val isCompleted: Boolean = false,
+    val completedAt: Instant? = null,
 )
 
 data class WorkoutSessionDetail(
