@@ -417,8 +417,17 @@
     <string name="camera_video_saved">视频已保存</string>
     <string name="camera_permission_denied">需要相机权限</string>
     <string name="camera_permission_denied_desc">请授予相机权限以使用拍照和录像功能</string>
+    <string name="camera_permission_permanently_denied">无法访问相机</string>
+    <string name="camera_permission_permanently_denied_desc">请在系统设置中授予相机权限</string>
+    <string name="camera_open_settings">打开设置</string>
     <string name="camera_audio_permission_denied">需要录音权限</string>
     <string name="camera_retry">重试</string>
+    <string name="camera_capture_failed">拍照失败</string>
+    <string name="camera_video_start_failed">开始录制失败</string>
+    <string name="camera_video_stop_failed">停止录制失败</string>
+    <string name="camera_video_save_failed">保存视频失败</string>
+    <string name="camera_photo_save_failed">保存照片失败</string>
+    <string name="camera_video_file_missing">视频文件不存在</string>
 
     <!-- Media Detail -->
     <string name="media_detail_title">媒体详情</string>
