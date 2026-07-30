@@ -55,15 +55,54 @@ class WorkoutScheduleRepository @Inject constructor(
         }
     }
 
-    suspend fun setTemplate(dayOfWeek: Int, templateId: Long) {
+    suspend fun setTemplate(
+        dayOfWeek: Int,
+        templateId: Long,
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null,
+        repeatIntervalWeeks: Int = 1,
+    ) {
+        // If no startDate is given for the same dayOfWeek, replace the existing entry
         scheduleDao.deleteByDayOfWeek(dayOfWeek)
         scheduleDao.insert(
-            WorkoutScheduleEntity(templateId = templateId, dayOfWeek = dayOfWeek)
+            WorkoutScheduleEntity(
+                templateId = templateId,
+                dayOfWeek = dayOfWeek,
+                startDate = startDate?.toEpochDay(),
+                endDate = endDate?.toEpochDay(),
+                repeatIntervalWeeks = repeatIntervalWeeks,
+            )
         )
     }
 
     suspend fun clearDay(dayOfWeek: Int) {
         scheduleDao.clearDay(dayOfWeek)
+    }
+
+    suspend fun getById(id: Long): WorkoutScheduleEntity? {
+        return scheduleDao.getById(id)
+    }
+
+    suspend fun updateSchedule(entity: WorkoutScheduleEntity) {
+        scheduleDao.update(entity)
+    }
+
+    /**
+     * Stops future recurrences of a schedule by setting its endDate to
+     * the day before [cutoffDate] (epochDay). This preserves all past
+     * and current occurrences but prevents future ones.
+     */
+    suspend fun stopFutureRecurrences(scheduleId: Long, cutoffDateEpochDay: Long) {
+        val entity = scheduleDao.getById(scheduleId) ?: return
+        val newEndDate = cutoffDateEpochDay - 1
+        scheduleDao.update(entity.copy(endDate = newEndDate))
+    }
+
+    /**
+     * Deletes a schedule entirely.
+     */
+    suspend fun deleteScheduleById(scheduleId: Long) {
+        scheduleDao.deleteById(scheduleId)
     }
 
     companion object {

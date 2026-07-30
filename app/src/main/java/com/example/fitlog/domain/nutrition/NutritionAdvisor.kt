@@ -27,14 +27,20 @@ class NutritionAdvisor @Inject constructor() {
         fatG: Int,
     ): NutritionAdvice {
         val dailyTargetText = when (goalType) {
-            GoalType.FAT_LOSS ->
-                "目标每日摄入 ${targetCalories} kcal（基础代谢所耗 TDEE $tdee kcal，减少 400 kcal）"
+            GoalType.FAT_LOSS -> {
+                val deficit = tdee - targetCalories
+                "目标每日摄入 ${targetCalories} kcal（基础代谢所耗 TDEE $tdee kcal，减少 $deficit kcal）"
+            }
             GoalType.MAINTAIN ->
                 "目标每日摄入 ${targetCalories} kcal（维持当前体重）"
-            GoalType.LEAN_GAIN ->
-                "目标每日摄入 ${targetCalories} kcal（TDEE $tdee kcal，增加 250 kcal 用于瘦增肌）"
-            GoalType.MUSCLE_GAIN ->
-                "目标每日摄入 ${targetCalories} kcal（TDEE $tdee kcal，增加 300 kcal 用于增肌）"
+            GoalType.LEAN_GAIN -> {
+                val surplus = targetCalories - tdee
+                "目标每日摄入 ${targetCalories} kcal（TDEE $tdee kcal，增加 $surplus kcal 用于瘦增肌）"
+            }
+            GoalType.MUSCLE_GAIN -> {
+                val surplus = targetCalories - tdee
+                "目标每日摄入 ${targetCalories} kcal（TDEE $tdee kcal，增加 $surplus kcal 用于增肌）"
+            }
         }
 
         val macroBreakdown = MacroBreakdown(

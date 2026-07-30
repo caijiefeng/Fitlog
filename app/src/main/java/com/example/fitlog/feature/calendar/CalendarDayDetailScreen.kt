@@ -2,6 +2,7 @@ package com.example.fitlog.feature.calendar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,10 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -154,6 +157,95 @@ fun CalendarDayDetailScreen(
         }
     }
 
+    // Delete Confirmation Dialog
+    if (uiState.showDeleteDialog && uiState.deleteTarget != null) {
+        val target = uiState.deleteTarget!!
+        val isRecurring = target.scheduleId != null
+        val isPlanned = target.key.startsWith("planned:")
+
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteDialog() },
+            title = {
+                Text("取消安排", color = FitLogTextPrimary, fontWeight = FontWeight.SemiBold)
+            },
+            text = {
+                if (uiState.isDeleting) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(80.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = FitLogAccent)
+                    }
+                } else {
+                    Column {
+                        Text(
+                            text = "确定取消「${target.templateName}」吗？",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = FitLogTextPrimary,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (isPlanned || !isRecurring) {
+                            // One-time planned workout - simple delete
+                            Text(
+                                text = "该训练将被取消。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = FitLogTextSecondary,
+                            )
+                        } else {
+                            // Recurring schedule - offer options
+                            Text(
+                                text = "选择取消方式：",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = FitLogTextSecondary,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            // Delete options are shown as buttons in the dialog
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                if (uiState.isDeleting) {
+                    TextButton(onClick = {}, enabled = false) { Text("处理中...") }
+                } else if (isPlanned || !isRecurring) {
+                    Button(
+                        onClick = { viewModel.onDeleteOneTime() },
+                        colors = ButtonDefaults.buttonColors(containerColor = FitLogError),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Text("确认取消")
+                    }
+                } else {
+                    Column {
+                        Button(
+                            onClick = { viewModel.onDeleteOneTime() },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLogError.copy(alpha = 0.8f)),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Text(stringResource(R.string.calendar_delete_one_time))
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { viewModel.onStopFutureRecurrences() },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLogError),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Text(stringResource(R.string.calendar_delete_future))
+                        }
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
+                    Text(stringResource(R.string.calendar_reschedule_cancel), color = FitLogTextSecondary)
+                }
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -244,6 +336,7 @@ fun CalendarDayDetailScreen(
                                     showDatePicker = true
                                 },
                                 onPostpone = { viewModel.onPostpone(occurrence) },
+                                onDelete = { viewModel.onRequestDelete(occurrence) },
                             )
                         }
                     }
@@ -283,6 +376,7 @@ private fun OccurrenceDetailCard(
     onViewDetail: () -> Unit,
     onReschedule: () -> Unit,
     onPostpone: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val (statusColor, statusLabelRes) = when (occurrence.status) {
         CalendarWorkoutStatus.COMPLETED -> FitLogSuccess to R.string.calendar_status_completed
@@ -293,6 +387,8 @@ private fun OccurrenceDetailCard(
         CalendarWorkoutStatus.PARTIALLY_COMPLETED -> FitLogAccent.copy(alpha = 0.7f) to R.string.calendar_status_partial
         CalendarWorkoutStatus.SCHEDULED -> FitLogTextSecondary to R.string.calendar_status_scheduled
     }
+
+    val isPlanned = occurrence.key.startsWith("planned:")
 
     val cardModifier = Modifier
         .fillMaxWidth()
@@ -323,6 +419,18 @@ private fun OccurrenceDetailCard(
                 modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(8.dp))
+            if (isPlanned) {
+                Text(
+                    text = "一次安排",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = FitLogAccent,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(FitLogAccent.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(statusLabelRes),
                 style = MaterialTheme.typography.labelSmall,
@@ -395,31 +503,50 @@ private fun OccurrenceDetailCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    OutlinedButton(
-                        onClick = onReschedule,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Icon(
-                            Icons.Filled.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.calendar_action_reschedule))
+                    if (occurrence.scheduleId != null) {
+                        OutlinedButton(
+                            onClick = onReschedule,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.DateRange,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.calendar_action_reschedule))
+                        }
+                        OutlinedButton(
+                            onClick = onPostpone,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.SkipNext,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.calendar_action_postpone))
+                        }
                     }
-                    OutlinedButton(
-                        onClick = onPostpone,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Icon(
-                            Icons.Filled.SkipNext,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.calendar_action_postpone))
+                    // Delete button for planned workouts
+                    if (isPlanned) {
+                        OutlinedButton(
+                            onClick = onDelete,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = FitLogError,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.calendar_delete_plan), color = FitLogError)
+                        }
                     }
                 }
             }

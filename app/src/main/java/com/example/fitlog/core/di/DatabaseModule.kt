@@ -9,6 +9,7 @@ import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.FoodRecordDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import com.example.fitlog.core.database.dao.PlannedWorkoutDao
 import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
 import com.example.fitlog.core.database.dao.UserProfileDao
@@ -39,7 +40,7 @@ object DatabaseModule {
             FitLogDatabase::class.java,
             "fitlog.db",
         )
-            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7, Migrations.MIGRATION_7_8, Migrations.MIGRATION_8_9)
+            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3, Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7, Migrations.MIGRATION_7_8, Migrations.MIGRATION_8_9, Migrations.MIGRATION_9_10)
             .addCallback(DatabaseCallback())
             .build()
     }
@@ -67,6 +68,9 @@ object DatabaseModule {
 
     @Provides
     fun provideWorkoutPlanOverrideDao(db: FitLogDatabase): WorkoutPlanOverrideDao = db.workoutPlanOverrideDao()
+
+    @Provides
+    fun providePlannedWorkoutDao(db: FitLogDatabase): PlannedWorkoutDao = db.plannedWorkoutDao()
 
     @Provides
     fun provideReminderDao(db: FitLogDatabase): ReminderDao = db.reminderDao()

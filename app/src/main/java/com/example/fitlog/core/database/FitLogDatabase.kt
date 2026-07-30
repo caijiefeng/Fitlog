@@ -11,6 +11,7 @@ import com.example.fitlog.core.database.dao.ExerciseCategoryDao
 import com.example.fitlog.core.database.dao.ExerciseDao
 import com.example.fitlog.core.database.dao.MediaRecordDao
 import com.example.fitlog.core.database.dao.ExerciseSessionDao
+import com.example.fitlog.core.database.dao.PlannedWorkoutDao
 import com.example.fitlog.core.database.dao.ReminderDao
 import com.example.fitlog.core.database.dao.SetRecordDao
 import com.example.fitlog.core.database.dao.UserProfileDao
@@ -23,6 +24,7 @@ import com.example.fitlog.core.database.entity.CheckInEntity
 import com.example.fitlog.core.database.entity.ExerciseCategoryEntity
 import com.example.fitlog.core.database.entity.ExerciseEntity
 import com.example.fitlog.core.database.entity.ExerciseSessionEntity
+import com.example.fitlog.core.database.entity.PlannedWorkoutEntity
 import com.example.fitlog.core.database.entity.ReminderEntity
 import com.example.fitlog.core.database.entity.SetRecordEntity
 import com.example.fitlog.core.database.entity.UserProfileEntity
@@ -46,6 +48,7 @@ import com.example.fitlog.core.database.migration.Migrations
         ExerciseSessionEntity::class,
         SetRecordEntity::class,
         WorkoutPlanOverrideEntity::class,
+        PlannedWorkoutEntity::class,
         ReminderEntity::class,
         CheckInEntity::class,
         UserProfileEntity::class,
@@ -53,7 +56,7 @@ import com.example.fitlog.core.database.migration.Migrations
         FoodRecordEntity::class,
         MediaRecordEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -67,6 +70,7 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun exerciseSessionDao(): ExerciseSessionDao
     abstract fun setRecordDao(): SetRecordDao
     abstract fun workoutPlanOverrideDao(): WorkoutPlanOverrideDao
+    abstract fun plannedWorkoutDao(): PlannedWorkoutDao
     abstract fun reminderDao(): ReminderDao
     abstract fun checkInDao(): CheckInDao
     abstract fun userProfileDao(): UserProfileDao

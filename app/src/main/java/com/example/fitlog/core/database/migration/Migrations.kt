@@ -270,4 +270,27 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_exercises_built_in_key ON exercises (built_in_key)")
         }
     }
+
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Create planned_workouts table for one-time scheduled plans
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS planned_workouts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    template_id INTEGER NOT NULL,
+                    planned_date INTEGER NOT NULL,
+                    note TEXT,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (template_id) REFERENCES workout_templates(id) ON DELETE RESTRICT
+                )
+            """)
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_planned_workouts_template_id ON planned_workouts (template_id)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_planned_workouts_planned_date ON planned_workouts (planned_date)")
+
+            // Add scheduling columns to workout_schedules
+            db.execSQL("ALTER TABLE workout_schedules ADD COLUMN start_date INTEGER")
+            db.execSQL("ALTER TABLE workout_schedules ADD COLUMN end_date INTEGER")
+            db.execSQL("ALTER TABLE workout_schedules ADD COLUMN repeat_interval_weeks INTEGER NOT NULL DEFAULT 1")
+        }
+    }
 }

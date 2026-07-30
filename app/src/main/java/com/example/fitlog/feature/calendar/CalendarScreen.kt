@@ -15,19 +15,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,12 +80,37 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CalendarEvent.ShowSnackbar -> { /* snackbar handler */ }
+            }
+        }
+    }
+
+    // ── Schedule Dialog ──────────────────────────────────────────────────
+    if (uiState.showScheduleDialog) {
+        ScheduleTrainingDialog(
+            date = uiState.scheduleDialogDate ?: LocalDate.now(),
+            templates = uiState.templates,
+            selectedTemplateId = uiState.selectedTemplateId,
+            isOneTime = uiState.isOneTime,
+            repeatIntervalWeeks = uiState.repeatIntervalWeeks,
+            isScheduling = uiState.isScheduling,
+            onDismiss = { viewModel.dismissScheduleDialog() },
+            onTemplateSelected = { viewModel.selectTemplateForSchedule(it) },
+            onOneTimeChanged = { viewModel.setOneTime(it) },
+            onRepeatIntervalChanged = { viewModel.setRepeatIntervalWeeks(it) },
+            onConfirm = { viewModel.confirmSchedule() },
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
     ) {
-        // Quick links (keep from original PlanScreen)
+        // Quick links
         Row {
             TextButton(onClick = onNavigateToTemplates) {
                 Text(stringResource(R.string.calendar_templates), color = FitLogAccent)
@@ -86,7 +124,7 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // ── Month header ──────────────────────────────────────────────────────
+        // ── Month header ─────────────────────────────────────────────────
         MonthHeader(
             yearMonth = uiState.yearMonth,
             onPrevMonth = { viewModel.prevMonth() },
@@ -96,7 +134,7 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ── Day-of-week headers ───────────────────────────────────────────────
+        // ── Day-of-week headers ──────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -122,7 +160,7 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // ── Calendar grid ─────────────────────────────────────────────────────
+        // ── Calendar grid ────────────────────────────────────────────────
         CalendarGrid(
             yearMonth = uiState.yearMonth,
             days = uiState.days,
@@ -135,13 +173,14 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ── Selected day detail ───────────────────────────────────────────────
+        // ── Selected day detail ──────────────────────────────────────────
         if (uiState.selectedDay != null) {
             val selected = uiState.days.find { it.epochDay == uiState.selectedDay }
             if (selected != null) {
                 SelectedDayDetail(
                     day = selected,
                     onSessionClick = onNavigateToSession,
+                    onSchedule = { viewModel.showScheduleDialog(selected.epochDay) },
                 )
             }
         }
@@ -174,7 +213,7 @@ private fun MonthHeader(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = yearMonth.month.name + " " + yearMonth.year.toString(),
+                text = yearMonth.year.toString() + "年" + yearMonth.monthValue + "月",
                 style = MaterialTheme.typography.titleMedium,
                 color = FitLogTextPrimary,
                 fontWeight = FontWeight.SemiBold,
@@ -220,10 +259,7 @@ private fun CalendarGrid(
     ) {
         var cellIndex = 0
 
-        // Leading empty cells
         val leadingEmpty = dayOfWeekOffset
-
-        // Total cells needed
         val totalCells = leadingEmpty + totalDays
         val rows = (totalCells + 6) / 7
 
@@ -235,7 +271,6 @@ private fun CalendarGrid(
                 for (col in 0 until 7) {
                     val cellPos = row * 7 + col
                     if (cellPos < leadingEmpty || cellPos >= leadingEmpty + totalDays) {
-                        // Empty cell
                         Box(modifier = Modifier.weight(1f).aspectRatio(1f))
                     } else {
                         val dayIndex = cellPos - leadingEmpty
@@ -315,7 +350,6 @@ private fun DayCell(
 private fun StatusIndicators(occurrences: List<CalendarWorkoutOccurrence>) {
     val statuses = occurrences.map { it.status }.distinct()
 
-    // Use colored dots
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -346,6 +380,7 @@ private fun StatusIndicators(occurrences: List<CalendarWorkoutOccurrence>) {
 private fun SelectedDayDetail(
     day: CalendarDay,
     onSessionClick: (Long) -> Unit,
+    onSchedule: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -406,6 +441,24 @@ private fun SelectedDayDetail(
                 OccurrenceRow(occurrence, onSessionClick)
                 Spacer(modifier = Modifier.height(8.dp))
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Schedule button
+        Button(
+            onClick = onSchedule,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(stringResource(R.string.calendar_schedule_title))
         }
     }
 }
@@ -499,5 +552,229 @@ private fun OccurrenceRow(
                 color = FitLogAccentVariant,
             )
         }
+    }
+}
+
+// ── Schedule Training Dialog ───────────────────────────────────────────────
+
+@Composable
+private fun ScheduleTrainingDialog(
+    date: LocalDate,
+    templates: List<com.example.fitlog.core.model.WorkoutTemplate>,
+    selectedTemplateId: Long?,
+    isOneTime: Boolean,
+    repeatIntervalWeeks: Int,
+    isScheduling: Boolean,
+    onDismiss: () -> Unit,
+    onTemplateSelected: (Long) -> Unit,
+    onOneTimeChanged: (Boolean) -> Unit,
+    onRepeatIntervalChanged: (Int) -> Unit,
+    onConfirm: () -> Unit,
+) {
+    val dateStr = "${date.year}年${date.monthValue}月${date.dayOfMonth}日"
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "${stringResource(R.string.calendar_schedule_title)} - $dateStr",
+                color = FitLogTextPrimary,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            if (isScheduling) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = FitLogAccent)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                ) {
+                    // Template selection
+                    Text(
+                        text = stringResource(R.string.calendar_schedule_select_template),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = FitLogTextPrimary,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (templates.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.calendar_schedule_no_templates),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = FitLogTextSecondary,
+                        )
+                    } else {
+                        templates.forEach { template ->
+                            val isSelected = selectedTemplateId == template.id
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (isSelected) FitLogAccent.copy(alpha = 0.1f)
+                                        else Color.Transparent
+                                    )
+                                    .clickable { onTemplateSelected(template.id) }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = { onTemplateSelected(template.id) },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = FitLogAccent,
+                                    ),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = template.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = FitLogTextPrimary,
+                                    )
+                                    if (template.notes != null) {
+                                        Text(
+                                            text = template.notes,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = FitLogTextSecondary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Scheduling type
+                    if (selectedTemplateId != null) {
+                        Text(
+                            text = "安排方式",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = FitLogTextPrimary,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onOneTimeChanged(true) }
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = isOneTime,
+                                onClick = { onOneTimeChanged(true) },
+                                colors = RadioButtonDefaults.colors(selectedColor = FitLogAccent),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.calendar_schedule_one_time),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = FitLogTextPrimary,
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onOneTimeChanged(false) }
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = !isOneTime,
+                                onClick = { onOneTimeChanged(false) },
+                                colors = RadioButtonDefaults.colors(selectedColor = FitLogAccent),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.calendar_schedule_recurring),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = FitLogTextPrimary,
+                                )
+                                if (!isOneTime) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "每",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = FitLogTextSecondary,
+                                        )
+                                        // Repeat interval selector
+                                        repeatIntervalSelector(
+                                            current = repeatIntervalWeeks,
+                                            onChanged = onRepeatIntervalChanged,
+                                        )
+                                        Text(
+                                            text = "周",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = FitLogTextSecondary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = selectedTemplateId != null && !isScheduling,
+                colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                Text(stringResource(R.string.calendar_schedule_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.calendar_reschedule_cancel), color = FitLogTextSecondary)
+            }
+        },
+    )
+}
+
+@Composable
+private fun repeatIntervalSelector(
+    current: Int,
+    onChanged: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(FitLogCard)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextButton(
+            onClick = { if (current > 1) onChanged(current - 1) },
+            enabled = current > 1,
+        ) { Text("-", color = FitLogAccent) }
+
+        Text(
+            text = current.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = FitLogTextPrimary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 8.dp),
+        )
+
+        TextButton(
+            onClick = { if (current < 4) onChanged(current + 1) },
+            enabled = current < 4,
+        ) { Text("+", color = FitLogAccent) }
     }
 }

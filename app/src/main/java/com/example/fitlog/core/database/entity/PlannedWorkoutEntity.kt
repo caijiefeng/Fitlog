@@ -7,7 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "workout_schedules",
+    tableName = "planned_workouts",
     foreignKeys = [
         ForeignKey(
             entity = WorkoutTemplateEntity::class,
@@ -17,24 +17,19 @@ import androidx.room.PrimaryKey
         ),
     ],
     indices = [
-        Index(value = ["template_id", "day_of_week"], unique = true),
+        Index(value = ["template_id"]),
+        Index(value = ["planned_date"]),
     ],
 )
-data class WorkoutScheduleEntity(
+data class PlannedWorkoutEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     @ColumnInfo(name = "template_id")
     val templateId: Long,
-    @ColumnInfo(name = "day_of_week")
-    val dayOfWeek: Int,                 // 1=Mon … 7=Sun
-    @ColumnInfo(name = "is_active")
-    val isActive: Boolean = true,
-    @ColumnInfo(name = "start_date")
-    val startDate: Long? = null,        // epochDay, null = immediate
-    @ColumnInfo(name = "end_date")
-    val endDate: Long? = null,          // epochDay, null = indefinite
-    @ColumnInfo(name = "repeat_interval_weeks")
-    val repeatIntervalWeeks: Int = 1,   // every N weeks
+    @ColumnInfo(name = "planned_date")
+    val plannedDate: Long,  // epochDay
+    @ColumnInfo(name = "note")
+    val note: String? = null,
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
 )

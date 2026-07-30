@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
 import com.example.fitlog.core.database.relation.ScheduleWithTemplate
 import kotlinx.coroutines.flow.Flow
@@ -51,11 +52,20 @@ interface WorkoutScheduleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: WorkoutScheduleEntity): Long
 
+    @Query("SELECT * FROM workout_schedules WHERE id = :id")
+    suspend fun getById(id: Long): WorkoutScheduleEntity?
+
+    @Update
+    suspend fun update(entity: WorkoutScheduleEntity)
+
     @Query("UPDATE workout_schedules SET is_active = 0 WHERE day_of_week = :dayOfWeek")
     suspend fun clearDay(dayOfWeek: Int)
 
     @Query("DELETE FROM workout_schedules WHERE day_of_week = :dayOfWeek")
     suspend fun deleteByDayOfWeek(dayOfWeek: Int)
+
+    @Query("DELETE FROM workout_schedules WHERE id = :id")
+    suspend fun deleteById(id: Long)
 
     @Query("SELECT COUNT(*) FROM workout_schedules")
     suspend fun count(): Int

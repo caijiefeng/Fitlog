@@ -32,6 +32,10 @@ class BodyMeasurementRepository @Inject constructor(
             .map { it.toDomain() }
     }
 
+    suspend fun getLatestOnOrBefore(date: LocalDate): BodyMeasurement? {
+        return bodyMeasurementDao.getLatestOnOrBefore(date.toEpochDay())?.toDomain()
+    }
+
     suspend fun delete(date: LocalDate) {
         bodyMeasurementDao.deleteByDate(date.toEpochDay())
     }

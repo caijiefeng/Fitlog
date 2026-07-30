@@ -128,6 +128,21 @@ fun NutritionScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().weight(1f),
                 ) {
+                // Missing data message
+                uiState.missingDataMessage?.let { message ->
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FitLogCard {
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = FitLogTextSecondary,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+
                 // Daily Summary Card
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +236,7 @@ private fun DailySummaryCard(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Calories bar
+        // Calories bar — use summary.targetCalories
         NutrientBar(
             label = stringResource(R.string.nutrition_calories),
             current = summary.calories,
@@ -231,31 +246,34 @@ private fun DailySummaryCard(
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Protein bar
+        // Protein bar — use summary.targetProtein, never compute from consumed calories
         NutrientBar(
             label = stringResource(R.string.nutrition_protein),
             current = summary.protein,
-            target = (summary.calories * 0.3 / 4).coerceAtLeast(50.0),
+            target = if (summary.targetProtein > 0) summary.targetProtein.toDouble()
+                     else (summary.calories * 0.3 / 4).coerceAtLeast(50.0),
             unit = "g",
             color = FitLogSuccess,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Carbs bar
+        // Carbs bar — use summary.targetCarbs
         NutrientBar(
             label = stringResource(R.string.nutrition_carbs),
             current = summary.carbs,
-            target = (summary.calories * 0.4 / 4).coerceAtLeast(100.0),
+            target = if (summary.targetCarbs > 0) summary.targetCarbs.toDouble()
+                     else (summary.calories * 0.4 / 4).coerceAtLeast(100.0),
             unit = "g",
             color = FitLogAccent,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Fat bar
+        // Fat bar — use summary.targetFat
         NutrientBar(
             label = stringResource(R.string.nutrition_fat),
             current = summary.fat,
-            target = (summary.calories * 0.25 / 9).coerceAtLeast(30.0),
+            target = if (summary.targetFat > 0) summary.targetFat.toDouble()
+                     else (summary.calories * 0.25 / 9).coerceAtLeast(30.0),
             unit = "g",
             color = FitLogError,
         )

@@ -2,8 +2,7 @@ package com.example.fitlog.data.repository
 
 import com.example.fitlog.core.database.dao.FoodRecordDao
 import com.example.fitlog.core.database.entity.FoodRecordEntity
-import com.example.fitlog.domain.body.GoalType
-import com.example.fitlog.domain.nutrition.EnergyCalculator
+import com.example.fitlog.domain.nutrition.NutritionTargetCalculator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -16,6 +15,10 @@ data class DailyNutritionSummary(
     val carbs: Double = 0.0,
     val fat: Double = 0.0,
     val targetCalories: Int = 0,
+    val targetProtein: Int = 0,
+    val targetCarbs: Int = 0,
+    val targetFat: Int = 0,
+    val tdee: Int = 0,
     val completionRate: Double = 0.0, // 0.0 to 1.0
 )
 
@@ -37,7 +40,7 @@ class FoodRecordRepository @Inject constructor(
     private val foodRecordDao: FoodRecordDao,
     private val userProfileRepository: UserProfileRepository,
     private val bodyMeasurementRepository: BodyMeasurementRepository,
-    private val energyCalculator: EnergyCalculator,
+    private val nutritionTargetCalculator: NutritionTargetCalculator,
 ) {
 
     suspend fun save(record: FoodRecord): FoodRecord {
@@ -83,41 +86,39 @@ class FoodRecordRepository @Inject constructor(
         val totalCarbs = foodRecordDao.getTotalCarbsByDate(epochDay) ?: 0.0
         val totalFat = foodRecordDao.getTotalFatByDate(epochDay) ?: 0.0
 
-        // Calculate target calories from TDEE using current profile + measurement
+        // Calculate targets from user profile + latest body measurement
         val profile = userProfileRepository.get()
-        val targetCalories = if (profile != null) {
-            val measurements = bodyMeasurementRepository.getByDateRange(date, date)
-            val measurement = measurements.lastOrNull()
-            if (measurement != null) {
-                val age = java.time.temporal.ChronoUnit.YEARS.between(profile.birthday, date).toInt()
-                val weightKg = measurement.weightKg ?: 75.0
-                val heightCm = profile.heightCm ?: 175.0
-                val bmr = energyCalculator.calculateBMR(profile.gender, weightKg, heightCm, age)
-                val tdee = energyCalculator.calculateTDEE(bmr, profile.activityLevel)
-                when (profile.goalType) {
-                    GoalType.FAT_LOSS -> tdee - 400
-                    GoalType.MAINTAIN -> tdee
-                    GoalType.LEAN_GAIN -> tdee + 250
-                    GoalType.MUSCLE_GAIN -> tdee + 300
-                }
-            } else {
-                2000
+        val measurement = if (profile != null) {
+            bodyMeasurementRepository.getLatestOnOrBefore(date)
+        } else null
+
+        if (profile != null && measurement != null) {
+            val targets = nutritionTargetCalculator.calculateTargets(profile, measurement, date)
+            if (targets != null) {
+                val completionRate = if (targets.targetCalories > 0) {
+                    (totalCalories / targets.targetCalories).coerceIn(0.0, 1.5)
+                } else 0.0
+                return DailyNutritionSummary(
+                    calories = totalCalories,
+                    protein = totalProtein,
+                    carbs = totalCarbs,
+                    fat = totalFat,
+                    targetCalories = targets.targetCalories,
+                    targetProtein = targets.proteinG,
+                    targetCarbs = targets.carbsG,
+                    targetFat = targets.fatG,
+                    tdee = targets.tdee,
+                    completionRate = completionRate,
+                )
             }
-        } else {
-            2000
         }
 
-        val completionRate = if (targetCalories > 0) {
-            (totalCalories / targetCalories).coerceIn(0.0, 1.5)
-        } else 0.0
-
+        // No profile or measurement data available — return consumed amounts only
         return DailyNutritionSummary(
             calories = totalCalories,
             protein = totalProtein,
             carbs = totalCarbs,
             fat = totalFat,
-            targetCalories = targetCalories,
-            completionRate = completionRate,
         )
     }
 

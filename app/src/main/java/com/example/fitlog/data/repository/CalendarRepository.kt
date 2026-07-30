@@ -1,5 +1,6 @@
 package com.example.fitlog.data.repository
 
+import com.example.fitlog.core.database.dao.PlannedWorkoutDao
 import com.example.fitlog.core.database.dao.WorkoutPlanOverrideDao
 import com.example.fitlog.core.database.dao.WorkoutScheduleDao
 import com.example.fitlog.core.database.dao.WorkoutSessionDao
@@ -16,6 +17,7 @@ class CalendarRepository @Inject constructor(
     private val overrideDao: WorkoutPlanOverrideDao,
     private val sessionDao: WorkoutSessionDao,
     private val templateDao: WorkoutTemplateDao,
+    private val plannedWorkoutDao: PlannedWorkoutDao,
     private val resolver: CalendarOccurrenceResolver,
 ) {
 
@@ -23,24 +25,22 @@ class CalendarRepository @Inject constructor(
      * Loads all data for the given [yearMonth] in **one batch**, then passes
      * everything to [CalendarOccurrenceResolver.resolveMonth] to produce the
      * flat day list with resolved occurrences.
-     *
-     * No N+1 queries — all DAO calls happen before resolution begins.
      */
     suspend fun getMonth(yearMonth: YearMonth): List<CalendarDay> {
         val startEpochDay = yearMonth.atDay(1).toEpochDay()
         val endEpochDay = yearMonth.atEndOfMonth().toEpochDay()
 
-        // ── Batch load ──────────────────────────────────────────────────
         val schedules = scheduleDao.getAllActiveList()
         val overrides = overrideDao.getRelevantToDateRange(startEpochDay, endEpochDay)
         val sessions = sessionDao.getByDateRange(startEpochDay, endEpochDay)
         val templates = templateDao.getAllActiveList().associateBy { it.id }
+        val plannedWorkouts = plannedWorkoutDao.getByDateRange(startEpochDay, endEpochDay)
 
-        return resolver.resolveMonth(yearMonth, schedules, overrides, sessions, templates)
+        return resolver.resolveMonth(yearMonth, schedules, overrides, sessions, templates, plannedWorkouts)
     }
 
     /**
-     * Loads a single day's occurrences. Useful for the day-detail panel.
+     * Loads a single day's occurrences.
      */
     suspend fun getDayDetail(epochDay: Long): List<CalendarDay> {
         val start = epochDay
@@ -50,7 +50,8 @@ class CalendarRepository @Inject constructor(
         val overrides = overrideDao.getRelevantToDateRange(start, end)
         val sessions = sessionDao.getByDateRange(start, end)
         val templates = templateDao.getAllActiveList().associateBy { it.id }
+        val plannedWorkouts = plannedWorkoutDao.getByDateRange(start, end)
 
-        return resolver.resolveRange(start, end, schedules, overrides, sessions, templates)
+        return resolver.resolveRange(start, end, schedules, overrides, sessions, templates, plannedWorkouts)
     }
 }

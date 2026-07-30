@@ -7,6 +7,7 @@ import com.example.fitlog.core.database.entity.ExerciseEntity
 import com.example.fitlog.core.database.entity.ExerciseSessionEntity
 import com.example.fitlog.core.database.entity.FoodRecordEntity
 import com.example.fitlog.core.database.entity.MediaRecordEntity
+import com.example.fitlog.core.database.entity.PlannedWorkoutEntity
 import com.example.fitlog.core.database.entity.ReminderEntity
 import com.example.fitlog.core.database.entity.SetRecordEntity
 import com.example.fitlog.core.database.entity.UserProfileEntity
@@ -95,6 +96,7 @@ object BackupExporter {
         dbJson.put("user_profiles", allEntities.userProfiles.toJsonArray { it.toJson() })
         dbJson.put("body_measurements", allEntities.bodyMeasurements.toJsonArray { it.toJson() })
         dbJson.put("food_records", allEntities.foodRecords.toJsonArray { it.toJson() })
+        dbJson.put("planned_workouts", allEntities.plannedWorkouts.toJsonArray { it.toJson() })
         dbJson.put("media_records", mediaRecords.toJsonArray { it.toJson() })
 
         val dbJsonBytes = dbJson.toString(2).toByteArray(Charsets.UTF_8)
@@ -119,6 +121,7 @@ object BackupExporter {
             "user_profiles" to allEntities.userProfiles.size,
             "body_measurements" to allEntities.bodyMeasurements.size,
             "food_records" to allEntities.foodRecords.size,
+            "planned_workouts" to allEntities.plannedWorkouts.size,
             "media_records" to mediaRecords.size,
         )
         val totalRows = rowCounts.values.sum()
@@ -205,6 +208,7 @@ data class EntityLists(
     val userProfiles: List<UserProfileEntity>,
     val bodyMeasurements: List<BodyMeasurementEntity>,
     val foodRecords: List<FoodRecordEntity>,
+    val plannedWorkouts: List<PlannedWorkoutEntity> = emptyList(),
 )
 
 // ── Entity → JSONObject extensions ──────────────────────────────────────────
@@ -260,7 +264,18 @@ internal fun WorkoutScheduleEntity.toJson() = JSONObject().apply {
     put("id", id)
     put("template_id", templateId)
     put("day_of_week", dayOfWeek)
+    put("start_date", startDate ?: JSONObject.NULL)
+    put("end_date", endDate ?: JSONObject.NULL)
+    put("repeat_interval_weeks", repeatIntervalWeeks)
     put("is_active", isActive)
+    put("created_at", createdAt)
+}
+
+internal fun PlannedWorkoutEntity.toJson() = JSONObject().apply {
+    put("id", id)
+    put("template_id", templateId)
+    put("planned_date", plannedDate)
+    put("note", note ?: JSONObject.NULL)
     put("created_at", createdAt)
 }
 

@@ -10,13 +10,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Low-level BMR and TDEE calculator using Mifflin-St Jeor equations.
+ * Single source of truth for all nutrition target calculations.
  *
- * For high-level daily nutrition target computation (calories + macros),
- * use [NutritionTargetCalculator] instead.
+ * Uses Mifflin-St Jeor BMR, activity factors, and goal-based adjustments
+ * to compute daily calorie and macro targets.
  */
 @Singleton
-class EnergyCalculator @Inject constructor() {
+class NutritionTargetCalculator @Inject constructor() {
 
     /**
      * Calculates Basal Metabolic Rate using the Mifflin-St Jeor equation.
@@ -45,21 +45,31 @@ class EnergyCalculator @Inject constructor() {
     }
 
     /**
-     * Calculates a full energy summary including macros.
-     * Deprecated: Use [NutritionTargetCalculator.calculateTargets] instead.
+     * Computes complete daily nutrition targets from user profile, measurement, and goal.
      *
-     * @return null if required data (weight or height) is missing.
+     * @param gender User's gender ("MALE", "FEMALE", or other).
+     * @param weightKg Current body weight in kilograms.
+     * @param heightCm Height in centimeters.
+     * @param age Age in years.
+     * @param activityLevel Activity level for TDEE multiplier.
+     * @param goalType Fitness goal determining calorie surplus/deficit.
+     * @param bodyFatPercent Optional body fat percentage (currently not used in calculation).
+     * @return [NutritionTargets] with BMR, TDEE, target calories, and macro split.
      */
-    @Deprecated("Use NutritionTargetCalculator.calculateTargets instead")
-    fun calculateEnergySummary(profile: UserProfile, measurement: BodyMeasurement): EnergySummary? {
-        val weightKg = measurement.weightKg ?: return null
-        val heightCm = profile.heightCm ?: return null
-        val age = ChronoUnit.YEARS.between(profile.birthday, LocalDate.now()).toInt()
+    fun calculateTargets(
+        gender: String,
+        weightKg: Double,
+        heightCm: Double,
+        age: Int,
+        activityLevel: ActivityLevel,
+        goalType: GoalType,
+        bodyFatPercent: Double? = null,
+    ): NutritionTargets {
+        val bmr = calculateBMR(gender, weightKg, heightCm, age)
+        val tdee = calculateTDEE(bmr, activityLevel)
 
-        val bmr = calculateBMR(profile.gender, weightKg, heightCm, age)
-        val tdee = calculateTDEE(bmr, profile.activityLevel)
-
-        val targetCalories = when (profile.goalType) {
+        // Target calories based on goal type
+        val targetCalories = when (goalType) {
             GoalType.FAT_LOSS -> {
                 val deficit = minOf((tdee * 0.15).toInt(), 500)
                 (tdee - deficit).let { (it / 5) * 5 }
@@ -75,7 +85,8 @@ class EnergyCalculator @Inject constructor() {
             }
         }
 
-        val proteinPerKg = when (profile.goalType) {
+        // Protein based on goal type and body weight
+        val proteinPerKg = when (goalType) {
             GoalType.MAINTAIN -> 1.6
             GoalType.LEAN_GAIN -> 1.8
             GoalType.MUSCLE_GAIN -> 1.8
@@ -83,23 +94,47 @@ class EnergyCalculator @Inject constructor() {
         }
         val proteinG = Math.round(proteinPerKg * weightKg).toInt()
 
+        // Fat: 0.8g/kg, capped so that fat is 20-35% of total calories
         val fatGFromWeight = 0.8 * weightKg
         val fatGMax = (targetCalories * 0.35 / 9.0)
         val fatGMin = (targetCalories * 0.20 / 9.0)
         val fatG = fatGFromWeight.coerceIn(fatGMin, fatGMax).toInt()
 
+        // Carbs: remaining calories / 4
         val proteinCalories = proteinG * 4
         val fatCalories = fatG * 9
         val remainingCalories = targetCalories - proteinCalories - fatCalories
         val carbsG = (remainingCalories / 4).coerceAtLeast(0)
 
-        return EnergySummary(
+        return NutritionTargets(
             bmr = bmr,
             tdee = tdee,
             targetCalories = targetCalories,
             proteinG = proteinG,
-            carbsG = carbsG,
             fatG = fatG,
+            carbsG = carbsG,
+        )
+    }
+
+    /**
+     * Convenience method that extracts parameters from domain models.
+     */
+    fun calculateTargets(
+        profile: UserProfile,
+        measurement: BodyMeasurement,
+        referenceDate: LocalDate = LocalDate.now(),
+    ): NutritionTargets? {
+        val weightKg = measurement.weightKg ?: return null
+        val heightCm = profile.heightCm ?: return null
+        val age = ChronoUnit.YEARS.between(profile.birthday, referenceDate).toInt()
+        return calculateTargets(
+            gender = profile.gender,
+            weightKg = weightKg,
+            heightCm = heightCm,
+            age = age,
+            activityLevel = profile.activityLevel,
+            goalType = profile.goalType,
+            bodyFatPercent = measurement.bodyFatPercent,
         )
     }
 }

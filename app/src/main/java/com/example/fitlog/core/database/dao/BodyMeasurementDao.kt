@@ -25,6 +25,9 @@ interface BodyMeasurementDao {
     @Query("SELECT * FROM body_measurements ORDER BY date ASC")
     fun observeAll(): Flow<List<BodyMeasurementEntity>>
 
+    @Query("SELECT * FROM body_measurements WHERE date <= :epochDay ORDER BY date DESC LIMIT 1")
+    suspend fun getLatestOnOrBefore(epochDay: Long): BodyMeasurementEntity?
+
     @Query("SELECT COUNT(*) FROM body_measurements")
     suspend fun count(): Int
 }

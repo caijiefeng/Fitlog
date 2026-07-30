@@ -264,6 +264,21 @@
     <string name="calendar_reschedule_error_missing_info">无法改期：缺少必要信息</string>
     <string name="calendar_reschedule_restore">已恢复原计划</string>
 
+    <!-- Calendar Scheduling -->
+    <string name="calendar_schedule_title">安排训练</string>
+    <string name="calendar_schedule_select_template">选择训练模板</string>
+    <string name="calendar_schedule_one_time">仅这一次</string>
+    <string name="calendar_schedule_recurring">每周重复</string>
+    <string name="calendar_schedule_every_n_weeks">每 %d 周</string>
+    <string name="calendar_schedule_confirm">确认安排</string>
+    <string name="calendar_schedule_success">已安排训练</string>
+    <string name="calendar_schedule_error">安排失败</string>
+    <string name="calendar_schedule_no_templates">还没有训练模板，请先创建</string>
+    <string name="calendar_delete_plan">取消安排</string>
+    <string name="calendar_delete_one_time">只取消这一次</string>
+    <string name="calendar_delete_future">停止今后重复</string>
+    <string name="calendar_delete_this_and_future">取消本次及今后</string>
+
     <!-- FAB -->
     <string name="fab_camera">拍照或录像</string>
 

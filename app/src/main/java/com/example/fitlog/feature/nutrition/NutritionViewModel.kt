@@ -7,7 +7,6 @@ import com.example.fitlog.data.repository.DailyNutritionSummary
 import com.example.fitlog.data.repository.FoodRecord
 import com.example.fitlog.data.repository.FoodRecordRepository
 import com.example.fitlog.data.repository.UserProfileRepository
-import com.example.fitlog.domain.nutrition.EnergyCalculator
 import com.example.fitlog.domain.nutrition.NutritionAdvisor
 import com.example.fitlog.domain.nutrition.NutritionAdvice
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +24,7 @@ data class NutritionUiState(
     val foodRecords: List<FoodRecord> = emptyList(),
     val summary: DailyNutritionSummary = DailyNutritionSummary(),
     val advice: NutritionAdvice? = null,
+    val missingDataMessage: String? = null,
     val error: String? = null,
 )
 
@@ -47,7 +47,6 @@ class NutritionViewModel @Inject constructor(
     private val userProfileRepository: UserProfileRepository,
     private val dateProvider: CurrentDateProvider,
     private val nutritionAdvisor: NutritionAdvisor,
-    private val energyCalculator: EnergyCalculator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -91,26 +90,40 @@ class NutritionViewModel @Inject constructor(
                 val summary = foodRecordRepository.getDailySummary(date)
                 _uiState.value = _uiState.value.copy(summary = summary)
 
-                // Generate nutrition advice from profile data
-                val profile = userProfileRepository.get()
-                if (profile != null && summary.targetCalories > 0) {
-                    val weight = summary.let { 75.0 } // Fallback weight
-                    val proteinG = (1.8 * weight).toInt()
-                    val fatG = (0.9 * weight).toInt()
-                    val proteinCalories = proteinG * 4
-                    val fatCalories = fatG * 9
-                    val remainingCalories = summary.targetCalories - proteinCalories - fatCalories
-                    val carbsG = (remainingCalories / 4).coerceAtLeast(0)
-
+                if (summary.targetCalories > 0 && summary.tdee > 0) {
+                    // Full profile and measurement data available — generate advice
+                    val profile = userProfileRepository.get()
+                    val goalType = profile?.goalType ?: com.example.fitlog.domain.body.GoalType.MAINTAIN
                     val advice = nutritionAdvisor.generateAdvice(
-                        goalType = profile.goalType,
-                        tdee = 0, // We don't have TDEE in summary, but advisor text is optional
+                        goalType = goalType,
+                        tdee = summary.tdee,
                         targetCalories = summary.targetCalories,
-                        proteinG = proteinG,
-                        carbsG = carbsG,
-                        fatG = fatG,
+                        proteinG = summary.targetProtein,
+                        carbsG = summary.targetCarbs,
+                        fatG = summary.targetFat,
                     )
-                    _uiState.value = _uiState.value.copy(advice = advice)
+                    _uiState.value = _uiState.value.copy(
+                        advice = advice,
+                        missingDataMessage = null,
+                    )
+                } else {
+                    // No targets available — check if profile/measurement data is missing
+                    val profile = userProfileRepository.get()
+                    val missingData = profile == null ||
+                        profile.heightCm == null ||
+                        profile.gender.isBlank() ||
+                        profile.activityLevel.name.isBlank()
+                    if (missingData) {
+                        _uiState.value = _uiState.value.copy(
+                            advice = null,
+                            missingDataMessage = "请先完善身高、出生日期、性别、活动水平和当前体重，完成后才能生成营养目标。",
+                        )
+                    } else {
+                        _uiState.value = _uiState.value.copy(
+                            advice = null,
+                            missingDataMessage = null,
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

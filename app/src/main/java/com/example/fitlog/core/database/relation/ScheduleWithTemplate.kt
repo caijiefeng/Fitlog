@@ -9,6 +9,12 @@ data class ScheduleWithTemplate(
     val templateId: Long,
     @ColumnInfo(name = "day_of_week")
     val dayOfWeek: Int,
+    @ColumnInfo(name = "start_date")
+    val startDate: Long?,
+    @ColumnInfo(name = "end_date")
+    val endDate: Long?,
+    @ColumnInfo(name = "repeat_interval_weeks")
+    val repeatIntervalWeeks: Int,
     @ColumnInfo(name = "is_active")
     val isActive: Boolean,
     @ColumnInfo(name = "created_at")

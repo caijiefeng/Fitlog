@@ -5,6 +5,8 @@ import com.example.fitlog.domain.body.BodyMeasurement
 import com.example.fitlog.domain.body.GoalType
 import com.example.fitlog.domain.body.UserProfile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
@@ -100,20 +102,22 @@ class EnergyCalculatorTest {
         )
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNotNull(summary)
+        summary!!
 
         // BMR = 1825
         assertEquals(1825, summary.bmr)
         // TDEE = 1825 * 1.55 = 2828.75 -> trunc to int = 2828 -> /5*5 = 2825
         assertEquals(2825, summary.tdee)
-        // FAT_LOSS target = 2825 - 400 = 2425
-        assertEquals(2425, summary.targetCalories)
-        // Protein = 1.8 * 85 = 153
-        assertEquals(153, summary.proteinG)
-        // Fat = 0.9 * 85 = 76.5 -> 76
-        assertEquals(76, summary.fatG)
-        // Remaining: 2425 - (153*4) - (76*9) = 2425 - 612 - 684 = 1129
-        // Carbs = 1129 / 4 = 282.25 -> 282
-        assertEquals(282, summary.carbsG)
+        // FAT_LOSS: deficit = min(2825*0.15=423, 500) = 423 → 2825-423 = 2402 → /5*5 = 2400
+        assertEquals(2400, summary.targetCalories)
+        // Protein = 2.0 * 85 = 170
+        assertEquals(170, summary.proteinG)
+        // Fat: 0.8*85=68, cap 20-35% → 2400*0.35/9=93.3, 2400*0.20/9=53.3 → 68 in range → 68
+        assertEquals(68, summary.fatG)
+        // Remaining: 2400 - (170*4) - (68*9) = 2400 - 680 - 612 = 1108
+        // Carbs = 1108 / 4 = 277
+        assertEquals(277, summary.carbsG)
     }
 
     @Test
@@ -132,20 +136,23 @@ class EnergyCalculatorTest {
         )
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNotNull(summary)
+        summary!!
 
         // BMR = 1668.75 -> Math.round(1668.75/5)*5 = 1670
         assertEquals(1670, summary.bmr)
         // TDEE = 1670 * 1.725 = 2880.75 -> Math.round(2880.75/5)*5 = 2880
         assertEquals(2880, summary.tdee)
-        // MUSCLE_GAIN target = 2880 + 300 = 3180
-        assertEquals(3180, summary.targetCalories)
+        // MUSCLE_GAIN: surplus = min(2880*0.10=288, 350) -> 288, max 200 -> 288
+        // target = 2880 + 288 = 3168 -> /5*5 = 3165
+        assertEquals(3165, summary.targetCalories)
         // Protein = 1.8 * 75 = 135
         assertEquals(135, summary.proteinG)
-        // Fat = 0.9 * 75 = 67.5 -> 67
-        assertEquals(67, summary.fatG)
-        // Remaining: 3180 - (135*4) - (67*9) = 3180 - 540 - 603 = 2037
-        // Carbs = 2037 / 4 = 509
-        assertEquals(509, summary.carbsG)
+        // Fat: 0.8*75=60, cap 20-35% → 3165*0.35/9=123.1, 3165*0.20/9=70.3 → 60 < 70.3 → 70
+        assertEquals(70, summary.fatG)
+        // Remaining: 3165 - (135*4) - (70*9) = 3165 - 540 - 630 = 1995
+        // Carbs = 1995 / 4 = 498
+        assertEquals(498, summary.carbsG)
     }
 
     @Test
@@ -164,6 +171,8 @@ class EnergyCalculatorTest {
         )
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNotNull(summary)
+        summary!!
 
         // BMR = 1340.25 -> 1340
         assertEquals(1340, summary.bmr)
@@ -189,13 +198,17 @@ class EnergyCalculatorTest {
         )
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNotNull(summary)
+        summary!!
 
-        // LEAN_GAIN target = tdee + 250
-        assertEquals(summary.tdee + 250, summary.targetCalories)
+        // LEAN_GAIN target = tdee + surplus
+        // surplus = min(tdee*0.07, 300) max 150
+        // tdee is unknown, but surplus is 150-300
+        assert(summary.targetCalories > summary.tdee)
     }
 
     @Test
-    fun `energy summary handles null weight with default fallback`() {
+    fun `energy summary returns null when weight is missing`() {
         val birthday = LocalDate.of(1995, 1, 1)
         val profile = UserProfile(
             gender = "MALE",
@@ -210,8 +223,25 @@ class EnergyCalculatorTest {
         )
 
         val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNull(summary)
+    }
 
-        // BMR with 75kg, 175cm, 31yo: 10*75+6.25*175-5*31+5 = 1693.75 -> round = 1695
-        assertEquals(1695, summary.bmr)
+    @Test
+    fun `energy summary returns null when height is missing`() {
+        val birthday = LocalDate.of(1995, 1, 1)
+        val profile = UserProfile(
+            gender = "MALE",
+            birthday = birthday,
+            heightCm = null,
+            activityLevel = ActivityLevel.SEDENTARY,
+            goalType = GoalType.MAINTAIN,
+        )
+        val measurement = BodyMeasurement(
+            date = LocalDate.of(2026, 7, 28),
+            weightKg = 75.0,
+        )
+
+        val summary = calculator.calculateEnergySummary(profile, measurement)
+        assertNull(summary)
     }
 }

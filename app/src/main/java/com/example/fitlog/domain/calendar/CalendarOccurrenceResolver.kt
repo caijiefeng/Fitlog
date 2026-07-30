@@ -1,5 +1,6 @@
 package com.example.fitlog.domain.calendar
 
+import com.example.fitlog.core.database.entity.PlannedWorkoutEntity
 import com.example.fitlog.core.database.entity.WorkoutPlanOverrideEntity
 import com.example.fitlog.core.database.entity.WorkoutScheduleEntity
 import com.example.fitlog.core.database.entity.WorkoutSessionEntity
@@ -14,6 +15,14 @@ import javax.inject.Singleton
  * Pure Kotlin resolver that turns pre-loaded calendar data into a flat list
  * of [CalendarDay] with resolved occurrences. Accepts collections from the
  * repository so no N+1 database queries are performed.
+ *
+ * Supports:
+ * - Weekly recurring schedules (day-of-week based)
+ * - Date-bounded schedules (start_date / end_date)
+ * - Multi-week intervals (repeat_interval_weeks)
+ * - Plan overrides (skip / reschedule)
+ * - One-time planned workouts
+ * - Quick workout sessions (no scheduleId)
  */
 @Singleton
 class CalendarOccurrenceResolver @Inject constructor(
@@ -31,6 +40,7 @@ class CalendarOccurrenceResolver @Inject constructor(
         overrides: List<WorkoutPlanOverrideEntity>,
         sessions: List<WorkoutSessionEntity>,
         templates: Map<Long, WorkoutTemplateEntity>,
+        plannedWorkouts: List<PlannedWorkoutEntity> = emptyList(),
     ): List<CalendarDay> {
         val today = dateProvider.today()
         val overrideIndex: Map<String, WorkoutPlanOverrideEntity> = overrides.associateBy {
@@ -44,7 +54,11 @@ class CalendarOccurrenceResolver @Inject constructor(
             }
         }
 
-        // Pre-compute schedule look-ups
+        // Index planned workouts by date
+        val plannedByDate: Map<Long, List<PlannedWorkoutEntity>> =
+            plannedWorkouts.groupBy { it.plannedDate }
+
+        // Pre-compute schedule look-ups by day-of-week
         val scheduleByDayOfWeek: Map<Int, List<WorkoutScheduleEntity>> =
             schedules.filter { it.isActive }.groupBy { it.dayOfWeek }
 
@@ -60,9 +74,12 @@ class CalendarOccurrenceResolver @Inject constructor(
 
             val dayOccurrences = mutableListOf<CalendarWorkoutOccurrence>()
 
-            // 1. Scheduled occurrences
+            // 1. Scheduled occurrences from recurring schedules
             val daySchedules = scheduleByDayOfWeek[dayOfWeekIso] ?: emptyList()
             for (schedule in daySchedules) {
+                // Check if schedule is active on this date (date-bounded + interval)
+                if (!isScheduleActiveOnDate(schedule, current)) continue
+
                 val occKey = overrideKey(schedule.id, current)
                 val override = overrideIndex[occKey]
                 val session = sessionIndex[occKey]
@@ -77,7 +94,6 @@ class CalendarOccurrenceResolver @Inject constructor(
 
                 // Priority: Session state > SKIPPED override > Original date marker (RESCHEDULED) > Default SCHEDULED
                 val status = if (session != null) {
-                    // Session state always takes priority
                     mapSessionStatus(session.status)
                 } else if (isSkipped) {
                     CalendarWorkoutStatus.SKIPPED
@@ -91,7 +107,6 @@ class CalendarOccurrenceResolver @Inject constructor(
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
-                        // Use current (original date) for the display key of scheduled/rescheduled-original occurrences
                         displayKey = buildDisplayKey(schedule.id, current, isOriginalDateMarker = isOriginalDateMarker),
                         scheduleId = schedule.id,
                         templateId = schedule.templateId,
@@ -122,7 +137,6 @@ class CalendarOccurrenceResolver @Inject constructor(
                 val template = templates[override.templateId]
                 val templateName = template?.name ?: "未知训练"
 
-                // Session state takes priority over RESCHEDULED marker
                 val status = if (session != null) {
                     mapSessionStatus(session.status)
                 } else {
@@ -132,7 +146,6 @@ class CalendarOccurrenceResolver @Inject constructor(
                 dayOccurrences.add(
                     CalendarWorkoutOccurrence(
                         key = occKey,
-                        // Use plannedDate (target date) in displayKey to differ from original-date markers
                         displayKey = buildDisplayKey(override.scheduleId, override.plannedDate ?: override.occurrenceDate, isOriginalDateMarker = false),
                         scheduleId = override.scheduleId,
                         templateId = override.templateId,
@@ -149,9 +162,52 @@ class CalendarOccurrenceResolver @Inject constructor(
                 )
             }
 
-            // 3. Quick workouts (no scheduleId) on this date
+            // 3. One-time planned workouts on this date
+            val dayPlanned = plannedByDate[current] ?: emptyList()
+            for (planned in dayPlanned) {
+                val occKey = "planned:${planned.id}"
+                val template = templates[planned.templateId]
+                val templateName = template?.name ?: "未知训练"
+
+                // Check if a session was already created from this planned workout
+                val session = sessions.find { s ->
+                    s.templateId == planned.templateId && s.date == current && s.scheduleId == null
+                }
+
+                // Only match sessions that don't belong to any schedule
+                // (we already checked schedule-based sessions above)
+                val matchingSession = session?.takeIf { it.scheduleId == null }
+
+                val status = if (matchingSession != null) {
+                    mapSessionStatus(matchingSession.status)
+                } else {
+                    CalendarWorkoutStatus.SCHEDULED
+                }
+
+                dayOccurrences.add(
+                    CalendarWorkoutOccurrence(
+                        key = occKey,
+                        displayKey = occKey,
+                        scheduleId = null,
+                        templateId = planned.templateId,
+                        templateName = templateName,
+                        occurrenceDate = date,
+                        displayDate = date,
+                        plannedDate = date,
+                        sessionId = matchingSession?.id,
+                        status = status,
+                        isQuickWorkout = false,
+                        isOriginalDateMarker = false,
+                        canStart = status == CalendarWorkoutStatus.SCHEDULED,
+                    )
+                )
+            }
+
+            // 4. Quick workouts (no scheduleId) on this date
+            // Exclude sessions that matched a planned workout above
+            val matchedSessionIds = dayOccurrences.mapNotNull { it.sessionId }.toSet()
             val quickSessions = sessions.filter { s ->
-                s.scheduleId == null && s.date == current
+                s.scheduleId == null && s.date == current && s.id !in matchedSessionIds
             }
             for (session in quickSessions) {
                 val occKey = "session:${session.id}"
@@ -182,7 +238,7 @@ class CalendarOccurrenceResolver @Inject constructor(
                     dayOfMonth = dayOfMonth,
                     dayOfWeek = dayOfWeekIso,
                     occurrences = dayOccurrences,
-                    hasCheckIn = false, // resolved by repository if needed
+                    hasCheckIn = false,
                     isToday = isToday,
                 )
             )
@@ -203,21 +259,65 @@ class CalendarOccurrenceResolver @Inject constructor(
         overrides: List<WorkoutPlanOverrideEntity>,
         sessions: List<WorkoutSessionEntity>,
         templates: Map<Long, WorkoutTemplateEntity>,
+        plannedWorkouts: List<PlannedWorkoutEntity> = emptyList(),
     ): List<CalendarDay> {
         val start = yearMonth.atDay(1).toEpochDay()
         val end = yearMonth.atEndOfMonth().toEpochDay()
-        return resolveRange(start, end, schedules, overrides, sessions, templates)
+        return resolveRange(start, end, schedules, overrides, sessions, templates, plannedWorkouts)
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
 
+    /**
+     * Determines whether a [schedule] is active on the given [dateEpochDay].
+     *
+     * Rules:
+     * - If [startDate] is set, the date must be >= startDate
+     * - If [endDate] is set, the date must be <= endDate
+     * - If [repeatIntervalWeeks] > 1 and [startDate] is set, only every N-th week
+     *   since the first occurrence counts
+     */
+    private fun isScheduleActiveOnDate(schedule: WorkoutScheduleEntity, dateEpochDay: Long): Boolean {
+        val startDate = schedule.startDate
+        val endDate = schedule.endDate
+
+        // Check start date bound
+        if (startDate != null && dateEpochDay < startDate) return false
+
+        // Check end date bound
+        if (endDate != null && dateEpochDay > endDate) return false
+
+        // Check repeat interval (only matters when > 1 and we have a startDate)
+        val intervalWeeks = schedule.repeatIntervalWeeks
+        if (intervalWeeks > 1 && startDate != null) {
+            // Find the first occurrence on or after startDate that matches this day_of_week
+            val firstOccurrence = findFirstScheduleOccurrence(startDate, schedule.dayOfWeek)
+            if (dateEpochDay < firstOccurrence) return false
+
+            // Calculate weeks between first occurrence and current date
+            val daysDiff = dateEpochDay - firstOccurrence
+            val weeksDiff = daysDiff / 7L
+            if (weeksDiff % intervalWeeks != 0L) return false
+        }
+
+        return true
+    }
+
+    /**
+     * Finds the first epochDay on or after [startDateEpochDay] that falls on
+     * the given [dayOfWeek] (1=Mon ... 7=Sun).
+     */
+    private fun findFirstScheduleOccurrence(startDateEpochDay: Long, targetDayOfWeek: Int): Long {
+        val startDate = LocalDate.ofEpochDay(startDateEpochDay)
+        val startDayOfWeek = startDate.dayOfWeek.value // 1=Mon ... 7=Sun
+        var diff = targetDayOfWeek - startDayOfWeek
+        if (diff < 0) diff += 7
+        return startDateEpochDay + diff
+    }
+
     private fun overrideKey(scheduleId: Long, occurrenceDate: Long): String =
         "${scheduleId}:${occurrenceDate}"
 
-    /**
-     * Builds a display key that differs for original-date markers vs target-date markers.
-     * Original markers use the original occurrence date; target markers use the planned date.
-     */
     private fun buildDisplayKey(
         scheduleId: Long,
         dateEpochDay: Long,
@@ -227,10 +327,6 @@ class CalendarOccurrenceResolver @Inject constructor(
         return "schedule:${scheduleId}:${dateEpochDay}:${prefix}"
     }
 
-    /**
-     * Maps a session status string to a [CalendarWorkoutStatus].
-     * Session state takes priority over any override markers.
-     */
     private fun mapSessionStatus(sessionStatus: String): CalendarWorkoutStatus = when {
         sessionStatus == "IN_PROGRESS" -> CalendarWorkoutStatus.IN_PROGRESS
         sessionStatus == "COMPLETED" -> CalendarWorkoutStatus.COMPLETED
