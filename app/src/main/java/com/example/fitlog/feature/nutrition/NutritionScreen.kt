@@ -29,6 +29,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -100,6 +101,28 @@ fun NutritionScreen(
                     .fillMaxSize()
                     .padding(32.dp),
             )
+        } else if (uiState.error != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = uiState.error ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogError,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = { viewModel.refresh() },
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Text(stringResource(R.string.action_retry))
+                }
+            }
         } else {
             PageContainer(modifier = Modifier.padding(innerPadding)) {
                 LazyColumn(

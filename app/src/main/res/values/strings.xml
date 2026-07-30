@@ -369,6 +369,7 @@
     <string name="action_back">返回</string>
     <string name="action_favorite">收藏</string>
     <string name="action_share">分享</string>
+    <string name="action_retry">重试</string>
 
     <!-- Media Library -->
     <string name="media_library_title">媒体库</string>

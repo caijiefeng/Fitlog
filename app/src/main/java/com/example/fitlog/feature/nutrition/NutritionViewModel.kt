@@ -213,6 +213,10 @@ class NutritionViewModel @Inject constructor(
         }
     }
 
+    fun refresh() {
+        loadToday()
+    }
+
     fun deleteFoodRecord(record: FoodRecord) {
         viewModelScope.launch {
             try {

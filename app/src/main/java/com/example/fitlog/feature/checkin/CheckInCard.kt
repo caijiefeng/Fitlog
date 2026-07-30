@@ -58,17 +58,21 @@ fun CheckInCard(
         SectionHeader(title = stringResource(R.string.section_daily_checkin))
 
         FitLogCard {
-            if (uiState.existingCheckIn != null && uiState.isSaved) {
-                // Already checked in — show summary
-                ExistingCheckInContent(uiState = uiState)
+            if (uiState.existingCheckIn != null && uiState.isSaved && !uiState.isEditing) {
+                // Already checked in — show summary with edit button
+                ExistingCheckInContent(
+                    uiState = uiState,
+                    onEdit = viewModel::startEditing,
+                )
             } else {
-                // Show the form
+                // Show the form (for new check-in or editing existing)
                 CheckInFormContent(
                     uiState = uiState,
                     onMoodChange = viewModel::onMoodChange,
                     onEnergyLevelChange = viewModel::onEnergyLevelChange,
                     onNotesChange = viewModel::onNotesChange,
                     onSave = viewModel::saveCheckIn,
+                    onCancel = if (uiState.existingCheckIn != null) viewModel::cancelEditing else null,
                 )
             }
         }
@@ -76,7 +80,10 @@ fun CheckInCard(
 }
 
 @Composable
-private fun ExistingCheckInContent(uiState: CheckInUiState) {
+private fun ExistingCheckInContent(
+    uiState: CheckInUiState,
+    onEdit: () -> Unit,
+) {
     val checkIn = uiState.existingCheckIn ?: return
 
     Text(
@@ -116,7 +123,7 @@ private fun ExistingCheckInContent(uiState: CheckInUiState) {
     // Edit button
     Spacer(modifier = Modifier.height(12.dp))
     OutlinedButton(
-        onClick = { /* tapping the whole card resets edit state */ },
+        onClick = onEdit,
         modifier = Modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, FitLogAccent),
         shape = RoundedCornerShape(8.dp),
@@ -154,6 +161,7 @@ private fun CheckInFormContent(
     onEnergyLevelChange: (Int) -> Unit,
     onNotesChange: (String) -> Unit,
     onSave: () -> Unit,
+    onCancel: (() -> Unit)? = null,
 ) {
     // Mood row: 5 emoji buttons
     Text(
@@ -303,5 +311,22 @@ private fun CheckInFormContent(
             },
             color = FitLogTextPrimary,
         )
+    }
+
+    // Cancel button (only shown when editing an existing check-in)
+    if (onCancel != null) {
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, FitLogDivider),
+            enabled = !uiState.isSaving,
+        ) {
+            Text(
+                text = stringResource(R.string.action_cancel),
+                color = FitLogTextSecondary,
+            )
+        }
     }
 }

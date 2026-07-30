@@ -1,8 +1,8 @@
 # FitLog Roadmap
 
-## V0 — Project Skeleton (Current)
+## V0 — Project Skeleton ✅
 
-**Goal**: Build the engineering skeleton: build system, design system, navigation, architecture boundaries, tests, and docs.
+**Status**: Implementation complete
 
 **Deliverables**:
 - Gradle build with Version Catalog
@@ -95,19 +95,36 @@
 
 ---
 
-## V5 — Nutrition, Media & Data Portability
+## V5 — Nutrition, Media & Data Portability ✅
 
-**Status**: V5.2 Complete
+**Status**: Implementation complete, device validation pending
 
 ### V5 Base (Complete)
 - **Nutrition tracking**: FoodRecord entity, meal logging (breakfast/lunch/dinner/snack), daily calorie/macro totals — Complete
 - **TDEE calculator**: Mifflin-St Jeor BMR, activity-level TDEE, goal-adjusted targets — Complete
 
 ### V5.2 (Complete)
-- **CameraX integration**: photo and video capture with exposure, focus, zoom controls — Beta (needs device testing)
-- **Media management**: MediaRecord entity, app media storage, gallery, comparison view — Complete
-- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins (SAF, UTF-8 BOM, RFC 4180) — Beta (needs device testing)
-- **Backup/Restore**: Full ZIP backup with manifest.json (version, SHA-256 checksum, row counts), db.json, media files. Pre-import backup, replace-strategy import with rollback — Beta (needs device testing)
+- **CameraX integration**: photo and video capture with exposure, focus, zoom controls — **UNVERIFIED_DEVICE** (requires physical camera)
+- **Media management**: MediaRecord entity, app media storage, gallery, comparison view — **UNVERIFIED_DEVICE** (requires external storage)
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins (SAF, UTF-8 BOM, RFC 4180) — **UNVERIFIED_DEVICE** (requires SAF flow on device)
+- **Backup/Restore**: Full ZIP backup with manifest.json (version, SHA-256 checksum, row counts), db.json, media files. Pre-import backup, replace-strategy import with rollback — **UNVERIFIED_DEVICE** (requires file system I/O on device)
+
+### V5.3 — Device Validation (Current)
+- **Purpose**: Manual device test pass covering all features listed in [MANUAL_DEVICE_TEST.md](MANUAL_DEVICE_TEST.md)
+- Installation (fresh + upgrade migration)
+- 5-tab bottom navigation and deep navigation
+- Exercise library, templates, weekly schedule (Plan tab)
+- Workout execution, set logging, rest timer
+- History, calendar, reschedule/postpone/skip
+- Daily check-in CRUD
+- Body measurement entry and trend charts
+- Nutrition meal logging and macro tracking
+- Reminder CRUD and notification delivery
+- Camera permissions, photo capture, video recording
+- Media gallery and progress photo comparison
+- CSV export via SAF
+- Backup and restore via SAF
+- Settings, profile editing, media cleanup
 
 ### Remaining Items
 - Food database (common foods + custom, barcode scanning)
@@ -117,7 +134,7 @@
 - Export selected media to system gallery
 - PersonalRecord tracking (1RM, max volume, max reps)
 
-**Tests**: 55+ unit tests passing. CSV escape verification (Chinese, commas, quotes, newlines, nulls, ISO dates), manifest JSON round-trip, import validation (version, checksum, corrupt archive, missing files).
+**Tests**: 55+ unit tests passing. CSV escape verification (Chinese, commas, quotes, newlines, nulls, ISO dates), manifest JSON round-trip, import validation (version, checksum, corrupt archive, missing files). Device validation tracked in [MANUAL_DEVICE_TEST.md](MANUAL_DEVICE_TEST.md).
 
 ---
 

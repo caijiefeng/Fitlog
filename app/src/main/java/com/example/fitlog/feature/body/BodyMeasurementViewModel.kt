@@ -46,6 +46,11 @@ class BodyMeasurementViewModel @Inject constructor(
         loadMeasurements()
     }
 
+    fun retry() {
+        _uiState.value = _uiState.value.copy(error = null, isLoading = true)
+        loadMeasurements()
+    }
+
     private fun loadMeasurements() {
         viewModelScope.launch {
             try {

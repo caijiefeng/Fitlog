@@ -19,6 +19,7 @@ data class CheckInUiState(
     val notes: String = "",
     val isSaved: Boolean = false,
     val isSaving: Boolean = false,
+    val isEditing: Boolean = false,
     val error: String? = null,
 )
 
@@ -78,6 +79,37 @@ class CheckInViewModel @Inject constructor(
         )
     }
 
+    fun startEditing() {
+        val existing = _uiState.value.existingCheckIn ?: return
+        _uiState.value = _uiState.value.copy(
+            isEditing = true,
+            isSaved = false,
+            mood = existing.mood,
+            energyLevel = existing.energyLevel,
+            notes = existing.notes ?: "",
+        )
+    }
+
+    fun cancelEditing() {
+        val existing = _uiState.value.existingCheckIn
+        if (existing != null) {
+            _uiState.value = _uiState.value.copy(
+                isEditing = false,
+                isSaved = true,
+                mood = existing.mood,
+                energyLevel = existing.energyLevel,
+                notes = existing.notes ?: "",
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(
+                isEditing = false,
+                mood = null,
+                energyLevel = null,
+                notes = "",
+            )
+        }
+    }
+
     fun saveCheckIn() {
         val state = _uiState.value
         val today = dateProvider.today()
@@ -91,7 +123,7 @@ class CheckInViewModel @Inject constructor(
                     energyLevel = state.energyLevel,
                     notes = state.notes.ifBlank { null },
                 )
-                _uiState.value = _uiState.value.copy(isSaving = false, isSaved = true)
+                _uiState.value = _uiState.value.copy(isSaving = false, isSaved = true, isEditing = false)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,

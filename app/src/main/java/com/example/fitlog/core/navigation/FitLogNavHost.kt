@@ -124,7 +124,11 @@ fun FitLogNavHost(
             )
         }
         composable(BottomNavItem.Progress.route) { ProgressScreen() }
-        composable(BottomNavItem.Profile.route) { ProfileScreen() }
+        composable(BottomNavItem.Profile.route) {
+            ProfileScreen(
+                onNavigateToBodyProfile = { navController.navigate(Routes.BODY_PROFILE) },
+            )
+        }
 
         // ── Exercise routes ─────────────────────────────────────────────────
         composable(Routes.EXERCISE_LIST) {

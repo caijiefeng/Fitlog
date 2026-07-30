@@ -43,6 +43,10 @@ class GoalViewModel @Inject constructor(
         loadGoalData()
     }
 
+    fun refresh() {
+        loadGoalData()
+    }
+
     private fun loadGoalData() {
         viewModelScope.launch {
             try {

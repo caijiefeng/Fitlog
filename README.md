@@ -4,7 +4,7 @@ A local-first, privacy-focused strength training tracker for Android.
 
 ## Status
 
-**V5.2 (in progress)** — Building on the V5 base with CameraX, media management, data export, and backup/restore. The V5 base (exercise library, templates, workout execution, nutrition tracking, etc.) is complete. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan.
+**V5.3 — Implementation complete, device validation pending.** All V5 features (exercise library, templates, workout execution, nutrition, CameraX media, CSV export, backup/restore, etc.) are implemented. A full manual device test pass is required before release. See [ROADMAP.md](docs/ROADMAP.md) for the version plan, and [MANUAL_DEVICE_TEST.md](docs/MANUAL_DEVICE_TEST.md) for the test checklist.
 
 ## Tech Stack
 
@@ -67,11 +67,11 @@ A local-first, privacy-focused strength training tracker for Android.
 - **User profile**: gender, birthday, height, activity level, goal type
 - **Body measurements**: weight, body fat, muscle, waist tracking with trends
 - **Nutrition**: meal logging, calorie/macro tracking, TDEE-based targets
-- **Progress photos**: camera capture, gallery, comparison view *(V5.2 in progress)*
+- **Progress photos**: camera capture, gallery, comparison view
 - **Trend charts**: weight, body fat, waist, calories, protein, training volume
 - **Goal planning**: target body fat, weight change, timeline estimation
-- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins via SAF *(V5.2 in progress)*
-- **Backup/Restore**: full ZIP backup with manifest and SHA-256 verification *(V5.2 in progress)*
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins via SAF
+- **Backup/Restore**: full ZIP backup with manifest and SHA-256 verification
 
 ## Not Yet Implemented
 
@@ -115,6 +115,33 @@ app/src/main/java/com/example/fitlog/
 - Media file path resolution tests require external storage
 - Backup/restore round-trip tests require file system I/O
 - Health Connect integration requires Android 14+ with Health Connect app
+
+## UNVERIFIED_DEVICE Items
+
+The following features are implemented but have **not been tested on a physical device**. See [docs/MANUAL_DEVICE_TEST.md](docs/MANUAL_DEVICE_TEST.md) for the full test checklist.
+
+| Feature | Test Coverage |
+|---------|--------------|
+| Installation (fresh + upgrade) | Unit tests only — no device install test |
+| 5-tab navigation | Compose UI test only (single-screen) |
+| Exercise library & templates | 33+ unit tests — no device interaction test |
+| Workout execution & set logging | Unit tests — no full execution flow test |
+| Rest timer | Unit tests — no device timer accuracy test |
+| Workout history | Unit tests — no device rendering test |
+| Calendar view | Unit tests — no device calendar interaction test |
+| Reschedule / postpone / skip | Unit tests — no device reschedule flow test |
+| Daily check-in | Unit tests — no device prompt/save flow test |
+| Body measurements | Unit tests — no device entry form test |
+| Nutrition / meal logging | Unit tests — no device entry form test |
+| Reminder CRUD | Unit tests — no notification delivery test |
+| Camera permissions | No test — requires device |
+| Photo capture (CameraX) | No test — requires device with camera |
+| Video recording | No test — requires device with camera |
+| Media library / gallery | No test — requires device with external storage |
+| Progress photo comparison | No test — requires device with camera |
+| CSV export (SAF) | Unit test (escape logic) — no SAF flow test |
+| Backup / restore (ZIP) | Unit test (manifest, checksum) — no SAF flow test |
+| Settings / cleanup | No test — requires device
 
 ## Notes for Contributors
 

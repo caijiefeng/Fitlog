@@ -192,22 +192,30 @@ fun CalendarDayDetailScreen(
                     .padding(horizontal = 16.dp),
             ) {
                 if (uiState.isLoading) {
-                    Text(
-                        text = stringResource(R.string.calendar_detail_loading),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = FitLogTextSecondary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp),
-                        textAlign = TextAlign.Center,
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = FitLogAccent)
+                    }
                 } else if (uiState.error != null) {
-                    Text(
-                        text = uiState.error ?: "",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = FitLogError,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = uiState.error ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = FitLogError,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedButton(
+                            onClick = { viewModel.refresh() },
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Text(stringResource(R.string.action_retry))
+                        }
+                    }
                 } else if (uiState.occurrences.isEmpty()) {
                     Text(
                         text = stringResource(R.string.calendar_no_workouts_detail),
