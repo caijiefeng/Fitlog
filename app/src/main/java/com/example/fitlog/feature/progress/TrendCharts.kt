@@ -69,7 +69,7 @@ private enum class ChartMetric(
 ) {
     WEIGHT(
         labelResName = R.string.chart_weight,
-        color = FitLogAccent,
+        color = Color(0xFF237A68), // FitLogAccent (light theme default)
         extractValue = { it.weight },
         unit = "kg",
     ),
@@ -93,7 +93,7 @@ private enum class ChartMetric(
     ),
     PROTEIN(
         labelResName = R.string.chart_protein,
-        color = FitLogSuccess,
+        color = Color(0xFF4CAF50), // FitLogSuccess
         extractValue = { it.protein },
         unit = "g",
     ),

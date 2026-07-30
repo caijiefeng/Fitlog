@@ -231,6 +231,7 @@ private fun statusLabel(status: WorkoutStatus): String = when (status) {
     else -> ""
 }
 
+@Composable
 private fun statusColor(status: WorkoutStatus): androidx.compose.ui.graphics.Color = when (status) {
     WorkoutStatus.COMPLETED -> FitLogAccent
     WorkoutStatus.PARTIALLY_COMPLETED -> FitLogAccent
