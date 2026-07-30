@@ -9,9 +9,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.fitlog.feature.body.BodyMeasurementScreen
 import com.example.fitlog.feature.body.BodyProfileScreen
+import com.example.fitlog.feature.body.ProgressPhotoScreen
+import com.example.fitlog.feature.camera.FitLogCameraScreen
 import com.example.fitlog.feature.exercise.ExerciseFormScreen
 import com.example.fitlog.feature.exercise.ExerciseListScreen
 import com.example.fitlog.feature.goal.GoalScreen
+import com.example.fitlog.feature.media.MediaDetailScreen
+import com.example.fitlog.feature.media.MediaLibraryScreen
 import com.example.fitlog.feature.nutrition.NutritionScreen
 import com.example.fitlog.feature.plan.PlanScreen
 import com.example.fitlog.feature.profile.ProfileScreen
@@ -19,6 +23,7 @@ import com.example.fitlog.feature.progress.ProgressScreen
 import com.example.fitlog.feature.record.RecordScreen
 import com.example.fitlog.feature.reminder.ReminderEditScreen
 import com.example.fitlog.feature.reminder.ReminderListScreen
+import com.example.fitlog.feature.settings.DataManagementScreen
 import com.example.fitlog.feature.template.TemplateEditScreen
 import com.example.fitlog.feature.template.TemplateListScreen
 import com.example.fitlog.feature.today.TodayScreen
@@ -56,6 +61,9 @@ object Routes {
     fun exercisePicker(id: Long) = "workout/exercise-picker/$id"
     fun calendarDay(epochDay: Long) = "calendar/day/$epochDay"
     fun reminderEdit(id: Long) = "reminder/edit/$id"
+
+    // Settings routes
+    const val DATA_MANAGEMENT = "settings/data-management"
 
     // Body & Nutrition routes
     const val BODY_PROFILE = "body/profile"
@@ -127,6 +135,7 @@ fun FitLogNavHost(
         composable(BottomNavItem.Profile.route) {
             ProfileScreen(
                 onNavigateToBodyProfile = { navController.navigate(Routes.BODY_PROFILE) },
+                onNavigateToDataManagement = { navController.navigate(Routes.DATA_MANAGEMENT) },
             )
         }
 
@@ -269,8 +278,25 @@ fun FitLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
-        // Progress photo, camera, media library, media detail
-        // UNVERIFIED_DEVICE: routes registered, UI pending CameraX API fix
+        composable(Routes.BODY_PROGRESS_PHOTO) {
+            ProgressPhotoScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.CAMERA + "?category={category}&workoutSessionId={workoutSessionId}&bodyMeasurementId={bodyMeasurementId}&checkInId={checkInId}",
+            arguments = listOf(
+                navArgument("category") { type = NavType.StringType; defaultValue = "GENERAL" },
+                navArgument("workoutSessionId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("bodyMeasurementId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("checkInId") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            FitLogCameraScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onPhotoSaved = { /* navigate to detail if needed */ },
+            )
+        }
         composable(Routes.NUTRITION) {
             NutritionScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -278,6 +304,33 @@ fun FitLogNavHost(
         }
         composable(Routes.GOAL) {
             GoalScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Media routes ────────────────────────────────────────────────────
+        composable(Routes.MEDIA_LIBRARY) {
+            MediaLibraryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { mediaId ->
+                    navController.navigate(Routes.mediaDetail(mediaId))
+                },
+            )
+        }
+        composable(
+            route = Routes.MEDIA_DETAIL,
+            arguments = listOf(navArgument("mediaId") { type = NavType.LongType }),
+        ) {
+            val mediaId = it.arguments?.getLong("mediaId") ?: 0L
+            MediaDetailScreen(
+                mediaId = mediaId,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Settings routes ─────────────────────────────────────────────────
+        composable(Routes.DATA_MANAGEMENT) {
+            DataManagementScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

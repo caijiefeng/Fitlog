@@ -1,21 +1,19 @@
 package com.example.fitlog.feature.camera
 
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
+/**
+ * Camera dependency injection module.
+ *
+ * CameraXEngine is not provided through Hilt because it requires
+ * [android.content.Context] and [androidx.lifecycle.LifecycleOwner]
+ * which are only available in the composable scope.
+ *
+ * The screen creates [CameraXEngine] directly and passes it to
+ * [FitLogCameraViewModel.cameraEngine].
+ */
 @Module
 @InstallIn(SingletonComponent::class)
-object CameraModule {
-
-    @Provides
-    @Singleton
-    fun provideCameraEngine(): CameraEngine {
-        // UNVERIFIED_DEVICE: Swap to CameraXEngine when CameraX API issues resolved.
-        // CameraXEngine requires manual verification of Preview, ImageCapture,
-        // VideoCapture API compatibility with camera-*:1.3.4.
-        return FakeCameraEngine()
-    }
-}
+object CameraModule

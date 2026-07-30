@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToBodyProfile: () -> Unit = {},
+    onNavigateToDataManagement: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -155,11 +156,7 @@ fun ProfileScreen(
             // Data Management
             FitLogCard(
                 modifier = Modifier.padding(vertical = 4.dp),
-                onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("数据管理功能即将推出")
-                    }
-                },
+                onClick = onNavigateToDataManagement,
             ) {
                 Text(
                     text = stringResource(R.string.profile_data_management),

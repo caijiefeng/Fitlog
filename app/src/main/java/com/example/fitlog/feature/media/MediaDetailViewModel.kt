@@ -111,4 +111,14 @@ class MediaDetailViewModel @Inject constructor(
             } catch (_: Exception) { }
         }
     }
+
+    /** Resolves the absolute file path for the current record (for sharing). */
+    fun resolveFile(): java.io.File? {
+        val record = _uiState.value.record ?: return null
+        return try {
+            mediaRepository.resolveFile(record.relativePath)
+        } catch (_: Exception) {
+            null
+        }
+    }
 }
