@@ -38,6 +38,7 @@
     <string name="today_quick_start">快速开始训练</string>
     <string name="today_quick_start_desc">不基于计划，直接开始记录训练</string>
     <string name="quick_action_start_workout">开始训练</string>
+    <string name="quick_action_resume_workout">继续当前训练</string>
     <string name="quick_action_nutrition">饮食记录</string>
     <string name="quick_action_body_measurement">身体测量</string>
     <string name="quick_action_camera">拍照或录像</string>
@@ -442,6 +443,7 @@
     <string name="camera_video_save_failed">保存视频失败</string>
     <string name="camera_photo_save_failed">保存照片失败</string>
     <string name="camera_video_file_missing">视频文件不存在</string>
+    <string name="camera_video_discard_confirm">正在录制视频，确定要退出吗？视频将被丢弃。</string>
 
     <!-- Media Detail -->
     <string name="media_detail_title">媒体详情</string>

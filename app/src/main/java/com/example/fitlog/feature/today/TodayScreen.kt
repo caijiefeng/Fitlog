@@ -154,7 +154,7 @@ fun TodayScreen(
                 SectionHeader(title = stringResource(R.string.section_todays_workout))
 
                 if (uiState.hasInProgressWorkout) {
-                    FitLogCard(onClick = { viewModel.onQuickStart() }) {
+                    FitLogCard(onClick = { viewModel.onResumeInProgressWorkout() }) {
                         Text(
                             stringResource(R.string.today_workout_in_progress_title),
                             style = MaterialTheme.typography.titleMedium,
@@ -220,8 +220,18 @@ fun TodayScreen(
                 ) {
                     QuickActionCard(
                         icon = Icons.Filled.FitnessCenter,
-                        label = stringResource(R.string.quick_action_start_workout),
-                        onClick = { viewModel.onQuickStart() },
+                        label = if (uiState.hasInProgressWorkout) {
+                            stringResource(R.string.quick_action_resume_workout)
+                        } else {
+                            stringResource(R.string.quick_action_start_workout)
+                        },
+                        onClick = {
+                            if (uiState.hasInProgressWorkout) {
+                                viewModel.onResumeInProgressWorkout()
+                            } else {
+                                viewModel.onQuickStart()
+                            }
+                        },
                     )
                     QuickActionCard(
                         icon = Icons.Filled.Restaurant,

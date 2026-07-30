@@ -25,10 +25,10 @@ interface WorkoutSessionDao {
     @Query("SELECT * FROM workout_sessions WHERE id = :id")
     suspend fun getByIdWithExercises(id: Long): SessionWithExercises?
 
-    @Query("SELECT * FROM workout_sessions WHERE status = 'IN_PROGRESS' LIMIT 1")
+    @Query("SELECT * FROM workout_sessions WHERE status = 'IN_PROGRESS' ORDER BY start_time DESC LIMIT 1")
     suspend fun getInProgress(): WorkoutSessionEntity?
 
-    @Query("SELECT * FROM workout_sessions WHERE status = 'IN_PROGRESS' LIMIT 1")
+    @Query("SELECT * FROM workout_sessions WHERE status = 'IN_PROGRESS' ORDER BY start_time DESC LIMIT 1")
     fun observeInProgress(): Flow<WorkoutSessionEntity?>
 
     @Query("""

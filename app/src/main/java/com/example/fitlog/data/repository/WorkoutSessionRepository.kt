@@ -51,7 +51,7 @@ class WorkoutSessionRepository @Inject constructor(
     ): Long {
         return db.withTransaction {
             val existing = sessionDao.getInProgress()
-            if (existing != null) throw WorkoutInProgressException(existing.id)
+            if (existing != null) return@withTransaction existing.id
 
             // Prevent duplicate starts: if scheduleId+occurrenceDate provided, check for existing session
             if (scheduleId != null && occurrenceDate != null) {
@@ -96,7 +96,7 @@ class WorkoutSessionRepository @Inject constructor(
     suspend fun createQuick(date: LocalDate = LocalDate.now()): Long {
         return db.withTransaction {
             val existing = sessionDao.getInProgress()
-            if (existing != null) throw WorkoutInProgressException(existing.id)
+            if (existing != null) return@withTransaction existing.id
             sessionDao.insert(WorkoutSessionEntity(
                 date = date.toEpochDay(), startTime = System.currentTimeMillis(),
                 status = WorkoutStatus.IN_PROGRESS.name, templateNameSnapshot = "快速训练",

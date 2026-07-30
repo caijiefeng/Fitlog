@@ -149,6 +149,16 @@ class TodayViewModel @Inject constructor(
         }
     }
 
+    fun onResumeInProgressWorkout() {
+        viewModelScope.launch {
+            val sessionId = _uiState.value.inProgressSessionId
+                ?: sessionRepository.getInProgress()?.id
+            if (sessionId != null) {
+                _events.emit(TodayEvent.ResumeWorkout(sessionId))
+            }
+        }
+    }
+
     fun onQuickStart() {
         _uiState.value = _uiState.value.copy(showStartWorkoutDialog = true)
     }
