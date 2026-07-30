@@ -19,9 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -33,15 +32,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
@@ -142,6 +147,7 @@ fun MediaLibraryScreen(
                                 group.items.forEach { record ->
                                     MediaRowItem(
                                         record = record,
+                                        viewModel = viewModel,
                                         onClick = { onNavigateToDetail(record.id) },
                                         onFavoriteToggle = { viewModel.toggleFavorite(record) },
                                     )
@@ -218,33 +224,91 @@ private fun DateGroupHeader(label: String) {
 @Composable
 private fun MediaRowItem(
     record: MediaRecord,
+    viewModel: MediaLibraryViewModel,
     onClick: () -> Unit,
     onFavoriteToggle: () -> Unit,
 ) {
+    val file = remember(record.relativePath) {
+        try {
+            viewModel.resolveFile(record.relativePath)
+        } catch (_: Exception) { null }
+    }
+
     FitLogCard(onClick = onClick) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Thumbnail icon
+            // Thumbnail with Coil
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(64.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(FitLogSurfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
-                if (record.mediaType == MediaType.VIDEO) {
-                    Icon(
-                        Icons.Filled.Videocam,
-                        contentDescription = stringResource(R.string.media_type_video),
-                        tint = FitLogAccent,
-                        modifier = Modifier.size(24.dp),
+                if (file != null && file.exists()) {
+                    AsyncImage(
+                        model = file,
+                        contentDescription = if (record.mediaType == MediaType.VIDEO) {
+                            stringResource(R.string.media_type_video)
+                        } else {
+                            stringResource(R.string.media_type_photo)
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
                     )
+
+                    // Video overlay: play icon + duration
+                    if (record.mediaType == MediaType.VIDEO) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.3f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Filled.PlayArrow,
+                                contentDescription = stringResource(R.string.media_play_video),
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+
+                        // Duration badge
+                        record.durationMillis?.let { duration ->
+                            if (duration > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.6f),
+                                            RoundedCornerShape(4.dp),
+                                        )
+                                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                                ) {
+                                    Text(
+                                        text = formatDurationShort(duration),
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
                 } else {
+                    // Fallback icon when file not available
                     Icon(
-                        Icons.Filled.Image,
-                        contentDescription = stringResource(R.string.media_type_photo),
+                        imageVector = if (record.mediaType == MediaType.VIDEO) {
+                            Icons.Filled.PlayArrow
+                        } else {
+                            Icons.Filled.PhotoLibrary
+                        },
+                        contentDescription = if (record.mediaType == MediaType.VIDEO) {
+                            stringResource(R.string.media_type_video)
+                        } else {
+                            stringResource(R.string.media_type_photo)
+                        },
                         tint = FitLogTextSecondary,
                         modifier = Modifier.size(24.dp),
                     )
@@ -308,6 +372,13 @@ private fun TypeBadge(text: String) {
             color = FitLogAccent,
         )
     }
+}
+
+private fun formatDurationShort(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }
 
 private val dateFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm")

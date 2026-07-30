@@ -364,7 +364,11 @@ fun FitLogNavHost(
         ) {
             FitLogCameraScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onPhotoSaved = { /* navigate to detail if needed */ },
+                onMediaSaved = { mediaId ->
+                    navController.navigate(Routes.mediaDetail(mediaId)) {
+                        popUpTo(Routes.CAMERA) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Routes.NUTRITION) {

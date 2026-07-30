@@ -1,13 +1,14 @@
 package com.example.fitlog.feature.media
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +23,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -37,19 +38,34 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import coil.compose.AsyncImage
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
@@ -60,6 +76,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.data.repository.MediaRecord
+import com.example.fitlog.domain.media.MediaType
 import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -182,8 +199,11 @@ fun MediaDetailScreen(
                         .padding(innerPadding)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    // Photo preview
-                    MediaPhotoPreview(record = record)
+                    // Media display (photo or video)
+                    MediaContentView(
+                        record = record,
+                        viewModel = viewModel,
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -199,7 +219,7 @@ fun MediaDetailScreen(
                         )
                         MetadataRow(
                             label = stringResource(R.string.media_detail_type),
-                            value = if (record.mediaType.name == "PHOTO") {
+                            value = if (record.mediaType == MediaType.PHOTO) {
                                 stringResource(R.string.media_detail_photo)
                             } else {
                                 stringResource(R.string.media_detail_video)
@@ -209,10 +229,22 @@ fun MediaDetailScreen(
                             label = stringResource(R.string.media_detail_size),
                             value = formatFileSize(record.sizeBytes),
                         )
+                        if (record.mediaType == MediaType.VIDEO && record.durationMillis != null) {
+                            MetadataRow(
+                                label = stringResource(R.string.media_detail_duration),
+                                value = formatDurationDisplay(record.durationMillis),
+                            )
+                        }
                         record.poseTag?.let { pose ->
                             MetadataRow(
                                 label = stringResource(R.string.media_detail_pose),
                                 value = pose.name,
+                            )
+                        }
+                        if (record.width != null && record.height != null) {
+                            MetadataRow(
+                                label = "Resolution",
+                                value = "${record.width} x ${record.height}",
                             )
                         }
                     }
@@ -259,35 +291,142 @@ fun MediaDetailScreen(
     }
 }
 
+// ── Media Content View ────────────────────────────────────────────────────────
+
 @Composable
-private fun MediaPhotoPreview(record: MediaRecord) {
+private fun MediaContentView(
+    record: MediaRecord,
+    viewModel: MediaDetailViewModel,
+) {
+    val context = LocalContext.current
+
+    if (record.mediaType == MediaType.VIDEO) {
+        // ── Video playback via Media3 ExoPlayer ─────────────────────────────
+        val file = remember(record.relativePath) {
+            try { viewModel.resolveFile() } catch (_: Exception) { null }
+        }
+
+        if (file != null && file.exists()) {
+            val exoPlayer = remember {
+                ExoPlayer.Builder(context).build().apply {
+                    setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
+                    prepare()
+                    playWhenReady = true
+                }
+            }
+
+            DisposableEffect(Unit) {
+                onDispose {
+                    exoPlayer.release()
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black),
+            ) {
+                AndroidView(
+                    factory = { ctx ->
+                        PlayerView(ctx).apply {
+                            player = exoPlayer
+                            useController = true
+                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                )
+            }
+        } else {
+            // File missing
+            MediaPlaceholder(
+                text = stringResource(R.string.media_file_unavailable),
+            )
+        }
+    } else {
+        // ── Photo with pinch-to-zoom via Coil ───────────────────────────────
+        val file = remember(record.relativePath) {
+            try { viewModel.resolveFile() } catch (_: Exception) { null }
+        }
+
+        if (file != null && file.exists()) {
+            PhotoWithZoom(file = file)
+        } else {
+            MediaPlaceholder(
+                text = stringResource(R.string.media_file_unavailable),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhotoWithZoom(file: File) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(4f / 3f)
             .clip(RoundedCornerShape(12.dp))
-            .background(FitLogSurfaceVariant),
+            .background(FitLogSurfaceVariant)
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, zoom, _ ->
+                    scale = (scale * zoom).coerceIn(0.5f, 5f)
+                    offsetX += pan.x
+                    offsetY += pan.y
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
-        // Show image icon as placeholder since actual bitmap loading
-        // would require a proper image loading library call.
-        // In production, use Coil: AsyncImage(model = File(relativePath), ...)
-        Icon(
-            Icons.Filled.Image,
+        AsyncImage(
+            model = file,
             contentDescription = stringResource(R.string.media_detail_photo),
-            tint = FitLogTextSecondary,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offsetX,
+                    translationY = offsetY,
+                ),
+            contentScale = ContentScale.Fit,
         )
+
+        // Double-tap to reset zoom
         Text(
-            text = record.relativePath.substringAfterLast("/"),
-            style = MaterialTheme.typography.bodySmall,
-            color = FitLogTextSecondary,
+            text = stringResource(R.string.camera_photo_mode),
+            color = Color.White.copy(alpha = 0.5f),
+            style = MaterialTheme.typography.labelSmall,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(8.dp),
         )
     }
 }
+
+@Composable
+private fun MediaPlaceholder(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(FitLogSurfaceVariant),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = FitLogTextSecondary,
+        )
+    }
+}
+
+// ── Metadata ──────────────────────────────────────────────────────────────────
 
 @Composable
 private fun MetadataRow(
@@ -315,6 +454,8 @@ private fun MetadataRow(
         )
     }
 }
+
+// ── Note Section ──────────────────────────────────────────────────────────────
 
 @Composable
 private fun NoteSection(
@@ -391,6 +532,8 @@ private fun NoteSection(
     }
 }
 
+// ── Share ─────────────────────────────────────────────────────────────────────
+
 private fun shareMedia(context: android.content.Context, viewModel: MediaDetailViewModel) {
     val file = viewModel.resolveFile() ?: return
     val record = viewModel.uiState.value.record ?: return
@@ -411,6 +554,8 @@ private fun shareMedia(context: android.content.Context, viewModel: MediaDetailV
     }
 }
 
+// ── Formatting ────────────────────────────────────────────────────────────────
+
 private val detailDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
 private fun formatDetailDate(timestamp: Long): String {
@@ -425,4 +570,11 @@ private fun formatFileSize(bytes: Long): String {
         bytes < 1024 * 1024 -> "%.1f KB".format(bytes / 1024.0)
         else -> "%.1f MB".format(bytes / (1024.0 * 1024.0))
     }
+}
+
+private fun formatDurationDisplay(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }

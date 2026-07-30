@@ -105,6 +105,11 @@ class MediaLibraryViewModel @Inject constructor(
         }
     }
 
+    /** Resolves the relative path to an absolute File for image loading. */
+    fun resolveFile(relativePath: String): java.io.File {
+        return mediaRepository.resolveFile(relativePath)
+    }
+
     private fun applyFilters() {
         val state = _uiState.value
         var filtered = state.allRecords

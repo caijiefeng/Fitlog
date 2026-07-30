@@ -11,10 +11,14 @@ import com.example.fitlog.data.repository.MediaRepository
 import com.example.fitlog.domain.media.MediaType
 import com.example.fitlog.domain.media.ProgressPose
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -35,7 +39,52 @@ enum class TimerOption(val seconds: Long) {
 }
 
 /**
+ * Visual state for the on-screen focus indicator ring.
+ *
+ * @property x Normalised horizontal coordinate (0..1) of the tap point.
+ * @property y Normalised vertical coordinate (0..1) of the tap point.
+ * @property isVisible Whether the ring should be drawn.
+ * @property isSuccess `true` when the autofocus operation succeeded.
+ */
+data class FocusIndicatorState(
+    val x: Float = 0f,
+    val y: Float = 0f,
+    val isVisible: Boolean = false,
+    val isSuccess: Boolean = true,
+)
+
+/**
+ * Recording state for video mode.
+ */
+sealed interface RecordingState {
+    /** No recording is active or pending. */
+    data object Idle : RecordingState
+
+    /** Recording is starting (engine is being prepared). */
+    data object Starting : RecordingState
+
+    /** Video is actively being recorded. */
+    data object Recording : RecordingState
+
+    /** Recording has stopped, file is being finalized. */
+    data object Finalizing : RecordingState
+
+    /** Recording is complete and ready for preview. */
+    data class Preview(
+        val file: File,
+        val uri: Uri,
+        val pending: AppMediaStorage.PendingMedia,
+    ) : RecordingState
+
+    /** An error occurred. */
+    data class Error(val message: String) : RecordingState
+}
+
+/**
  * UI state for the camera screen.
+ *
+ * Zoom and exposure fields are driven by the engine's [CameraCapabilities]
+ * flow so the UI always reflects the real hardware range.
  */
 data class CameraUiState(
     val isLoading: Boolean = false,
@@ -43,8 +92,16 @@ data class CameraUiState(
     val capturedFilePending: AppMediaStorage.PendingMedia? = null,
     val flashMode: FlashMode = FlashMode.OFF,
     val timerOption: TimerOption = TimerOption.OFF,
-    val zoom: Float = 0f, // linear zoom 0..1
-    val exposure: Int = 0,
+    // --- Zoom (from capabilities) ---
+    val zoomRatio: Float = 1.0f,
+    val minZoomRatio: Float = 1.0f,
+    val maxZoomRatio: Float = 1.0f,
+    // --- Exposure (from capabilities) ---
+    val exposureIndex: Int = 0,
+    val minExposureIndex: Int = 0,
+    val maxExposureIndex: Int = 0,
+    val exposureStepEv: Double = 0.0,
+    // --- Other ---
     val isFrontCamera: Boolean = false,
     val showGrid: Boolean = false,
     val isCapturing: Boolean = false,
@@ -55,6 +112,12 @@ data class CameraUiState(
     val workoutSessionId: Long? = null,
     val bodyMeasurementId: Long? = null,
     val checkInId: Long? = null,
+    val focusState: FocusIndicatorState = FocusIndicatorState(),
+    // --- Video mode ---
+    val isVideoMode: Boolean = false,
+    val recordingState: RecordingState = RecordingState.Idle,
+    val recordingDurationMillis: Long = 0L,
+    val micEnabled: Boolean = false,
 )
 
 @HiltViewModel
@@ -69,6 +132,11 @@ class FitLogCameraViewModel @Inject constructor(
 
     /** The CameraEngine is set externally by the screen (Hilt cannot inject it). */
     var cameraEngine: CameraEngine? = null
+        set(value) {
+            field = value
+            // Start observing capabilities as soon as the engine is provided
+            value?.let { observeCapabilities(it) }
+        }
 
     // Parse navigation arguments from SavedStateHandle
     private val categoryParam: String? = savedStateHandle.get<String>("category")
@@ -99,6 +167,28 @@ class FitLogCameraViewModel @Inject constructor(
         )
     }
 
+    // ── Capabilities observation ────────────────────────────────────────────────
+
+    /**
+     * Collects the engine's [CameraCapabilities] flow and applies every
+     * emission to [CameraUiState].
+     */
+    private fun observeCapabilities(engine: CameraEngine) {
+        viewModelScope.launch {
+            engine.capabilities.collect { caps ->
+                _uiState.value = _uiState.value.copy(
+                    zoomRatio = caps.currentZoomRatio,
+                    minZoomRatio = caps.minZoomRatio,
+                    maxZoomRatio = caps.maxZoomRatio,
+                    exposureIndex = caps.currentExposureIndex,
+                    minExposureIndex = caps.minExposureIndex,
+                    maxExposureIndex = caps.maxExposureIndex,
+                    exposureStepEv = caps.exposureStepEv,
+                )
+            }
+        }
+    }
+
     // ── Camera engine delegation ──────────────────────────────────────────────
 
     fun bindPreview(previewView: androidx.camera.view.PreviewView) {
@@ -115,6 +205,22 @@ class FitLogCameraViewModel @Inject constructor(
 
     fun releaseCamera() {
         cameraEngine?.release()
+    }
+
+    // ── Mode switching ────────────────────────────────────────────────────────
+
+    /**
+     * Toggles between photo and video mode. Updates the engine's mode flag
+     * so the next [bindPreview] uses the correct use cases.
+     */
+    fun toggleMode() {
+        val current = _uiState.value.isVideoMode
+        _uiState.value = _uiState.value.copy(
+            isVideoMode = !current,
+            recordingState = RecordingState.Idle,
+            recordingDurationMillis = 0L,
+        )
+        cameraEngine?.isVideoMode = !current
     }
 
     // ── Flash ─────────────────────────────────────────────────────────────────
@@ -155,26 +261,82 @@ class FitLogCameraViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             isFrontCamera = !_uiState.value.isFrontCamera,
         )
+        // Capabilities will refresh when bindPreview is called by the screen.
+    }
+
+    // ── Mic toggle (video mode) ───────────────────────────────────────────────
+
+    fun toggleMic() {
+        val newState = !_uiState.value.micEnabled
+        _uiState.value = _uiState.value.copy(micEnabled = newState)
+        cameraEngine?.micEnabled = newState
     }
 
     // ── Zoom ──────────────────────────────────────────────────────────────────
 
-    fun setZoom(ratio: Float) {
-        cameraEngine?.setZoom(ratio)
-        _uiState.value = _uiState.value.copy(zoom = ratio)
+    /**
+     * Sets the zoom ratio on the engine and updates [CameraUiState.zoomRatio].
+     * The value is clamped to the current hardware range before being sent.
+     */
+    fun setZoomRatio(ratio: Float) {
+        val state = _uiState.value
+        val clamped = ratio.coerceIn(state.minZoomRatio, state.maxZoomRatio)
+        _uiState.value = state.copy(zoomRatio = clamped)
+        viewModelScope.launch {
+            cameraEngine?.setZoomRatio(clamped)
+        }
     }
 
     // ── Exposure ──────────────────────────────────────────────────────────────
 
+    /**
+     * Sets the exposure compensation index on the engine.
+     */
     fun setExposure(index: Int) {
-        cameraEngine?.setExposure(index)
-        _uiState.value = _uiState.value.copy(exposure = index)
+        val state = _uiState.value
+        _uiState.value = state.copy(exposureIndex = index)
+        viewModelScope.launch {
+            cameraEngine?.setExposure(index)
+        }
+    }
+
+    /**
+     * Returns the exposure value (EV) as a formatted string.
+     * EV = exposureIndex * exposureStepEv.
+     */
+    fun evDisplay(): String {
+        val state = _uiState.value
+        if (state.exposureStepEv == 0.0) return "0.0"
+        val ev = state.exposureIndex * state.exposureStepEv
+        return "%.1f".format(ev)
     }
 
     // ── Focus ─────────────────────────────────────────────────────────────────
 
+    /**
+     * Triggers autofocus at the given normalised viewport coordinates.
+     * Updates [FocusIndicatorState] with the result, then auto-clears after
+     * 1.5 seconds so the UI ring fades out.
+     */
     fun focus(x: Float, y: Float) {
-        cameraEngine?.focus(x, y)
+        _uiState.value = _uiState.value.copy(
+            focusState = FocusIndicatorState(x = x, y = y, isVisible = true),
+        )
+        viewModelScope.launch {
+            val result = cameraEngine?.focus(x, y)
+            _uiState.value = _uiState.value.copy(
+                focusState = FocusIndicatorState(
+                    x = x,
+                    y = y,
+                    isVisible = true,
+                    isSuccess = result?.isSuccess == true,
+                ),
+            )
+            delay(1500)
+            _uiState.value = _uiState.value.copy(
+                focusState = FocusIndicatorState(),
+            )
+        }
     }
 
     // ── Photo capture ─────────────────────────────────────────────────────────
@@ -197,8 +359,7 @@ class FitLogCameraViewModel @Inject constructor(
     private fun startTimerAndCapture(seconds: Long) {
         _uiState.value = _uiState.value.copy(isCapturing = true)
         viewModelScope.launch {
-            // Simple countdown: wait for the specified seconds
-            kotlinx.coroutines.delay(seconds * 1000)
+            delay(seconds * 1000)
             capturePhotoNow()
         }
     }
@@ -212,36 +373,20 @@ class FitLogCameraViewModel @Inject constructor(
                 // Create pending file
                 val pending = mediaStorage.createPendingPhoto("image/jpeg")
 
-                // Capture
+                // Capture to the pending file
                 val result = cameraEngine?.capturePhoto(pending.pendingFile)
 
                 if (result != null) {
-                    // Commit the pending file
-                    val relativePath = mediaStorage.commitPendingMedia(pending)
-                    val uri = Uri.fromFile(pending.finalFile)
+                    // Do NOT commit yet — wait for user confirmation.
+                    // Show preview using the pending file directly.
+                    val uri = Uri.fromFile(pending.pendingFile)
 
                     _uiState.value = _uiState.value.copy(
                         isCapturing = false,
                         pictureTaken = true,
                         photoUri = uri,
-                        capturedFilePending = null,
+                        capturedFilePending = pending,
                     )
-
-                    // Save to repository
-                    val record = MediaRecord(
-                        mediaType = MediaType.PHOTO,
-                        relativePath = relativePath,
-                        mimeType = "image/jpeg",
-                        capturedAt = System.currentTimeMillis(),
-                        date = java.time.LocalDate.now().toEpochDay(),
-                        sizeBytes = mediaStorage.calculateSize(relativePath),
-                        category = currentState.category,
-                        poseTag = currentState.poseTag,
-                        workoutSessionId = currentState.workoutSessionId,
-                        bodyMeasurementId = currentState.bodyMeasurementId,
-                        checkInId = currentState.checkInId,
-                    )
-                    mediaRepository.save(record)
                 } else {
                     // Capture failed, discard pending file
                     mediaStorage.discardPendingMedia(pending)
@@ -259,20 +404,248 @@ class FitLogCameraViewModel @Inject constructor(
         }
     }
 
-    // ── Retake / Confirm ──────────────────────────────────────────────────────
+    // ── Video recording ───────────────────────────────────────────────────────
 
+    private var recordingTimerJob: Job? = null
+    private var videoPendingMedia: AppMediaStorage.PendingMedia? = null
+
+    /**
+     * Starts video recording. Creates a pending video file, sets up the engine,
+     * and begins the recording duration timer.
+     */
+    fun startVideoRecording() {
+        if (_uiState.value.recordingState is RecordingState.Recording) return
+        if (_uiState.value.recordingState is RecordingState.Starting) return
+
+        _uiState.value = _uiState.value.copy(
+            recordingState = RecordingState.Starting,
+            error = null,
+        )
+
+        viewModelScope.launch {
+            try {
+                val pending = mediaStorage.createPendingVideo("video/mp4")
+                videoPendingMedia = pending
+                cameraEngine?.startVideo(pending.pendingFile)
+
+                _uiState.value = _uiState.value.copy(
+                    recordingState = RecordingState.Recording,
+                    recordingDurationMillis = 0L,
+                )
+
+                // Start the duration timer
+                startRecordingTimer()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    recordingState = RecordingState.Error(
+                        e.message ?: "Failed to start recording"
+                    ),
+                    error = e.message ?: "Failed to start recording",
+                )
+            }
+        }
+    }
+
+    /**
+     * Stops video recording, waits for the engine to finalize the file,
+     * validates the result, and transitions to preview state.
+     */
+    fun stopVideoRecording() {
+        if (_uiState.value.recordingState !is RecordingState.Recording) return
+
+        _uiState.value = _uiState.value.copy(
+            recordingState = RecordingState.Finalizing,
+        )
+
+        // Cancel the timer
+        recordingTimerJob?.cancel()
+        recordingTimerJob = null
+
+        viewModelScope.launch {
+            try {
+                val pending = videoPendingMedia
+                val file = cameraEngine?.stopVideo()
+
+                if (file != null && file.exists() && file.length() > 0L && pending != null) {
+                    // Video was recorded successfully — show preview
+                    val uri = Uri.fromFile(file)
+
+                    _uiState.value = _uiState.value.copy(
+                        photoUri = uri,
+                        pictureTaken = true,
+                        recordingState = RecordingState.Preview(
+                            file = file,
+                            uri = uri,
+                            pending = pending,
+                        ),
+                        recordingDurationMillis = _uiState.value.recordingDurationMillis,
+                    )
+                } else {
+                    // Recording produced no valid file
+                    pending?.let { mediaStorage.discardPendingMedia(it) }
+                    videoPendingMedia = null
+                    _uiState.value = _uiState.value.copy(
+                        recordingState = RecordingState.Error("Recording produced no file"),
+                        error = "Recording produced no file",
+                    )
+                }
+            } catch (e: Exception) {
+                videoPendingMedia?.let { mediaStorage.discardPendingMedia(it) }
+                videoPendingMedia = null
+                _uiState.value = _uiState.value.copy(
+                    recordingState = RecordingState.Error(
+                        e.message ?: "Failed to stop recording"
+                    ),
+                    error = e.message ?: "Failed to stop recording",
+                )
+            }
+        }
+    }
+
+    /**
+     * Starts a coroutine that updates [CameraUiState.recordingDurationMillis]
+     * every second while recording is active.
+     */
+    private fun startRecordingTimer() {
+        recordingTimerJob?.cancel()
+        recordingTimerJob = viewModelScope.launch {
+            var elapsed = 0L
+            while (true) {
+                delay(1000)
+                elapsed += 1000L
+                _uiState.value = _uiState.value.copy(
+                    recordingDurationMillis = elapsed,
+                )
+            }
+        }
+    }
+
+    // ── Retake / Confirm (photo + video) ─────────────────────────────────────
+
+    /**
+     * Discards the current pending media and returns to the viewfinder.
+     */
     fun retakePhoto() {
+        // Discard any pending media
+        val photoPending = _uiState.value.capturedFilePending
+        if (photoPending != null) {
+            mediaStorage.discardPendingMedia(photoPending)
+        }
+
+        // Discard video pending if in video preview
+        val recordingState = _uiState.value.recordingState
+        if (recordingState is RecordingState.Preview) {
+            try {
+                recordingState.pending.pendingFile.delete()
+            } catch (_: Exception) {}
+        }
+
+        // Clear any stored video pending
+        val vPending = videoPendingMedia
+        if (vPending != null) {
+            try {
+                mediaStorage.discardPendingMedia(vPending)
+            } catch (_: Exception) {}
+            videoPendingMedia = null
+        }
+
         _uiState.value = _uiState.value.copy(
             pictureTaken = false,
             photoUri = null,
             capturedFilePending = null,
+            recordingState = RecordingState.Idle,
+            recordingDurationMillis = 0L,
         )
     }
 
-    fun confirmPhoto(): MediaRecord? {
-        // The record was already saved in capturePhotoNow.
-        // Return the last captured record URI for navigation.
+    /**
+     * Commits the pending media to permanent storage and saves the record to
+     * the database.
+     *
+     * @return The [MediaRecord]'s ID after saving, or `null` if there is
+     *         nothing to confirm.
+     */
+    fun confirmPhoto(): Long? {
+        val currentState = _uiState.value
+
+        // Handle photo confirmation
+        val photoPending = currentState.capturedFilePending
+        if (photoPending != null) {
+            return commitPendingAndSave(
+                pending = photoPending,
+                mediaType = MediaType.PHOTO,
+                mimeType = "image/jpeg",
+            )
+        }
+
+        // Handle video confirmation
+        val recordingState = currentState.recordingState
+        if (recordingState is RecordingState.Preview) {
+            return commitPendingAndSave(
+                pending = recordingState.pending,
+                mediaType = MediaType.VIDEO,
+                mimeType = "video/mp4",
+            )
+        }
+
         return null
+    }
+
+    /**
+     * Commits a pending file, saves a [MediaRecord] to the database, and
+     * returns the new record's ID.
+     */
+    private fun commitPendingAndSave(
+        pending: AppMediaStorage.PendingMedia,
+        mediaType: MediaType,
+        mimeType: String,
+    ): Long? {
+        val currentState = _uiState.value
+
+        return try {
+            val relativePath = mediaStorage.commitPendingMedia(pending)
+
+            // Clear the stored video pending reference
+            if (mediaType == MediaType.VIDEO) {
+                videoPendingMedia = null
+            }
+
+            val record = MediaRecord(
+                mediaType = mediaType,
+                relativePath = relativePath,
+                mimeType = mimeType,
+                capturedAt = System.currentTimeMillis(),
+                date = java.time.LocalDate.now().toEpochDay(),
+                sizeBytes = mediaStorage.calculateSize(relativePath),
+                category = currentState.category,
+                poseTag = currentState.poseTag,
+                workoutSessionId = currentState.workoutSessionId,
+                bodyMeasurementId = currentState.bodyMeasurementId,
+                checkInId = currentState.checkInId,
+            )
+
+            val savedRecord = kotlinx.coroutines.runBlocking { mediaRepository.save(record) }
+
+            // Reset UI state
+            _uiState.value = _uiState.value.copy(
+                pictureTaken = false,
+                photoUri = null,
+                capturedFilePending = null,
+                recordingState = RecordingState.Idle,
+                recordingDurationMillis = 0L,
+            )
+
+            savedRecord.id
+        } catch (e: Exception) {
+            // Commit or save failed — try to clean up
+            try {
+                mediaStorage.discardPendingMedia(pending)
+            } catch (_: Exception) {}
+            _uiState.value = _uiState.value.copy(
+                error = e.message ?: "Failed to save media",
+            )
+            null
+        }
     }
 
     // ── Cleanup ───────────────────────────────────────────────────────────────
@@ -281,8 +654,54 @@ class FitLogCameraViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(error = null)
     }
 
+    /**
+     * Formats the recording duration as MM:SS.
+     */
+    fun formatDuration(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return "%02d:%02d".format(minutes, seconds)
+    }
+
     override fun onCleared() {
         super.onCleared()
+
+        // Stop recording if active
+        recordingTimerJob?.cancel()
+        recordingTimerJob = null
+
+        // Stop video recording in background
+        viewModelScope.launch {
+            try {
+                cameraEngine?.stopVideo()
+            } catch (_: Exception) {}
+        }
+
+        // Discard any pending media
+        val photoPending = _uiState.value.capturedFilePending
+        if (photoPending != null) {
+            try {
+                mediaStorage.discardPendingMedia(photoPending)
+            } catch (_: Exception) {}
+        }
+
+        // Discard video pending if in preview
+        val recordingState = _uiState.value.recordingState
+        if (recordingState is RecordingState.Preview) {
+            try {
+                recordingState.pending.pendingFile.delete()
+            } catch (_: Exception) {}
+        }
+
+        // Discard stored video pending media
+        val vPending = videoPendingMedia
+        if (vPending != null) {
+            try {
+                mediaStorage.discardPendingMedia(vPending)
+            } catch (_: Exception) {}
+        }
+
         cameraEngine?.release()
     }
 }
