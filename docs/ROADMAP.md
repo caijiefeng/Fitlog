@@ -95,19 +95,21 @@
 
 ---
 
-## V5 — Nutrition, Media & Data Portability ✅ (MVP Beta)
+## V5 — Nutrition, Media & Data Portability
 
-**Status**: Beta complete
+**Status**: V5.2 Complete
 
-### Completed
-- **Nutrition tracking**: FoodRecord entity, meal logging (breakfast/lunch/dinner/snack), daily calorie/macro totals
-- **TDEE calculator**: Mifflin-St Jeor BMR, activity-level TDEE, goal-adjusted targets
-- **CameraX integration**: photo and video capture with exposure, focus, zoom controls
-- **Media management**: MediaRecord entity, app media storage, gallery, comparison view
-- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins (SAF, UTF-8 BOM, RFC 4180)
-- **Backup/Restore**: Full ZIP backup with manifest.json (version, SHA-256 checksum, row counts), db.json, media files. Pre-import backup, replace-strategy import with rollback
+### V5 Base (Complete)
+- **Nutrition tracking**: FoodRecord entity, meal logging (breakfast/lunch/dinner/snack), daily calorie/macro totals — Complete
+- **TDEE calculator**: Mifflin-St Jeor BMR, activity-level TDEE, goal-adjusted targets — Complete
 
-### Remaining / Post-Beta Items
+### V5.2 (Complete)
+- **CameraX integration**: photo and video capture with exposure, focus, zoom controls — Beta (needs device testing)
+- **Media management**: MediaRecord entity, app media storage, gallery, comparison view — Complete
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins (SAF, UTF-8 BOM, RFC 4180) — Beta (needs device testing)
+- **Backup/Restore**: Full ZIP backup with manifest.json (version, SHA-256 checksum, row counts), db.json, media files. Pre-import backup, replace-strategy import with rollback — Beta (needs device testing)
+
+### Remaining Items
 - Food database (common foods + custom, barcode scanning)
 - Per-meal calorie/macro budgets (MealNutritionTarget)
 - Meal nutrition target entity (DailyNutritionTarget → per-meal budgets)
@@ -115,7 +117,7 @@
 - Export selected media to system gallery
 - PersonalRecord tracking (1RM, max volume, max reps)
 
-**Tests**: 50+ unit tests passing. CSV escape verification, manifest JSON round-trip, import validation (version, checksum, corrupt archive).
+**Tests**: 55+ unit tests passing. CSV escape verification (Chinese, commas, quotes, newlines, nulls, ISO dates), manifest JSON round-trip, import validation (version, checksum, corrupt archive, missing files).
 
 ---
 

@@ -4,7 +4,7 @@ A local-first, privacy-focused strength training tracker for Android.
 
 ## Status
 
-**V5 (MVP Beta)** — Exercise library, templates, workout execution, set logging, rest timer, calendar, scheduling, reminders, check-ins, user profile, body measurements, nutrition tracking with TDEE calculator, CameraX photo/video, progress photos, data export, and backup/restore. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan.
+**V5.2 (in progress)** — Building on the V5 base with CameraX, media management, data export, and backup/restore. The V5 base (exercise library, templates, workout execution, nutrition tracking, etc.) is complete. See [ROADMAP.md](docs/ROADMAP.md) for the full version plan.
 
 ## Tech Stack
 
@@ -50,7 +50,7 @@ A local-first, privacy-focused strength training tracker for Android.
 ./gradlew connectedDebugAndroidTest
 ```
 
-## Current Features (V5 — MVP Beta)
+## Current Features
 
 - 5-tab bottom navigation: 今日, 计划, 记录, 进度, 我的
 - Forced dark theme (black + white + single accent)
@@ -67,11 +67,11 @@ A local-first, privacy-focused strength training tracker for Android.
 - **User profile**: gender, birthday, height, activity level, goal type
 - **Body measurements**: weight, body fat, muscle, waist tracking with trends
 - **Nutrition**: meal logging, calorie/macro tracking, TDEE-based targets
-- **Progress photos**: camera capture, gallery, comparison view
+- **Progress photos**: camera capture, gallery, comparison view *(V5.2 in progress)*
 - **Trend charts**: weight, body fat, waist, calories, protein, training volume
 - **Goal planning**: target body fat, weight change, timeline estimation
-- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins via SAF
-- **Backup/Restore**: full ZIP backup with manifest and SHA-256 verification
+- **Data export**: CSV export for workouts, body measurements, nutrition, check-ins via SAF *(V5.2 in progress)*
+- **Backup/Restore**: full ZIP backup with manifest and SHA-256 verification *(V5.2 in progress)*
 
 ## Not Yet Implemented
 

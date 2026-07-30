@@ -265,7 +265,15 @@ fun FitLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
-        // Progress photo deferred
+        // Progress photo
+        composable(Routes.BODY_PROGRESS_PHOTO) {
+            com.example.fitlog.feature.body.ProgressPhotoScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCamera = {
+                    navController.navigate(Routes.camera(category = "BODY_PROGRESS"))
+                },
+            )
+        }
         composable(Routes.NUTRITION) {
             NutritionScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -277,6 +285,38 @@ fun FitLogNavHost(
             )
         }
 
-        // ── Camera, media library, media detail (deferred — V5.x) ──────────
+        // ── Camera, media library, media detail ──────────────────────────
+        composable(
+            route = "camera?category={category}&workoutSessionId={workoutSessionId}&bodyMeasurementId={bodyMeasurementId}&checkInId={checkInId}",
+            arguments = listOf(
+                navArgument("category") { type = NavType.StringType; nullable = true; defaultValue = null },
+                navArgument("workoutSessionId") { type = NavType.LongType; nullable = true; defaultValue = null },
+                navArgument("bodyMeasurementId") { type = NavType.LongType; nullable = true; defaultValue = null },
+                navArgument("checkInId") { type = NavType.LongType; nullable = true; defaultValue = null },
+            ),
+        ) {
+            com.example.fitlog.feature.camera.FitLogCameraScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onMediaSaved = { /* handled internally */ },
+                onNavigateToMediaLibrary = { navController.navigate(Routes.MEDIA_LIBRARY) },
+            )
+        }
+        composable(Routes.MEDIA_LIBRARY) {
+            com.example.fitlog.feature.media.MediaLibraryScreen(
+                onNavigateToDetail = { id -> navController.navigate(Routes.mediaDetail(id)) },
+                onNavigateToCamera = { navController.navigate(Routes.camera()) },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.MEDIA_DETAIL,
+            arguments = listOf(navArgument("mediaId") { type = NavType.LongType }),
+        ) {
+            val mediaId = it.arguments?.getLong("mediaId") ?: return@composable
+            com.example.fitlog.feature.media.MediaDetailScreen(
+                mediaId = mediaId,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
     }
 }

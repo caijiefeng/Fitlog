@@ -439,6 +439,18 @@
     <string name="media_association_exercise">动作</string>
     <string name="media_delete_title">删除确认</string>
     <string name="media_delete_message">确定要删除此媒体文件吗？此操作不可撤销。</string>
+    <string name="media_not_found_label">媒体不存在</string>
+    <string name="media_not_found_desc">该媒体文件已被删除或无法访问</string>
+    <string name="media_detail_photo">照片</string>
+    <string name="media_detail_video">视频</string>
+    <string name="media_detail_duration">时长</string>
+    <string name="media_note_add">添加备注</string>
+    <string name="media_note_edit">编辑备注</string>
+    <string name="media_loading_failed">加载失败</string>
+    <string name="media_select_hint">请再选择一张照片进行对比</string>
+    <string name="media_file_unavailable">媒体文件不可用</string>
+    <string name="media_play">播放</string>
+    <string name="media_no_measurement_data">所选日期无身体测量数据</string>
 
     <!-- Progress Photos -->
     <string name="progress_photo_title">身体进度照片</string>
@@ -453,6 +465,15 @@
     <string name="progress_photo_bf_change">体脂变化</string>
     <string name="progress_photo_bf_format" formatted="false">%s%.1f%%</string>
     <string name="progress_photo_no_pose">未标记姿势</string>
+    <string name="progress_photo_select_hint">请再选择一张照片进行对比</string>
+    <string name="progress_photo_before">之前</string>
+    <string name="progress_photo_after">之后</string>
+    <string name="progress_photo_close_comparison">关闭对比</string>
+    <string name="progress_photo_pose_front">正面</string>
+    <string name="progress_photo_pose_side_left">左侧</string>
+    <string name="progress_photo_pose_side_right">右侧</string>
+    <string name="progress_photo_pose_back">背面</string>
+    <string name="progress_photo_pose_other">其他</string>
 
     <!-- Trend Charts -->
     <string name="trend_range_7d">7天</string>
