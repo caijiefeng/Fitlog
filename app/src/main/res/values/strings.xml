@@ -389,9 +389,9 @@
     <string name="media_library_title">媒体库</string>
     <string name="media_category_all">全部</string>
     <string name="media_category_body_progress">身体进度</string>
-    <string name="media_category_workout_form">动作姿势</string>
-    <string name="media_category_meal">饮食</string>
-    <string name="media_category_general">通用</string>
+    <string name="media_category_workout_form">训练动作</string>
+    <string name="media_category_meal">饮食记录</string>
+    <string name="media_category_general">普通记录</string>
     <string name="media_sort">排序</string>
     <string name="media_favorites_only">仅收藏</string>
     <string name="media_empty_title">还没有媒体文件</string>
@@ -536,6 +536,30 @@
     <string name="export_success">导出成功</string>
     <string name="export_error">导出失败</string>
     <string name="import_failed_format">导入失败: %s</string>
+
+    <!-- Media Library - Multi-select -->
+    <string name="media_select_count" formatted="false">已选择 %d 项</string>
+    <string name="media_batch_delete_title">批量删除</string>
+    <string name="media_batch_delete_message" formatted="false">确定删除选中的 %d 个文件吗？删除后无法恢复。</string>
+    <string name="media_batch_share">批量分享</string>
+    <string name="media_batch_export">导出到系统相册</string>
+    <string name="media_export_success">已保存到系统相册</string>
+    <string name="media_export_error">导出失败</string>
+
+    <!-- Media Detail -->
+    <string name="media_view_all">查看全部照片与视频</string>
+    <string name="media_storage_location">存储位置</string>
+    <string name="media_save_to_gallery">保存副本到系统相册</string>
+    <string name="media_save_to_gallery_success">副本已保存到系统相册</string>
+
+    <!-- Record Screen -->
+    <string name="record_entry_media">照片与视频</string>
+
+    <!-- Media Category Labels (list display) -->
+    <string name="media_category_body_progress_label">身体进度</string>
+    <string name="media_category_workout_form_label">训练动作</string>
+    <string name="media_category_meal_label">饮食记录</string>
+    <string name="media_category_general_label">普通记录</string>
 
     <!-- Media Cleanup -->
     <string name="media_stats_title">媒体存储</string>

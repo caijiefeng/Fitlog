@@ -1,5 +1,10 @@
 package com.example.fitlog.feature.media
 
+import android.content.ContentValues
+import android.content.Context
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitlog.data.repository.MediaRecord
@@ -9,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileInputStream
 import javax.inject.Inject
 
 data class MediaDetailUiState(
@@ -19,6 +26,9 @@ data class MediaDetailUiState(
     val editNoteText: String = "",
     val showDeleteConfirm: Boolean = false,
     val deleteCompleted: Boolean = false,
+    val saveToGalleryInProgress: Boolean = false,
+    val saveToGallerySuccess: Boolean = false,
+    val saveToGalleryError: String? = null,
 )
 
 @HiltViewModel
@@ -48,6 +58,88 @@ class MediaDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /** Returns the absolute file path for display in storage info. */
+    fun getStoragePath(): String? {
+        val record = _uiState.value.record ?: return null
+        return try {
+            mediaRepository.resolveFile(record.relativePath).absolutePath
+        } catch (_: Exception) { null }
+    }
+
+    /** Exports the current media file to the system gallery via MediaStore. */
+    fun saveCopyToGallery(context: Context) {
+        val record = _uiState.value.record ?: return
+        _uiState.value = _uiState.value.copy(
+            saveToGalleryInProgress = true,
+            saveToGalleryError = null,
+        )
+        viewModelScope.launch {
+            try {
+                val file = mediaRepository.resolveFile(record.relativePath)
+                if (!file.exists()) {
+                    _uiState.value = _uiState.value.copy(
+                        saveToGalleryInProgress = false,
+                        saveToGalleryError = "File not found",
+                    )
+                    return@launch
+                }
+
+                val relativePath = if (record.mediaType.name.startsWith("VIDEO")) {
+                    Environment.DIRECTORY_MOVIES + File.separator + "FitLog"
+                } else {
+                    Environment.DIRECTORY_PICTURES + File.separator + "FitLog"
+                }
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, record.mimeType)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    }
+                }
+
+                val collectionUri = if (record.mediaType.name.startsWith("VIDEO")) {
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+
+                val uri = context.contentResolver.insert(collectionUri, contentValues)
+                if (uri != null) {
+                    context.contentResolver.openOutputStream(uri)?.use { output ->
+                        FileInputStream(file).use { input ->
+                            input.copyTo(output)
+                        }
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        contentValues.clear()
+                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        context.contentResolver.update(uri, contentValues, null, null)
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        saveToGalleryInProgress = false,
+                        saveToGallerySuccess = true,
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        saveToGalleryInProgress = false,
+                        saveToGalleryError = "Failed to create gallery entry",
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    saveToGalleryInProgress = false,
+                    saveToGalleryError = e.message ?: "Export failed",
+                )
+            }
+        }
+    }
+
+    fun dismissSaveToGallerySuccess() {
+        _uiState.value = _uiState.value.copy(saveToGallerySuccess = false)
     }
 
     fun toggleFavorite() {

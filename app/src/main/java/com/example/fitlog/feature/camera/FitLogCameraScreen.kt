@@ -102,6 +102,7 @@ fun FitLogCameraScreen(
     viewModel: FitLogCameraViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onMediaSaved: (Long) -> Unit = {},
+    onNavigateToMediaDetail: (Long) -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -216,6 +217,7 @@ fun FitLogCameraScreen(
                 uiState = uiState,
                 viewModel = viewModel,
                 onNavigateBack = { handleBack() },
+                onNavigateToDetail = { onNavigateToMediaDetail(it) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
@@ -233,6 +235,7 @@ private fun CameraViewfinder(
     uiState: CameraUiState,
     viewModel: FitLogCameraViewModel,
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var lastPinchTime by remember { mutableStateOf(0L) }
@@ -410,6 +413,29 @@ private fun CameraViewfinder(
                         stringResource(R.string.camera_grid_on)
                     },
                     tint = Color.White,
+                )
+            }
+        }
+
+        // Recent media thumbnail (bottom-right corner)
+        if (uiState.recentMediaPath != null && !uiState.pictureTaken && !isRecording) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 120.dp)
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
+                    .border(2.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    .clickable {
+                        uiState.recentMediaId?.let { onNavigateToDetail(it) }
+                    },
+            ) {
+                AsyncImage(
+                    model = uiState.recentMediaPath,
+                    contentDescription = "Recent",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
                 )
             }
         }

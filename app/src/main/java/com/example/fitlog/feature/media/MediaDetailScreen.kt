@@ -3,6 +3,7 @@ package com.example.fitlog.feature.media
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -35,6 +37,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -76,10 +80,21 @@ import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.data.repository.MediaRecord
+import com.example.fitlog.domain.media.MediaCategory
 import com.example.fitlog.domain.media.MediaType
 import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+
+// ── Category label helper ────────────────────────────────────────────────────
+
+private fun categoryLabelRes(category: MediaCategory?): Int = when (category) {
+    MediaCategory.BODY_PROGRESS -> R.string.media_category_body_progress
+    MediaCategory.WORKOUT_FORM -> R.string.media_category_workout_form
+    MediaCategory.MEAL -> R.string.media_category_meal
+    MediaCategory.GENERAL -> R.string.media_category_general
+    null -> R.string.media_category_all
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +102,7 @@ fun MediaDetailScreen(
     mediaId: Long,
     viewModel: MediaDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
+    onNavigateToMediaLibrary: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -102,10 +118,29 @@ fun MediaDetailScreen(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.saveToGallerySuccess) {
+        if (uiState.saveToGallerySuccess) {
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.media_save_to_gallery_success),
+            )
+            viewModel.dismissSaveToGallerySuccess()
+        }
+    }
+
     Scaffold(
         topBar = {
             FitLogTopAppBar(
                 title = stringResource(R.string.media_detail_title),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.action_back),
+                        )
+                    }
+                },
                 actions = {
                     if (uiState.record != null && !uiState.isLoading) {
                         IconButton(onClick = { viewModel.toggleFavorite() }) {
@@ -142,6 +177,7 @@ fun MediaDetailScreen(
             )
         },
         containerColor = FitLogBackground,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         when {
             uiState.isLoading -> {
@@ -215,7 +251,7 @@ fun MediaDetailScreen(
                         )
                         MetadataRow(
                             label = stringResource(R.string.media_detail_category),
-                            value = record.category.name,
+                            value = stringResource(categoryLabelRes(record.category)),
                         )
                         MetadataRow(
                             label = stringResource(R.string.media_detail_type),
@@ -260,6 +296,54 @@ fun MediaDetailScreen(
                         onTextChange = { viewModel.updateEditNoteText(it) },
                         onSave = { viewModel.saveNote() },
                         onCancel = { viewModel.cancelEditingNote() },
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Storage location & save to gallery
+                    FitLogCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(R.string.media_storage_location),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = FitLogTextPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = viewModel.getStoragePath()
+                                ?: stringResource(R.string.media_file_unavailable),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = FitLogTextSecondary,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { viewModel.saveCopyToGallery(context) },
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
+                            enabled = !uiState.saveToGalleryInProgress,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            if (uiState.saveToGalleryInProgress) {
+                                CircularProgressIndicator(
+                                    color = FitLogBackground,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            Text(stringResource(R.string.media_save_to_gallery))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // View all media link
+                    Text(
+                        text = stringResource(R.string.media_view_all),
+                        color = FitLogAccent,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .clickable { onNavigateToMediaLibrary() }
+                            .padding(vertical = 8.dp),
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))

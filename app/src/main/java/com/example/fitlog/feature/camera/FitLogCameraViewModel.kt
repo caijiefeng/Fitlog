@@ -118,6 +118,9 @@ data class CameraUiState(
     val recordingState: RecordingState = RecordingState.Idle,
     val recordingDurationMillis: Long = 0L,
     val micEnabled: Boolean = false,
+    // --- Recent media thumbnail ---
+    val recentMediaId: Long? = null,
+    val recentMediaPath: String? = null,
 )
 
 @HiltViewModel
@@ -165,6 +168,27 @@ class FitLogCameraViewModel @Inject constructor(
             bodyMeasurementId = bodyMeasurementIdParam,
             checkInId = checkInIdParam,
         )
+        loadRecentMedia()
+    }
+
+    private fun loadRecentMedia() {
+        viewModelScope.launch {
+            try {
+                val all = mediaRepository.getAll()
+                val mostRecent = all.maxByOrNull { it.capturedAt }
+                if (mostRecent != null) {
+                    val file = mediaRepository.resolveFile(mostRecent.relativePath)
+                    if (file.exists()) {
+                        _uiState.value = _uiState.value.copy(
+                            recentMediaId = mostRecent.id,
+                            recentMediaPath = file.absolutePath,
+                        )
+                    }
+                }
+            } catch (_: Exception) {
+                // Silently ignore — thumbnail is decorative
+            }
+        }
     }
 
     // ── Capabilities observation ────────────────────────────────────────────────

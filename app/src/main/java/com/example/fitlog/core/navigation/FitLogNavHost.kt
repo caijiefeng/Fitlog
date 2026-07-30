@@ -146,6 +146,7 @@ fun FitLogNavHost(
                 onNavigateToWorkoutDetail = { id -> navController.navigate(Routes.workoutDetail(id)) },
                 onNavigateToNutrition = { navController.navigate(Routes.NUTRITION) },
                 onNavigateToBodyMeasurement = { navController.navigate(Routes.BODY_MEASUREMENT) },
+                onNavigateToMedia = { navController.navigate(Routes.MEDIA_LIBRARY) },
             )
         }
         composable(BottomNavItem.Progress.route) { ProgressScreen() }
@@ -153,6 +154,7 @@ fun FitLogNavHost(
             ProfileScreen(
                 onNavigateToBodyProfile = { navController.navigate(Routes.BODY_PROFILE) },
                 onNavigateToDataManagement = { navController.navigate(Routes.DATA_MANAGEMENT) },
+                onNavigateToMedia = { navController.navigate(Routes.MEDIA_LIBRARY) },
             )
         }
 
@@ -365,9 +367,15 @@ fun FitLogNavHost(
             FitLogCameraScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onMediaSaved = { mediaId ->
-                    navController.navigate(Routes.mediaDetail(mediaId)) {
+                    // Navigate to media library first, then detail, so back from
+                    // detail returns to the library instead of the camera/Today.
+                    navController.navigate(Routes.MEDIA_LIBRARY) {
                         popUpTo(Routes.CAMERA) { inclusive = true }
                     }
+                    navController.navigate(Routes.mediaDetail(mediaId))
+                },
+                onNavigateToMediaDetail = { mediaId ->
+                    navController.navigate(Routes.mediaDetail(mediaId))
                 },
             )
         }
@@ -399,6 +407,12 @@ fun FitLogNavHost(
             MediaDetailScreen(
                 mediaId = mediaId,
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToMediaLibrary = {
+                    navController.navigate(Routes.MEDIA_LIBRARY) {
+                        popUpTo(Routes.MEDIA_DETAIL) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
 

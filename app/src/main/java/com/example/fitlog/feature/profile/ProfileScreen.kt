@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,6 +43,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToBodyProfile: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
+    onNavigateToMedia: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -166,6 +168,36 @@ fun ProfileScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = FitLogTextSecondary,
                 )
+            }
+
+            // Media Library
+            FitLogCard(
+                modifier = Modifier.padding(vertical = 4.dp),
+                onClick = onNavigateToMedia,
+            ) {
+                androidx.compose.foundation.layout.Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.PhotoLibrary,
+                        contentDescription = null,
+                        tint = FitLogAccent,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.record_entry_media),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = FitLogTextPrimary,
+                        )
+                        Text(
+                            text = stringResource(R.string.media_library_title),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = FitLogTextSecondary,
+                        )
+                    }
+                }
             }
 
             // About

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -55,6 +56,7 @@ fun RecordScreen(
     onNavigateToWorkoutDetail: (Long) -> Unit = {},
     onNavigateToNutrition: () -> Unit = {},
     onNavigateToBodyMeasurement: () -> Unit = {},
+    onNavigateToMedia: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -88,6 +90,11 @@ fun RecordScreen(
                             icon = Icons.Filled.MonitorWeight,
                             label = stringResource(R.string.record_entry_body),
                             onClick = onNavigateToBodyMeasurement,
+                        )
+                        RecordEntryCard(
+                            icon = Icons.Filled.PhotoLibrary,
+                            label = stringResource(R.string.record_entry_media),
+                            onClick = onNavigateToMedia,
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))

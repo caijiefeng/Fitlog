@@ -1,7 +1,5 @@
 package com.example.fitlog.core.designsystem.component
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -17,7 +15,8 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 fun FitLogTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
-    actions: @Composable RowScope.() -> Unit = {},
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -26,6 +25,7 @@ fun FitLogTopAppBar(
                 color = FitLogTextPrimary,
             )
         },
+        navigationIcon = navigationIcon,
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = FitLogSurface,

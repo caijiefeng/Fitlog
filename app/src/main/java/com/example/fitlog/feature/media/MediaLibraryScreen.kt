@@ -1,7 +1,9 @@
 package com.example.fitlog.feature.media
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +19,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -29,8 +40,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -59,11 +74,22 @@ import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.data.repository.MediaRecord
+import com.example.fitlog.domain.media.MediaCategory
 import com.example.fitlog.domain.media.MediaType
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+// ── Category label helpers ───────────────────────────────────────────────────
+
+private fun categoryLabelRes(category: MediaCategory?): Int = when (category) {
+    MediaCategory.BODY_PROGRESS -> R.string.media_category_body_progress
+    MediaCategory.WORKOUT_FORM -> R.string.media_category_workout_form
+    MediaCategory.MEAL -> R.string.media_category_meal
+    MediaCategory.GENERAL -> R.string.media_category_general
+    null -> R.string.media_category_all
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MediaLibraryScreen(
     viewModel: MediaLibraryViewModel = hiltViewModel(),
@@ -71,14 +97,82 @@ fun MediaLibraryScreen(
     onNavigateToDetail: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show export success snackbar
+    LaunchedEffect(uiState.showBatchExportSuccess) {
+        if (uiState.showBatchExportSuccess) {
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.media_export_success),
+            )
+            viewModel.dismissBatchExportSuccess()
+        }
+    }
 
     Scaffold(
         topBar = {
-            FitLogTopAppBar(
-                title = stringResource(R.string.media_library_title),
-            )
+            if (uiState.isSelectMode) {
+                // Selection mode top bar
+                FitLogTopAppBar(
+                    title = stringResource(R.string.media_select_count, uiState.selectedIds.size),
+                    navigationIcon = {
+                        IconButton(onClick = { viewModel.clearSelection() }) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.action_back),
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            val intent = viewModel.createBatchShareIntent(context)
+                            if (intent != null) {
+                                context.startActivity(
+                                    Intent.createChooser(intent, null)
+                                )
+                            }
+                        }) {
+                            Icon(
+                                Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.media_batch_share),
+                                tint = FitLogTextSecondary,
+                            )
+                        }
+                        IconButton(onClick = {
+                            viewModel.batchExportToGallery(context)
+                        }) {
+                            Icon(
+                                Icons.Filled.SaveAlt,
+                                contentDescription = stringResource(R.string.media_batch_export),
+                                tint = FitLogTextSecondary,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.showBatchDeleteConfirmation() }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = stringResource(R.string.action_delete),
+                                tint = FitLogError,
+                            )
+                        }
+                    },
+                )
+            } else {
+                FitLogTopAppBar(
+                    title = stringResource(R.string.media_library_title),
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.action_back),
+                            )
+                        }
+                    },
+                )
+            }
         },
         containerColor = FitLogBackground,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -148,7 +242,20 @@ fun MediaLibraryScreen(
                                     MediaRowItem(
                                         record = record,
                                         viewModel = viewModel,
-                                        onClick = { onNavigateToDetail(record.id) },
+                                        isSelectMode = uiState.isSelectMode,
+                                        isSelected = record.id in uiState.selectedIds,
+                                        onClick = {
+                                            if (uiState.isSelectMode) {
+                                                viewModel.toggleSelection(record.id)
+                                            } else {
+                                                onNavigateToDetail(record.id)
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (!uiState.isSelectMode) {
+                                                viewModel.enterSelectionMode(record.id)
+                                            }
+                                        },
                                         onFavoriteToggle = { viewModel.toggleFavorite(record) },
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
@@ -160,6 +267,43 @@ fun MediaLibraryScreen(
                 }
             }
         }
+    }
+
+    // Batch delete confirmation dialog
+    if (uiState.showBatchDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissBatchDeleteConfirmation() },
+            title = { Text(stringResource(R.string.media_batch_delete_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.media_batch_delete_message,
+                        uiState.selectedIds.size,
+                    )
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.confirmBatchDelete() },
+                    colors = ButtonDefaults.buttonColors(containerColor = FitLogError),
+                    enabled = !uiState.batchDeleteInProgress,
+                ) {
+                    if (uiState.batchDeleteInProgress) {
+                        CircularProgressIndicator(
+                            color = FitLogBackground,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    } else {
+                        Text(stringResource(R.string.action_delete))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissBatchDeleteConfirmation() }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 
@@ -221,11 +365,15 @@ private fun DateGroupHeader(label: String) {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MediaRowItem(
     record: MediaRecord,
     viewModel: MediaLibraryViewModel,
+    isSelectMode: Boolean,
+    isSelected: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onFavoriteToggle: () -> Unit,
 ) {
     val file = remember(record.relativePath) {
@@ -234,11 +382,30 @@ private fun MediaRowItem(
         } catch (_: Exception) { null }
     }
 
-    FitLogCard(onClick = onClick) {
+    FitLogCard(
+        onClick = null,
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick,
+        ),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Checkbox in select mode
+            if (isSelectMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = FitLogAccent,
+                        uncheckedColor = FitLogTextSecondary,
+                    ),
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+
             // Thumbnail with Coil
             Box(
                 modifier = Modifier
@@ -335,7 +502,7 @@ private fun MediaRowItem(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = record.category.name,
+                        text = stringResource(categoryLabelRes(record.category)),
                         style = MaterialTheme.typography.bodySmall,
                         color = FitLogTextSecondary,
                         maxLines = 1,
@@ -344,15 +511,17 @@ private fun MediaRowItem(
                 }
             }
 
-            // Favorite toggle
-            IconButton(onClick = onFavoriteToggle) {
-                Icon(
-                    imageVector = if (record.isFavorite) Icons.Filled.Favorite
-                    else Icons.Filled.FavoriteBorder,
-                    contentDescription = stringResource(R.string.action_favorite),
-                    tint = if (record.isFavorite) FitLogError else FitLogTextSecondary,
-                    modifier = Modifier.size(20.dp),
-                )
+            // Favorite toggle (hidden in select mode)
+            if (!isSelectMode) {
+                IconButton(onClick = onFavoriteToggle) {
+                    Icon(
+                        imageVector = if (record.isFavorite) Icons.Filled.Favorite
+                        else Icons.Filled.FavoriteBorder,
+                        contentDescription = stringResource(R.string.action_favorite),
+                        tint = if (record.isFavorite) FitLogError else FitLogTextSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
     }
