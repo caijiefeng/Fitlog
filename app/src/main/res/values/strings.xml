@@ -371,6 +371,22 @@
     <string name="meal_dinner">晚餐</string>
     <string name="meal_snack">加餐</string>
 
+    <!-- Food Entry -->
+    <string name="food_search_mode">搜索食物</string>
+    <string name="food_manual_mode">手动输入</string>
+    <string name="food_search_placeholder">搜索食物，如：米饭、鸡胸肉</string>
+    <string name="food_search_hint">输入食物名称开始搜索</string>
+    <string name="food_search_empty">没有找到匹配的食物</string>
+    <string name="food_searching">搜索中…</string>
+    <string name="food_per_100g" formatted="false">%d kcal / 100g</string>
+    <string name="food_servings">份数</string>
+    <string name="food_unit">单位</string>
+    <string name="food_grams">克数 (g)</string>
+    <string name="food_preview">营养预览</string>
+    <string name="food_preview_format" formatted="false">%.0f kcal · 蛋白质 %.1f g · 碳水 %.1f g · 脂肪 %.1f g</string>
+    <string name="food_select_prompt">选择一种食物后填写份量</string>
+    <string name="meal_subtotal_title">各餐摄入</string>
+
     <!-- Goal -->
     <string name="goal_title">目标规划</string>
     <string name="goal_subtitle">基于当前身体数据的目标规划</string>

@@ -22,6 +22,11 @@ data class FoodRecordEntity(
     @ColumnInfo(name = "fat_grams") val fatGrams: Double? = null,
     @ColumnInfo(name = "amount") val amount: String? = null,
     @ColumnInfo(name = "note") val note: String? = null,
+    // Nutrition snapshot: which food was consumed and how much
+    @ColumnInfo(name = "food_source_id") val foodSourceId: String? = null,
+    @ColumnInfo(name = "quantity") val quantity: Double? = null,  // servings count
+    @ColumnInfo(name = "unit") val unit: String? = null,  // serving description, e.g. "1碗"
+    @ColumnInfo(name = "grams") val grams: Double? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
 )

@@ -8,6 +8,8 @@ data class FoodSearchResult(
     val proteinPer100g: Double,
     val carbsPer100g: Double,
     val fatPer100g: Double,
+    val servingSizeG: Double? = null,
+    val servingDesc: String? = null,
 )
 
 data class FoodNutrition(

@@ -64,12 +64,22 @@ class GoalViewModel @Inject constructor(
                     return@launch
                 }
 
-                val currentWeight = latest.weightKg ?: 75.0
-                val currentBodyFat = latest.bodyFatPercent ?: 20.0
+                // Never fabricate measurements: without weight, body fat and height
+                // the goal plan would be built on made-up numbers.
+                val currentWeight = latest.weightKg
+                val currentBodyFat = latest.bodyFatPercent
+                val height = profile.heightCm
+                if (currentWeight == null || currentBodyFat == null || height == null) {
+                    _uiState.value = GoalUiState(
+                        isLoading = false,
+                        goalType = profile.goalType,
+                    )
+                    return@launch
+                }
+
                 val targetBodyFat = profile.targetBodyFat ?: (currentBodyFat - 5.0)
 
                 val age = ChronoUnit.YEARS.between(profile.birthday, dateProvider.today()).toInt()
-                val height = profile.heightCm ?: 175.0
 
                 // Calculate approximate TDEE
                 val bmr = (10 * currentWeight + 6.25 * height - 5 * age).let { base ->

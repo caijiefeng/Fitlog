@@ -9,11 +9,21 @@ import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class MealSubtotal(
+    val mealType: String,
+    val count: Int,
+    val calories: Double,
+    val protein: Double,
+    val carbs: Double,
+    val fat: Double,
+)
+
 data class DailyNutritionSummary(
     val calories: Double = 0.0,
     val protein: Double = 0.0,
     val carbs: Double = 0.0,
     val fat: Double = 0.0,
+    val mealSubtotals: List<MealSubtotal> = emptyList(),
     val targetCalories: Int = 0,
     val targetProtein: Int = 0,
     val targetCarbs: Int = 0,
@@ -33,6 +43,11 @@ data class FoodRecord(
     val fatGrams: Double? = null,
     val amount: String? = null,
     val note: String? = null,
+    // Nutrition snapshot: which food was consumed and how much
+    val foodSourceId: String? = null,
+    val quantity: Double? = null,
+    val unit: String? = null,
+    val grams: Double? = null,
 )
 
 @Singleton
@@ -55,6 +70,10 @@ class FoodRecordRepository @Inject constructor(
             fatGrams = record.fatGrams,
             amount = record.amount,
             note = record.note,
+            foodSourceId = record.foodSourceId,
+            quantity = record.quantity,
+            unit = record.unit,
+            grams = record.grams,
         )
         val id = foodRecordDao.insert(entity)
         return entity.copy(id = id).toDomain()
@@ -79,12 +98,40 @@ class FoodRecordRepository @Inject constructor(
         }
     }
 
+    /**
+     * Reactive daily summary: re-emits whenever the food records for [date] change,
+     * so totals, meal subtotals and targets stay in sync without manual refresh.
+     */
+    fun observeDailySummary(date: LocalDate): Flow<DailyNutritionSummary> {
+        return foodRecordDao.observeByDate(date.toEpochDay())
+            .map { entities -> buildSummary(entities.map { it.toDomain() }, date) }
+    }
+
     suspend fun getDailySummary(date: LocalDate): DailyNutritionSummary {
-        val epochDay = date.toEpochDay()
-        val totalCalories = foodRecordDao.getTotalCaloriesByDate(epochDay) ?: 0.0
-        val totalProtein = foodRecordDao.getTotalProteinByDate(epochDay) ?: 0.0
-        val totalCarbs = foodRecordDao.getTotalCarbsByDate(epochDay) ?: 0.0
-        val totalFat = foodRecordDao.getTotalFatByDate(epochDay) ?: 0.0
+        val records = foodRecordDao.getByDate(date.toEpochDay()).map { it.toDomain() }
+        return buildSummary(records, date)
+    }
+
+    private suspend fun buildSummary(
+        records: List<FoodRecord>,
+        date: LocalDate,
+    ): DailyNutritionSummary {
+        val totalCalories = records.sumOf { it.calories ?: 0.0 }
+        val totalProtein = records.sumOf { it.proteinGrams ?: 0.0 }
+        val totalCarbs = records.sumOf { it.carbsGrams ?: 0.0 }
+        val totalFat = records.sumOf { it.fatGrams ?: 0.0 }
+
+        val mealSubtotals = records.groupBy { it.mealType }
+            .map { (mealType, list) ->
+                MealSubtotal(
+                    mealType = mealType,
+                    count = list.size,
+                    calories = list.sumOf { it.calories ?: 0.0 },
+                    protein = list.sumOf { it.proteinGrams ?: 0.0 },
+                    carbs = list.sumOf { it.carbsGrams ?: 0.0 },
+                    fat = list.sumOf { it.fatGrams ?: 0.0 },
+                )
+            }
 
         // Calculate targets from user profile + latest body measurement
         val profile = userProfileRepository.get()
@@ -103,6 +150,7 @@ class FoodRecordRepository @Inject constructor(
                     protein = totalProtein,
                     carbs = totalCarbs,
                     fat = totalFat,
+                    mealSubtotals = mealSubtotals,
                     targetCalories = targets.targetCalories,
                     targetProtein = targets.proteinG,
                     targetCarbs = targets.carbsG,
@@ -119,6 +167,7 @@ class FoodRecordRepository @Inject constructor(
             protein = totalProtein,
             carbs = totalCarbs,
             fat = totalFat,
+            mealSubtotals = mealSubtotals,
         )
     }
 
@@ -133,5 +182,9 @@ class FoodRecordRepository @Inject constructor(
         fatGrams = fatGrams,
         amount = amount,
         note = note,
+        foodSourceId = foodSourceId,
+        quantity = quantity,
+        unit = unit,
+        grams = grams,
     )
 }

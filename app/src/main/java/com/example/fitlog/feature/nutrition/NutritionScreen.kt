@@ -1,6 +1,7 @@
 package com.example.fitlog.feature.nutrition
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,6 +63,8 @@ import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.data.repository.FoodRecord
+import com.example.fitlog.data.repository.MealSubtotal
+import com.example.fitlog.domain.nutrition.FoodSearchResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +73,7 @@ fun NutritionScreen(
     onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val formState by viewModel.formState.collectAsStateWithLifecycle()
+    val entryState by viewModel.entryState.collectAsStateWithLifecycle()
 
     val mealTypes = listOf(
         "BREAKFAST" to stringResource(R.string.meal_breakfast),
@@ -150,6 +155,12 @@ fun NutritionScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
+                // Meal subtotals
+                item {
+                    MealSubtotalsSection(subtotals = uiState.summary.mealSubtotals)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 // Advice card
                 uiState.advice?.let { advice ->
                     item {
@@ -204,21 +215,11 @@ fun NutritionScreen(
     }
     }
 
-    // Food form dialog
-    if (formState.isVisible) {
-        FoodFormDialog(
-            formState = formState,
-            mealTypes = mealTypes,
-            onFoodNameChange = { viewModel.updateFormFoodName(it) },
-            onMealTypeChange = { viewModel.updateFormMealType(it) },
-            onCaloriesChange = { viewModel.updateFormCalories(it) },
-            onProteinChange = { viewModel.updateFormProtein(it) },
-            onCarbsChange = { viewModel.updateFormCarbs(it) },
-            onFatChange = { viewModel.updateFormFat(it) },
-            onAmountChange = { viewModel.updateFormAmount(it) },
-            onNoteChange = { viewModel.updateFormNote(it) },
-            onSave = { viewModel.saveFoodRecord() },
-            onDismiss = { viewModel.hideForm() },
+    // Food entry dialog
+    if (entryState.isVisible) {
+        FoodEntryDialog(
+            viewModel = viewModel,
+            entryState = entryState,
         )
     }
 }
@@ -236,44 +237,37 @@ private fun DailySummaryCard(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Calories bar — use summary.targetCalories
         NutrientBar(
             label = stringResource(R.string.nutrition_calories),
             current = summary.calories,
-            target = summary.targetCalories.toDouble(),
+            target = summary.targetCalories.takeIf { it > 0 }?.toDouble(),
             unit = "kcal",
             color = FitLogAccent,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Protein bar — use summary.targetProtein, never compute from consumed calories
         NutrientBar(
             label = stringResource(R.string.nutrition_protein),
             current = summary.protein,
-            target = if (summary.targetProtein > 0) summary.targetProtein.toDouble()
-                     else (summary.calories * 0.3 / 4).coerceAtLeast(50.0),
+            target = summary.targetProtein.takeIf { it > 0 }?.toDouble(),
             unit = "g",
             color = FitLogSuccess,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Carbs bar — use summary.targetCarbs
         NutrientBar(
             label = stringResource(R.string.nutrition_carbs),
             current = summary.carbs,
-            target = if (summary.targetCarbs > 0) summary.targetCarbs.toDouble()
-                     else (summary.calories * 0.4 / 4).coerceAtLeast(100.0),
+            target = summary.targetCarbs.takeIf { it > 0 }?.toDouble(),
             unit = "g",
             color = FitLogAccent,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Fat bar — use summary.targetFat
         NutrientBar(
             label = stringResource(R.string.nutrition_fat),
             current = summary.fat,
-            target = if (summary.targetFat > 0) summary.targetFat.toDouble()
-                     else (summary.calories * 0.25 / 9).coerceAtLeast(30.0),
+            target = summary.targetFat.takeIf { it > 0 }?.toDouble(),
             unit = "g",
             color = FitLogError,
         )
@@ -281,14 +275,72 @@ private fun DailySummaryCard(
 }
 
 @Composable
+private fun MealSubtotalsSection(
+    subtotals: List<MealSubtotal>,
+) {
+    val visible = subtotals.filter { it.count > 0 }
+    if (visible.isEmpty()) return
+
+    FitLogCard {
+        Text(
+            text = stringResource(R.string.meal_subtotal_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = FitLogTextPrimary,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        visible.forEach { subtotal ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = mealTypeLabel(subtotal.mealType),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogTextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "%.0f kcal".format(subtotal.calories),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogAccent,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            Text(
+                text = "蛋白质 %.0f g · 碳水 %.0f g · 脂肪 %.0f g".format(
+                    subtotal.protein, subtotal.carbs, subtotal.fat,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = FitLogTextSecondary,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+    }
+}
+
+@Composable
+private fun mealTypeLabel(mealType: String): String = when (mealType) {
+    "BREAKFAST" -> stringResource(R.string.meal_breakfast)
+    "LUNCH" -> stringResource(R.string.meal_lunch)
+    "DINNER" -> stringResource(R.string.meal_dinner)
+    "SNACK" -> stringResource(R.string.meal_snack)
+    else -> mealType
+}
+
+@Composable
 private fun NutrientBar(
     label: String,
     current: Double,
-    target: Double,
+    target: Double?,
     unit: String,
     color: androidx.compose.ui.graphics.Color,
 ) {
-    val progress = if (target > 0) (current / target).toFloat().coerceIn(0f, 1f) else 0f
+    val progress = if (target != null && target > 0) {
+        (current / target).toFloat().coerceIn(0f, 1f)
+    } else 0f
 
     Column {
         Row(
@@ -301,7 +353,11 @@ private fun NutrientBar(
                 color = FitLogTextSecondary,
             )
             Text(
-                text = "%.0f / %.0f $unit".format(current, target),
+                text = if (target != null && target > 0) {
+                    "%.0f / %.0f $unit".format(current, target)
+                } else {
+                    "%.0f $unit".format(current)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = FitLogTextPrimary,
             )
@@ -438,24 +494,15 @@ private fun FoodRecordCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FoodFormDialog(
-    formState: FoodFormState,
-    mealTypes: List<Pair<String, String>>,
-    onFoodNameChange: (String) -> Unit,
-    onMealTypeChange: (String) -> Unit,
-    onCaloriesChange: (String) -> Unit,
-    onProteinChange: (String) -> Unit,
-    onCarbsChange: (String) -> Unit,
-    onFatChange: (String) -> Unit,
-    onAmountChange: (String) -> Unit,
-    onNoteChange: (String) -> Unit,
-    onSave: () -> Unit,
-    onDismiss: () -> Unit,
+private fun FoodEntryDialog(
+    viewModel: NutritionViewModel,
+    entryState: FoodEntryState,
 ) {
-    val isEdit = formState.editId != null
+    val isEdit = entryState.editId != null
+    val canSave = entryState.selectedFood != null || entryState.manualName.isNotBlank()
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { viewModel.hideForm() },
         title = {
             Text(
                 if (isEdit) stringResource(R.string.nutrition_edit_food)
@@ -464,93 +511,322 @@ private fun FoodFormDialog(
         },
         text = {
             Column {
-                OutlinedTextField(
-                    value = formState.foodName,
-                    onValueChange = onFoodNameChange,
-                    label = { Text(stringResource(R.string.nutrition_food_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                if (entryState.selectedFood == null) {
+                    // Mode toggle (search food vs manual macros)
+                    Row {
+                        FilterChip(
+                            selected = !entryState.useManual,
+                            onClick = {
+                                if (entryState.useManual) viewModel.toggleEntryMode()
+                            },
+                            label = {
+                                Text(
+                                    stringResource(R.string.food_search_mode),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        FilterChip(
+                            selected = entryState.useManual,
+                            onClick = {
+                                if (!entryState.useManual) viewModel.toggleEntryMode()
+                            },
+                            label = {
+                                Text(
+                                    stringResource(R.string.food_manual_mode),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = formState.amount,
-                    onValueChange = onAmountChange,
-                    label = { Text(stringResource(R.string.nutrition_amount)) },
-                    placeholder = { Text(stringResource(R.string.nutrition_amount_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row {
-                    OutlinedTextField(
-                        value = formState.calories,
-                        onValueChange = onCaloriesChange,
-                        label = { Text(stringResource(R.string.nutrition_calories)) },
-                        suffix = { Text("kcal") },
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedTextField(
-                        value = formState.proteinGrams,
-                        onValueChange = onProteinChange,
-                        label = { Text(stringResource(R.string.nutrition_protein)) },
-                        suffix = { Text("g") },
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (entryState.useManual) {
+                        ManualEntryFields(viewModel = viewModel, entryState = entryState)
+                    } else {
+                        FoodSearchFields(viewModel = viewModel, entryState = entryState)
+                    }
+                } else {
+                    SelectedFoodFields(viewModel = viewModel, entryState = entryState)
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row {
-                    OutlinedTextField(
-                        value = formState.carbsGrams,
-                        onValueChange = onCarbsChange,
-                        label = { Text(stringResource(R.string.nutrition_carbs)) },
-                        suffix = { Text("g") },
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedTextField(
-                        value = formState.fatGrams,
-                        onValueChange = onFatChange,
-                        label = { Text(stringResource(R.string.nutrition_fat)) },
-                        suffix = { Text("g") },
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = formState.note,
-                    onValueChange = onNoteChange,
-                    label = { Text(stringResource(R.string.nutrition_note)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         },
         confirmButton = {
             Button(
-                onClick = onSave,
+                onClick = { viewModel.saveFoodRecord() },
                 colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent),
-                enabled = formState.foodName.isNotBlank(),
+                enabled = canSave,
             ) {
                 Text(stringResource(R.string.action_save), color = FitLogTextPrimary)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = { viewModel.hideForm() }) {
                 Text(stringResource(R.string.action_cancel))
             }
         },
+    )
+}
+
+@Composable
+private fun FoodSearchFields(
+    viewModel: NutritionViewModel,
+    entryState: FoodEntryState,
+) {
+    OutlinedTextField(
+        value = entryState.query,
+        onValueChange = { viewModel.updateEntryQuery(it) },
+        label = { Text(stringResource(R.string.nutrition_food_name)) },
+        placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    when {
+        entryState.isSearching -> {
+            Text(
+                text = stringResource(R.string.food_searching),
+                style = MaterialTheme.typography.bodySmall,
+                color = FitLogTextSecondary,
+            )
+        }
+        entryState.query.isBlank() -> {
+            Text(
+                text = stringResource(R.string.food_search_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = FitLogTextSecondary,
+            )
+        }
+        entryState.searchResults.isEmpty() -> {
+            Text(
+                text = stringResource(R.string.food_search_empty),
+                style = MaterialTheme.typography.bodySmall,
+                color = FitLogTextSecondary,
+            )
+        }
+        else -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 220.dp),
+            ) {
+                items(entryState.searchResults, key = { it.id }) { result ->
+                    FoodSearchResultRow(
+                        result = result,
+                        onClick = { viewModel.selectFood(result) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FoodSearchResultRow(
+    result: FoodSearchResult,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = result.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = FitLogTextPrimary,
+            )
+            if (result.category.isNotBlank()) {
+                Text(
+                    text = result.category,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = FitLogTextSecondary,
+                )
+            }
+        }
+        Text(
+            text = stringResource(R.string.food_per_100g, result.caloriesPer100g.toInt()),
+            style = MaterialTheme.typography.bodySmall,
+            color = FitLogAccent,
+        )
+    }
+}
+
+@Composable
+private fun SelectedFoodFields(
+    viewModel: NutritionViewModel,
+    entryState: FoodEntryState,
+) {
+    val food = entryState.selectedFood ?: return
+    val decimalOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal)
+
+    Text(
+        text = food.name,
+        style = MaterialTheme.typography.titleMedium,
+        color = FitLogTextPrimary,
+        fontWeight = FontWeight.SemiBold,
+    )
+    if (food.category.isNotBlank()) {
+        Text(
+            text = food.category,
+            style = MaterialTheme.typography.bodySmall,
+            color = FitLogTextSecondary,
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row {
+        OutlinedTextField(
+            value = entryState.quantity,
+            onValueChange = { viewModel.updateEntryQuantity(it) },
+            label = { Text(stringResource(R.string.food_servings)) },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = entryState.unit,
+            onValueChange = { viewModel.updateEntryUnit(it) },
+            label = { Text(stringResource(R.string.food_unit)) },
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = entryState.grams,
+            onValueChange = { viewModel.updateEntryGrams(it) },
+            label = { Text(stringResource(R.string.food_grams)) },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Real-time nutrition preview (grams / 100 * per-100g macros)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(FitLogAccent.copy(alpha = 0.1f))
+            .padding(12.dp),
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.food_preview),
+                style = MaterialTheme.typography.labelMedium,
+                color = FitLogTextSecondary,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(
+                    R.string.food_preview_format,
+                    entryState.calories,
+                    entryState.protein,
+                    entryState.carbs,
+                    entryState.fat,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = FitLogAccent,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    OutlinedTextField(
+        value = entryState.note,
+        onValueChange = { viewModel.updateEntryNote(it) },
+        label = { Text(stringResource(R.string.nutrition_note)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun ManualEntryFields(
+    viewModel: NutritionViewModel,
+    entryState: FoodEntryState,
+) {
+    val decimalOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal)
+
+    OutlinedTextField(
+        value = entryState.manualName,
+        onValueChange = { viewModel.updateEntryManualName(it) },
+        label = { Text(stringResource(R.string.nutrition_food_name)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row {
+        OutlinedTextField(
+            value = entryState.manualCalories,
+            onValueChange = { viewModel.updateEntryManualCalories(it) },
+            label = { Text(stringResource(R.string.nutrition_calories)) },
+            suffix = { Text("kcal") },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = entryState.manualProtein,
+            onValueChange = { viewModel.updateEntryManualProtein(it) },
+            label = { Text(stringResource(R.string.nutrition_protein)) },
+            suffix = { Text("g") },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row {
+        OutlinedTextField(
+            value = entryState.manualCarbs,
+            onValueChange = { viewModel.updateEntryManualCarbs(it) },
+            label = { Text(stringResource(R.string.nutrition_carbs)) },
+            suffix = { Text("g") },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = entryState.manualFat,
+            onValueChange = { viewModel.updateEntryManualFat(it) },
+            label = { Text(stringResource(R.string.nutrition_fat)) },
+            suffix = { Text("g") },
+            keyboardOptions = decimalOptions,
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    OutlinedTextField(
+        value = entryState.manualAmount,
+        onValueChange = { viewModel.updateEntryManualAmount(it) },
+        label = { Text(stringResource(R.string.nutrition_amount)) },
+        placeholder = { Text(stringResource(R.string.nutrition_amount_hint)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    OutlinedTextField(
+        value = entryState.note,
+        onValueChange = { viewModel.updateEntryNote(it) },
+        label = { Text(stringResource(R.string.nutrition_note)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
     )
 }

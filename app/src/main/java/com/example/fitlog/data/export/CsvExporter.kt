@@ -116,7 +116,7 @@ fun exportBodyMeasurements(
  * Exports nutrition (food records) as CSV.
  *
  * Header: date, meal_type, food_name, calories, protein_g, carbs_g, fat_g,
- *         amount, note
+ *         amount, note, food_source_id, quantity, unit, grams
  */
 fun exportNutrition(
     records: List<FoodRecordEntity>,
@@ -138,6 +138,10 @@ fun exportNutrition(
             r.fatGrams?.let { formatDouble(it) },
             r.amount,
             r.note,
+            r.foodSourceId,
+            r.quantity?.let { formatDouble(it) },
+            r.unit,
+            r.grams?.let { formatDouble(it) },
         )
         sb.append(escapeCsvRow(values))
         sb.append('\n')
@@ -187,7 +191,8 @@ private fun bodyMeasurementHeader(): String = escapeCsvRow(listOf(
 
 private fun nutritionHeader(): String = escapeCsvRow(listOf(
     "date", "meal_type", "food_name", "calories", "protein_g",
-    "carbs_g", "fat_g", "amount", "note",
+    "carbs_g", "fat_g", "amount", "note", "food_source_id",
+    "quantity", "unit", "grams",
 ))
 
 private fun checkInHeader(): String = escapeCsvRow(listOf(

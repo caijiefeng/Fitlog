@@ -580,6 +580,11 @@ class BackupImporter(
             put("fat_grams", optNullDouble(json, "fat_grams"))
             put("amount", optNullString(json, "amount"))
             put("note", optNullString(json, "note"))
+            // Snapshot columns added in v12; missing in old backups -> null
+            put("food_source_id", optNullString(json, "food_source_id"))
+            put("quantity", optNullDouble(json, "quantity"))
+            put("unit", optNullString(json, "unit"))
+            put("grams", optNullDouble(json, "grams"))
             put("created_at", json.optLong("created_at", System.currentTimeMillis()))
             put("updated_at", json.optLong("updated_at", System.currentTimeMillis()))
         })

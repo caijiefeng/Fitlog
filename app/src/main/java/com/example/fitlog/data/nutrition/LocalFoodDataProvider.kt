@@ -72,6 +72,8 @@ class LocalFoodDataProvider @Inject constructor(
             proteinPer100g = proteinPer100g,
             carbsPer100g = carbsPer100g,
             fatPer100g = fatPer100g,
+            servingSizeG = servingSizeG,
+            servingDesc = servingDesc,
         )
     }
 }

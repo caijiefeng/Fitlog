@@ -311,4 +311,15 @@ object Migrations {
             """)
         }
     }
+
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Nutrition snapshot columns: which food was consumed (source id),
+            // how much (servings + unit), and the weight in grams used for macros.
+            db.execSQL("ALTER TABLE food_records ADD COLUMN food_source_id TEXT")
+            db.execSQL("ALTER TABLE food_records ADD COLUMN quantity REAL")
+            db.execSQL("ALTER TABLE food_records ADD COLUMN unit TEXT")
+            db.execSQL("ALTER TABLE food_records ADD COLUMN grams REAL")
+        }
+    }
 }

@@ -403,6 +403,10 @@ internal fun FoodRecordEntity.toJson() = JSONObject().apply {
     put("fat_grams", fatGrams ?: JSONObject.NULL)
     put("amount", amount ?: JSONObject.NULL)
     put("note", note ?: JSONObject.NULL)
+    put("food_source_id", foodSourceId ?: JSONObject.NULL)
+    put("quantity", quantity ?: JSONObject.NULL)
+    put("unit", unit ?: JSONObject.NULL)
+    put("grams", grams ?: JSONObject.NULL)
     put("created_at", createdAt)
     put("updated_at", updatedAt)
 }
