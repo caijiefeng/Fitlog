@@ -8,6 +8,8 @@ import com.example.fitlog.core.model.SetType
 import com.example.fitlog.core.model.WorkoutStatus
 import com.example.fitlog.data.repository.InvalidSetDataException
 import com.example.fitlog.data.repository.WorkoutSessionRepository
+import com.example.fitlog.domain.workout.WorkoutCompletion
+import com.example.fitlog.domain.workout.WorkoutCompletionEvaluator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +48,8 @@ class WorkoutExecutionViewModel @Inject constructor(
 ) : ViewModel() {
 
     val timer = RestTimerController()
+
+    private val completionEvaluator = WorkoutCompletionEvaluator()
 
     private val sessionId: Long = savedStateHandle.get<Long>("sessionId") ?: 0L
 
@@ -215,9 +219,8 @@ class WorkoutExecutionViewModel @Inject constructor(
             try {
                 val detail = sessionRepository.getDetail(sessionId) ?: return@launch
                 val (exercise, sets) = detail.exercises.find { it.first.id == exerciseSessionId } ?: return@launch
-                if (exercise.isCompleted) return@launch
-                val allPlannedSetsDone = sets.count { it.completed && it.setNumber <= exercise.targetSets } >= exercise.targetSets
-                if (allPlannedSetsDone) {
+                if (exercise.isCompleted || exercise.isSkipped) return@launch
+                if (completionEvaluator.isExerciseComplete(exercise, sets)) {
                     sessionRepository.markExerciseCompleted(exerciseSessionId, completed = true)
                     loadSession()
                 }
@@ -290,40 +293,33 @@ class WorkoutExecutionViewModel @Inject constructor(
             try {
                 _uiState.update { it.copy(isSaving = true, showCompleteDialog = false) }
 
-                val detail = _uiState.value.sessionDetail
+                // Reload the latest session detail from the DB so the completion
+                // evaluation sees every set saved so far (state may be stale).
+                val detail = sessionRepository.getDetail(sessionId)
                 if (detail == null) {
                     _uiState.update { it.copy(isSaving = false) }
                     _events.emit(WorkoutExecutionEvent.ShowError("训练数据加载失败，请重试"))
                     return@launch
                 }
+                _uiState.update { it.copy(sessionDetail = detail) }
 
-                // Count completed WORKING sets with setNumber <= targetSets per exercise
-                var completedWorkingSetCount = 0
-                var totalTargetSets = 0
-                detail.exercises.forEach { (exercise, sets) ->
-                    if (!exercise.isSkipped) {
-                        totalTargetSets += exercise.targetSets
-                        completedWorkingSetCount += sets.count { set ->
-                            set.completed &&
-                                set.setType == SetType.WORKING &&
-                                set.setNumber <= exercise.targetSets
-                        }
+                when (completionEvaluator.evaluate(detail)) {
+                    WorkoutCompletion.NOTHING_COMPLETED -> {
+                        _uiState.update { it.copy(isSaving = false) }
+                        _events.emit(WorkoutExecutionEvent.ShowError("请至少完成一组训练后再结束"))
+                        return@launch
                     }
-                }
-
-                if (completedWorkingSetCount == 0) {
-                    _uiState.update { it.copy(isSaving = false) }
-                    _events.emit(WorkoutExecutionEvent.ShowError("请至少完成一组训练后再结束"))
-                    return@launch
-                }
-
-                if (completedWorkingSetCount >= totalTargetSets) {
-                    sessionRepository.updateStatus(sessionId, WorkoutStatus.COMPLETED)
-                    timer.reset()
-                    _uiState.update { it.copy(isSaving = false) }
-                    _events.emit(WorkoutExecutionEvent.NavigateToSummary(sessionId))
-                } else {
-                    _uiState.update { it.copy(isSaving = false, showPartialCompleteDialog = true) }
+                    WorkoutCompletion.COMPLETED -> {
+                        // One flow: status + endTime + cleared rest timer are
+                        // persisted together by updateStatus for terminal states.
+                        sessionRepository.updateStatus(sessionId, WorkoutStatus.COMPLETED)
+                        timer.reset()
+                        _uiState.update { it.copy(isSaving = false, restTimerState = timer.state.value) }
+                        _events.emit(WorkoutExecutionEvent.NavigateToSummary(sessionId))
+                    }
+                    WorkoutCompletion.PARTIALLY_COMPLETED -> {
+                        _uiState.update { it.copy(isSaving = false, showPartialCompleteDialog = true) }
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }

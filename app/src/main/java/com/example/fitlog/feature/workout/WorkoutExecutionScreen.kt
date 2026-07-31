@@ -74,7 +74,10 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 import com.example.fitlog.core.model.ExerciseSession
 import com.example.fitlog.core.model.SetRecord
 import com.example.fitlog.core.model.SetType
+import com.example.fitlog.domain.workout.WorkoutCompletionEvaluator
 import kotlinx.coroutines.delay
+
+private val completionEvaluator = WorkoutCompletionEvaluator()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -546,9 +549,8 @@ private fun ExerciseCard(
     }
     var showCompleteConfirmDialog by remember { mutableStateOf(false) }
 
-    val allPlannedSetsDone = if (exercise.isCompleted) true else {
-        sets.count { it.completed && it.setNumber <= exercise.targetSets } >= exercise.targetSets
-    }
+    val allPlannedSetsDone =
+        exercise.isCompleted || completionEvaluator.isExerciseComplete(exercise, sets)
 
     FitLogCard {
         Column(modifier = Modifier.fillMaxWidth()) {

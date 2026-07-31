@@ -56,7 +56,7 @@ import com.example.fitlog.core.database.migration.Migrations
         FoodRecordEntity::class,
         MediaRecordEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

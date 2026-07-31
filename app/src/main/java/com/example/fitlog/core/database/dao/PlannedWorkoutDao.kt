@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.fitlog.core.database.entity.PlannedWorkoutEntity
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,24 @@ interface PlannedWorkoutDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: PlannedWorkoutEntity): Long
+
+    /** Returns -1 for rows skipped by the unique (template_id, planned_date) index. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIgnore(entity: PlannedWorkoutEntity): Long
+
+    /**
+     * Bulk-inserts a batch of plans inside one transaction. Rows that collide
+     * with the unique (template_id, planned_date) index are skipped and map to
+     * -1 in the returned array, in the same order as [entities].
+     */
+    @Transaction
+    suspend fun insertAllIgnore(entities: List<PlannedWorkoutEntity>): LongArray {
+        val ids = LongArray(entities.size)
+        entities.forEachIndexed { index, entity ->
+            ids[index] = insertIgnore(entity)
+        }
+        return ids
+    }
 
     @Update
     suspend fun update(entity: PlannedWorkoutEntity)

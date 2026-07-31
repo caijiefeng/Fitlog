@@ -62,9 +62,57 @@ class WorkoutScheduleRepository @Inject constructor(
         endDate: LocalDate? = null,
         repeatIntervalWeeks: Int = 1,
     ) {
-        // If no startDate is given for the same dayOfWeek, replace the existing entry
-        scheduleDao.deleteByDayOfWeek(dayOfWeek)
-        scheduleDao.insert(
+        upsertSchedule(
+            dayOfWeek = dayOfWeek,
+            templateId = templateId,
+            startDate = startDate,
+            endDate = endDate,
+            repeatIntervalWeeks = repeatIntervalWeeks,
+        )
+    }
+
+    /**
+     * Creates recurring schedules for multiple weekdays in one batch.
+     *
+     * Each (template, dayOfWeek) pair is upserted against the unique index
+     * (template_id, day_of_week), so scheduling a template on a weekday only
+     * replaces that template's own entry — schedules of *other* templates on
+     * the same weekday are left untouched.
+     *
+     * @return the number of schedule rows upserted
+     */
+    suspend fun createRecurringForWeekdays(
+        dayOfWeeks: Collection<Int>,
+        templateId: Long,
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null,
+        repeatIntervalWeeks: Int = 1,
+    ): Int {
+        return dayOfWeeks
+            .filter { it in 1..7 }
+            .distinct()
+            .map { dayOfWeek ->
+                upsertSchedule(
+                    dayOfWeek = dayOfWeek,
+                    templateId = templateId,
+                    startDate = startDate,
+                    endDate = endDate,
+                    repeatIntervalWeeks = repeatIntervalWeeks,
+                )
+            }
+            .size
+    }
+
+    private suspend fun upsertSchedule(
+        dayOfWeek: Int,
+        templateId: Long,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
+        repeatIntervalWeeks: Int,
+    ) {
+        // REPLACE only removes the row that collides with the unique index
+        // (template_id, day_of_week) — other templates on this weekday survive.
+        scheduleDao.upsert(
             WorkoutScheduleEntity(
                 templateId = templateId,
                 dayOfWeek = dayOfWeek,

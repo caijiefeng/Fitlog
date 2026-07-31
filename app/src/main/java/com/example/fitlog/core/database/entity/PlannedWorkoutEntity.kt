@@ -19,6 +19,7 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["template_id"]),
         Index(value = ["planned_date"]),
+        Index(value = ["template_id", "planned_date"], unique = true),
     ],
 )
 data class PlannedWorkoutEntity(

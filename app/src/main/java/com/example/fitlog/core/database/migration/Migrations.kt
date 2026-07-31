@@ -293,4 +293,22 @@ object Migrations {
             db.execSQL("ALTER TABLE workout_schedules ADD COLUMN repeat_interval_weeks INTEGER NOT NULL DEFAULT 1")
         }
     }
+
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Deduplicate existing one-time plans (same template + same date) keeping
+            // the earliest row, otherwise the unique index creation below would fail.
+            db.execSQL("""
+                DELETE FROM planned_workouts
+                WHERE id NOT IN (
+                    SELECT MIN(id) FROM planned_workouts GROUP BY template_id, planned_date
+                )
+            """)
+            // Unique index so a template can only be planned once per date
+            db.execSQL("""
+                CREATE UNIQUE INDEX IF NOT EXISTS index_planned_workouts_template_id_planned_date
+                ON planned_workouts (template_id, planned_date)
+            """)
+        }
+    }
 }
