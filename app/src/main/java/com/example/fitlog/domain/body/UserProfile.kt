@@ -1,5 +1,6 @@
 package com.example.fitlog.domain.body
 
+import com.example.fitlog.domain.avatar.AvatarType
 import java.time.LocalDate
 
 data class UserProfile(
@@ -10,4 +11,7 @@ data class UserProfile(
     val activityLevel: ActivityLevel,
     val goalType: GoalType,
     val targetBodyFat: Double? = null,
+    val avatarType: AvatarType = AvatarType.DEFAULT,
+    val avatarKey: String? = null,
+    val customAvatarPath: String? = null,
 )

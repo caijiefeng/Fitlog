@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 12,
-    "identityHash": "73986021854793b69ec1e150c30f8a08",
+    "identityHash": "5214aa18e4af149a8a677b6a343ca5e9",
     "entities": [
       {
         "tableName": "exercise_categories",
@@ -1262,7 +1262,7 @@
       },
       {
         "tableName": "user_profiles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `gender` TEXT NOT NULL, `birthday` INTEGER NOT NULL, `height_cm` REAL, `activity_level` TEXT NOT NULL, `goal_type` TEXT NOT NULL, `target_body_fat` REAL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `gender` TEXT NOT NULL, `birthday` INTEGER NOT NULL, `height_cm` REAL, `activity_level` TEXT NOT NULL, `goal_type` TEXT NOT NULL, `target_body_fat` REAL, `avatar_type` TEXT NOT NULL, `avatar_key` TEXT, `custom_avatar_path` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -1304,6 +1304,24 @@
             "fieldPath": "targetBodyFat",
             "columnName": "target_body_fat",
             "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "avatarType",
+            "columnName": "avatar_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarKey",
+            "columnName": "avatar_key",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "customAvatarPath",
+            "columnName": "custom_avatar_path",
+            "affinity": "TEXT",
             "notNull": false
           },
           {
@@ -1752,7 +1770,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '73986021854793b69ec1e150c30f8a08')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5214aa18e4af149a8a677b6a343ca5e9')"
     ]
   }
 }

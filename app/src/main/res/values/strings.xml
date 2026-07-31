@@ -302,6 +302,40 @@
     <string name="checkin_save">保存</string>
     <string name="checkin_saving">保存中…</string>
     <string name="checkin_edit">编辑</string>
+    <!-- Check-in rating options: emoji + Chinese label -->
+    <string name="checkin_mood_1">很差</string>
+    <string name="checkin_mood_2">较差</string>
+    <string name="checkin_mood_3">一般</string>
+    <string name="checkin_mood_4">不错</string>
+    <string name="checkin_mood_5">很好</string>
+    <string name="checkin_energy_1">很低</string>
+    <string name="checkin_energy_2">偏低</string>
+    <string name="checkin_energy_3">一般</string>
+    <string name="checkin_energy_4">充沛</string>
+    <string name="checkin_energy_5">极佳</string>
+    <string name="checkin_mood_option_cd" formatted="false">心情：%s</string>
+    <string name="checkin_energy_option_cd" formatted="false">精力：%s</string>
+    <string name="checkin_option_selected_suffix">（已选择）</string>
+
+    <!-- Avatar -->
+    <string name="avatar_picker_title">选择头像</string>
+    <string name="avatar_picker_section_builtin">内置头像</string>
+    <string name="avatar_picker_from_photos">从手机照片选择</string>
+    <string name="avatar_picker_photo_copy_failed">读取照片失败，请重试</string>
+    <string name="profile_avatar_edit">更换头像</string>
+    <string name="profile_avatar_cd">我的头像</string>
+    <string name="avatar_basketball_pg">篮球控卫</string>
+    <string name="avatar_basketball_sg">篮球分卫</string>
+    <string name="avatar_basketball_dunker">篮球扣将</string>
+    <string name="avatar_basketball_forward">篮球前锋</string>
+    <string name="avatar_basketball_center">篮球中锋</string>
+    <string name="avatar_basketball_defender">篮球防守悍将</string>
+    <string name="avatar_soccer_forward">足球前锋</string>
+    <string name="avatar_soccer_winger">足球边锋</string>
+    <string name="avatar_soccer_midfielder">足球中场</string>
+    <string name="avatar_soccer_defender">足球后卫</string>
+    <string name="avatar_soccer_goalkeeper">足球门将</string>
+    <string name="avatar_street_athlete">街头运动家</string>
     <!-- Body Profile -->
     <string name="body_profile_title">身体档案</string>
     <string name="body_profile_gender">性别</string>

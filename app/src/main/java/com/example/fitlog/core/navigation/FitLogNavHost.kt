@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fitlog.feature.avatar.AvatarPickerScreen
 import com.example.fitlog.feature.body.BodyMeasurementScreen
 import com.example.fitlog.feature.body.BodyProfileScreen
 import com.example.fitlog.feature.body.ProgressPhotoScreen
@@ -74,6 +75,9 @@ object Routes {
 
     // Settings routes
     const val DATA_MANAGEMENT = "settings/data-management"
+
+    // Avatar
+    const val AVATAR_PICKER = "profile/avatar-picker"
 
     // Body & Nutrition routes
     const val BODY_PROFILE = "body/profile"
@@ -155,6 +159,7 @@ fun FitLogNavHost(
                 onNavigateToBodyProfile = { navController.navigate(Routes.BODY_PROFILE) },
                 onNavigateToDataManagement = { navController.navigate(Routes.DATA_MANAGEMENT) },
                 onNavigateToMedia = { navController.navigate(Routes.MEDIA_LIBRARY) },
+                onNavigateToAvatarPicker = { navController.navigate(Routes.AVATAR_PICKER) },
             )
         }
 
@@ -419,6 +424,13 @@ fun FitLogNavHost(
         // ── Settings routes ─────────────────────────────────────────────────
         composable(Routes.DATA_MANAGEMENT) {
             DataManagementScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        // ── Avatar picker ───────────────────────────────────────────────────
+        composable(Routes.AVATAR_PICKER) {
+            AvatarPickerScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

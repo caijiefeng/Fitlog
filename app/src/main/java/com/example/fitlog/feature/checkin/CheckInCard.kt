@@ -1,14 +1,17 @@
 package com.example.fitlog.feature.checkin
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -17,13 +20,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
@@ -31,20 +36,37 @@ import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogAccentVariant
-import com.example.fitlog.core.designsystem.theme.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
+import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 
-private val moodEmojis = listOf(
-    "😞", // 1 - very bad
-    "😕", // 2 - bad
-    "😐", // 3 - neutral
-    "🙂", // 4 - good
-    "😄", // 5 - great
+/**
+ * One mood/energy rating choice: a value 1-5, its emoji and a Chinese label.
+ */
+internal data class CheckInRatingOption(
+    val value: Int,
+    val emoji: String,
+    @StringRes val labelRes: Int,
+)
+
+private val moodOptions = listOf(
+    CheckInRatingOption(1, "😞", R.string.checkin_mood_1), // 很差
+    CheckInRatingOption(2, "🙁", R.string.checkin_mood_2), // 较差
+    CheckInRatingOption(3, "😐", R.string.checkin_mood_3), // 一般
+    CheckInRatingOption(4, "🙂", R.string.checkin_mood_4), // 不错
+    CheckInRatingOption(5, "😄", R.string.checkin_mood_5), // 很好
+)
+
+private val energyOptions = listOf(
+    CheckInRatingOption(1, "🪫", R.string.checkin_energy_1), // 很低
+    CheckInRatingOption(2, "😴", R.string.checkin_energy_2), // 偏低
+    CheckInRatingOption(3, "😌", R.string.checkin_energy_3), // 一般
+    CheckInRatingOption(4, "⚡", R.string.checkin_energy_4), // 充沛
+    CheckInRatingOption(5, "🔥", R.string.checkin_energy_5), // 极佳
 )
 
 @Composable
@@ -94,19 +116,19 @@ private fun ExistingCheckInContent(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    // Show mood
+    // Show mood (emoji + label)
     if (checkIn.mood != null) {
         MoodEnergyRow(
             label = stringResource(R.string.checkin_mood_label),
-            value = moodEmojis.getOrNull(checkIn.mood - 1)?.toString() ?: checkIn.mood.toString(),
+            option = moodOptions.firstOrNull { it.value == checkIn.mood },
         )
     }
 
-    // Show energy
+    // Show energy (emoji + label)
     if (checkIn.energyLevel != null) {
         MoodEnergyRow(
             label = stringResource(R.string.checkin_energy_label),
-            value = checkIn.energyLevel.toString(),
+            option = energyOptions.firstOrNull { it.value == checkIn.energyLevel },
         )
     }
 
@@ -136,21 +158,36 @@ private fun ExistingCheckInContent(
 }
 
 @Composable
-private fun MoodEnergyRow(label: String, value: String) {
+private fun MoodEnergyRow(
+    label: String,
+    option: CheckInRatingOption?,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = FitLogTextTertiary,
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = FitLogTextPrimary,
-        )
+        if (option != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = option.emoji,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(option.labelRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogTextPrimary,
+                )
+            }
+        }
     }
 }
 
@@ -163,97 +200,25 @@ private fun CheckInFormContent(
     onSave: () -> Unit,
     onCancel: (() -> Unit)? = null,
 ) {
-    // Mood row: 5 emoji buttons
-    Text(
-        text = stringResource(R.string.checkin_mood_label),
-        style = MaterialTheme.typography.bodyMedium,
-        color = FitLogTextPrimary,
+    // Mood row: 5 emoji + label buttons
+    RatingSelectorRow(
+        title = stringResource(R.string.checkin_mood_label),
+        options = moodOptions,
+        selectedValue = uiState.mood,
+        contentDescriptionFormat = R.string.checkin_mood_option_cd,
+        onValueChange = onMoodChange,
     )
-    Spacer(modifier = Modifier.height(8.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        for (i in 1..5) {
-            val isSelected = uiState.mood == i
-            val emoji = moodEmojis.getOrNull(i - 1)?.toString() ?: i.toString()
-            val emojiButtonModifier = Modifier.size(48.dp)
-            if (isSelected) {
-                Button(
-                    onClick = { onMoodChange(i) },
-                    modifier = emojiButtonModifier,
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = FitLogAccent,
-                    ),
-                ) {
-                    Text(text = emoji, style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
-                OutlinedButton(
-                    onClick = { onMoodChange(i) },
-                    modifier = emojiButtonModifier,
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, FitLogDivider),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = FitLogTextSecondary,
-                    ),
-                ) {
-                    Text(text = emoji, style = MaterialTheme.typography.titleMedium)
-                }
-            }
-        }
-    }
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Energy row: 5 numbered buttons
-    Text(
-        text = stringResource(R.string.checkin_energy_label),
-        style = MaterialTheme.typography.bodyMedium,
-        color = FitLogTextPrimary,
+    // Energy row: 5 emoji + label buttons
+    RatingSelectorRow(
+        title = stringResource(R.string.checkin_energy_label),
+        options = energyOptions,
+        selectedValue = uiState.energyLevel,
+        contentDescriptionFormat = R.string.checkin_energy_option_cd,
+        onValueChange = onEnergyLevelChange,
     )
-    Spacer(modifier = Modifier.height(8.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        for (i in 1..5) {
-            val isSelected = uiState.energyLevel == i
-            if (isSelected) {
-                Button(
-                    onClick = { onEnergyLevelChange(i) },
-                    modifier = Modifier.size(44.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = FitLogAccent,
-                    ),
-                ) {
-                    Text(
-                        text = i.toString(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = FitLogTextPrimary,
-                    )
-                }
-            } else {
-                OutlinedButton(
-                    onClick = { onEnergyLevelChange(i) },
-                    modifier = Modifier.size(44.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    border = BorderStroke(1.dp, FitLogDivider),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = FitLogTextSecondary,
-                    ),
-                ) {
-                    Text(
-                        text = i.toString(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = FitLogTextSecondary,
-                    )
-                }
-            }
-        }
-    }
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -326,6 +291,88 @@ private fun CheckInFormContent(
             Text(
                 text = stringResource(R.string.action_cancel),
                 color = FitLogTextSecondary,
+            )
+        }
+    }
+}
+
+/**
+ * A row of 5 rating options. Each option is a 48dp-tall button showing the
+ * emoji above its label; the selected one gets an accent border and tint.
+ */
+@Composable
+private fun RatingSelectorRow(
+    title: String,
+    options: List<CheckInRatingOption>,
+    selectedValue: Int?,
+    @StringRes contentDescriptionFormat: Int,
+    onValueChange: (Int) -> Unit,
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.bodyMedium,
+        color = FitLogTextPrimary,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        options.forEach { option ->
+            RatingOptionButton(
+                option = option,
+                isSelected = selectedValue == option.value,
+                contentDescriptionFormat = contentDescriptionFormat,
+                onClick = { onValueChange(option.value) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RatingOptionButton(
+    option: CheckInRatingOption,
+    isSelected: Boolean,
+    @StringRes contentDescriptionFormat: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val label = stringResource(option.labelRes)
+    val description = buildString {
+        append(stringResource(contentDescriptionFormat, label))
+        if (isSelected) {
+            append(stringResource(R.string.checkin_option_selected_suffix))
+        }
+    }
+
+    Surface(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) FitLogAccent else FitLogDivider,
+                shape = RoundedCornerShape(10.dp),
+            )
+            .semantics { contentDescription = description }
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        color = if (isSelected) FitLogAccent.copy(alpha = 0.15f) else FitLogSurfaceVariant,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = option.emoji,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isSelected) FitLogAccent else FitLogTextSecondary,
             )
         }
     }

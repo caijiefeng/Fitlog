@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitlog.core.datastore.UserPreferencesRepository
 import com.example.fitlog.core.designsystem.theme.ThemeMode
+import com.example.fitlog.data.repository.UserProfileRepository
+import com.example.fitlog.domain.avatar.AvatarType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,11 +17,15 @@ data class ProfileUiState(
     val userName: String = "",
     val isProfileComplete: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.LIGHT,
+    val avatarType: AvatarType = AvatarType.DEFAULT,
+    val avatarKey: String? = null,
+    val customAvatarPath: String? = null,
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val preferencesRepository: UserPreferencesRepository,
+    private val userProfileRepository: UserProfileRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -30,6 +36,15 @@ class ProfileViewModel @Inject constructor(
             preferencesRepository.preferences.collect { prefs ->
                 _uiState.value = _uiState.value.copy(
                     themeMode = prefs.themeMode,
+                )
+            }
+        }
+        viewModelScope.launch {
+            userProfileRepository.observe().collect { profile ->
+                _uiState.value = _uiState.value.copy(
+                    avatarType = profile?.avatarType ?: AvatarType.DEFAULT,
+                    avatarKey = profile?.avatarKey,
+                    customAvatarPath = profile?.customAvatarPath,
                 )
             }
         }

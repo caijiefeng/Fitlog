@@ -309,6 +309,13 @@ object Migrations {
                 CREATE UNIQUE INDEX IF NOT EXISTS index_planned_workouts_template_id_planned_date
                 ON planned_workouts (template_id, planned_date)
             """)
+
+            // Avatar columns on user_profiles: how the avatar is sourced
+            // (DEFAULT/BUILT_IN/CUSTOM), the built-in avatar key, and the
+            // relative path of a custom photo in internal storage.
+            db.execSQL("ALTER TABLE user_profiles ADD COLUMN avatar_type TEXT NOT NULL DEFAULT 'DEFAULT'")
+            db.execSQL("ALTER TABLE user_profiles ADD COLUMN avatar_key TEXT")
+            db.execSQL("ALTER TABLE user_profiles ADD COLUMN custom_avatar_path TEXT")
         }
     }
 
