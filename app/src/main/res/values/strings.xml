@@ -239,6 +239,33 @@
     <string name="reminder_from_plan">计划</string>
     <string name="reminder_manage">管理提醒</string>
 
+    <!-- Reminder permission -->
+    <string name="reminder_permission_denied_title">通知权限未开启</string>
+    <string name="reminder_permission_denied_message">需要开启通知权限才能收到训练提醒，请在系统设置中开启。</string>
+    <string name="reminder_open_notification_settings">打开通知设置</string>
+
+    <!-- Reminder diagnostics -->
+    <string name="reminder_diag_title">提醒诊断</string>
+    <string name="reminder_diag_permission">通知权限</string>
+    <string name="reminder_diag_permission_ok">已开启</string>
+    <string name="reminder_diag_permission_missing">未开启</string>
+    <string name="reminder_diag_channel">通知渠道</string>
+    <string name="reminder_diag_channel_ok">正常</string>
+    <string name="reminder_diag_channel_missing">未创建</string>
+    <string name="reminder_diag_channel_blocked">已关闭</string>
+    <string name="reminder_diag_exact">准时提醒</string>
+    <string name="reminder_diag_exact_allowed">准时提醒: 已允许</string>
+    <string name="reminder_diag_exact_delayed">准时提醒: 可能延迟</string>
+    <string name="reminder_diag_battery">电池优化</string>
+    <string name="reminder_diag_battery_ok">未受影响</string>
+    <string name="reminder_diag_battery_affected">可能延迟通知</string>
+    <string name="reminder_diag_open_settings">打开设置</string>
+    <string name="reminder_diag_test">发送测试通知</string>
+
+    <!-- Notification content -->
+    <string name="notification_test_title">测试通知</string>
+    <string name="notification_test_text">通知渠道工作正常</string>
+
     <!-- Calendar Day Detail -->
     <string name="calendar_nav_back">返回</string>
     <string name="calendar_date_year">年</string>

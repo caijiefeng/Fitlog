@@ -6,6 +6,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,9 +27,25 @@ private val topLevelRoutes = BottomNavItem.items.map { it.route }.toSet()
 @Composable
 fun FitLogApp(
     preferencesRepository: UserPreferencesRepository,
+    openTodayCounter: Int = 0,
 ) {
     FitLogAppTheme(preferencesRepository = preferencesRepository) {
         val navController = rememberNavController()
+
+        // Reminder notification deep link: navigate to the Today tab whenever
+        // MainActivity receives a fitlog://reminder intent (click / actions).
+        LaunchedEffect(openTodayCounter) {
+            if (openTodayCounter > 0) {
+                navController.navigate(BottomNavItem.Today.route) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         val showBottomBar = currentRoute in topLevelRoutes

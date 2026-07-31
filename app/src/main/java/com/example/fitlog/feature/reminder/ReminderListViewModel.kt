@@ -14,9 +14,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** Snapshot of everything that affects reminder delivery. */
+data class ReminderDiagnosticsState(
+    val notificationPermissionGranted: Boolean = true,
+    val channelExists: Boolean = true,
+    val channelBlocked: Boolean = false,
+    val exactAlarmAllowed: Boolean = true,
+    val batteryOptimizationIgnored: Boolean = true,
+)
+
 data class ReminderListUiState(
     val reminders: List<Reminder> = emptyList(),
     val isLoading: Boolean = true,
+    val diagnostics: ReminderDiagnosticsState = ReminderDiagnosticsState(),
 )
 
 sealed interface ReminderListEvent {
@@ -29,6 +39,8 @@ sealed interface ReminderListEvent {
 class ReminderListViewModel @Inject constructor(
     private val repository: ReminderRepository,
     private val scheduler: ReminderScheduler,
+    private val diagnostics: ReminderDiagnostics,
+    private val notificationHelper: NotificationHelper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReminderListUiState())
@@ -40,12 +52,46 @@ class ReminderListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.observeAll().collect { reminders ->
-                _uiState.value = ReminderListUiState(
+                _uiState.value = _uiState.value.copy(
                     reminders = reminders,
                     isLoading = false,
                 )
             }
         }
+        refreshDiagnostics()
+    }
+
+    /** Re-reads permission/channel/alarm/battery status (e.g. after returning from settings). */
+    fun refreshDiagnostics() {
+        _uiState.value = _uiState.value.copy(
+            diagnostics = ReminderDiagnosticsState(
+                notificationPermissionGranted = diagnostics.notificationPermissionGranted(),
+                channelExists = diagnostics.channelExists(),
+                channelBlocked = diagnostics.channelBlocked(),
+                exactAlarmAllowed = diagnostics.exactAlarmAllowed(),
+                batteryOptimizationIgnored = diagnostics.batteryOptimizationIgnored(),
+            )
+        )
+    }
+
+    /** Posts a test notification through the reminder channel. */
+    fun sendTestNotification() {
+        notificationHelper.showTestNotification()
+    }
+
+    /** Opens the exact-alarm settings screen (Android 12+). */
+    fun openExactAlarmSettings() {
+        diagnostics.openExactAlarmSettings()
+    }
+
+    /** Opens the battery optimization exemption screen. */
+    fun openBatteryOptimizationSettings() {
+        diagnostics.openBatteryOptimizationSettings()
+    }
+
+    /** Opens the app notification settings screen. */
+    fun openNotificationSettings() {
+        diagnostics.openNotificationSettings()
     }
 
     fun onToggleEnabled(reminder: Reminder) {

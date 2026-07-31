@@ -31,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
@@ -80,14 +82,19 @@ fun ReminderListScreen(
 
     var pendingToggleReminder by remember { mutableStateOf<Reminder?>(null) }
     var showPermissionRationale by remember { mutableStateOf(false) }
+    var showPermissionDenied by remember { mutableStateOf(false) }
 
     val postNotificationsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         val reminder = pendingToggleReminder
-        pendingToggleReminder = null
         if (granted && reminder != null) {
+            pendingToggleReminder = null
             viewModel.onToggleEnabled(reminder)
+        } else if (!granted) {
+            // Permission denied: show the "通知权限未开启" dialog with a
+            // "打开通知设置" action. The toggle stays pending until granted.
+            showPermissionDenied = true
         }
     }
 
@@ -113,6 +120,14 @@ fun ReminderListScreen(
         )
     }
 
+    // Permission denied dialog: '通知权限未开启' + '打开通知设置'
+    if (showPermissionDenied) {
+        NotificationPermissionDeniedDialog(
+            onDismiss = { showPermissionDenied = false },
+            onOpenSettings = viewModel::openNotificationSettings,
+        )
+    }
+
     fun handleToggle(reminder: Reminder) {
         if (!reminder.isEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -131,6 +146,21 @@ fun ReminderListScreen(
         }
         // Permission already granted or Android < 13
         viewModel.onToggleEnabled(reminder)
+    }
+
+    // Refresh diagnostics and retry a pending toggle when returning to the screen
+    // (e.g. after granting permission in system settings).
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshDiagnostics()
+        val reminder = pendingToggleReminder
+        if (reminder != null &&
+            (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+        ) {
+            pendingToggleReminder = null
+            viewModel.onToggleEnabled(reminder)
+        }
+        onPauseOrDispose { }
     }
 
     LaunchedEffect(Unit) {
@@ -183,41 +213,209 @@ fun ReminderListScreen(
             ) {
                 CircularProgressIndicator(color = FitLogAccent)
             }
-        } else if (uiState.reminders.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                EmptyState(
-                    icon = Icons.Filled.NotificationsOff,
-                    title = stringResource(R.string.reminder_empty),
-                    subtitle = stringResource(R.string.reminder_empty_subtitle),
-                )
-            }
         } else {
             PageContainer(modifier = Modifier.padding(padding)) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                item { Spacer(modifier = Modifier.height(4.dp)) }
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
 
-                items(
-                    items = uiState.reminders,
-                    key = { it.id },
-                ) { reminder ->
-                    ReminderCard(
-                        reminder = reminder,
-                        onToggleEnabled = { handleToggle(reminder) },
-                        onDelete = { viewModel.onDelete(reminder) },
-                        onClick = { viewModel.onEdit(reminder) },
-                    )
+                    // Diagnostic card: permission / channel / exact alarm / battery
+                    item {
+                        ReminderDiagnosticsCard(
+                            diagnostics = uiState.diagnostics,
+                            onSendTest = viewModel::sendTestNotification,
+                            onOpenNotificationSettings = viewModel::openNotificationSettings,
+                            onOpenExactAlarmSettings = viewModel::openExactAlarmSettings,
+                            onOpenBatterySettings = viewModel::openBatteryOptimizationSettings,
+                        )
+                    }
+
+                    if (uiState.reminders.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                EmptyState(
+                                    icon = Icons.Filled.NotificationsOff,
+                                    title = stringResource(R.string.reminder_empty),
+                                    subtitle = stringResource(R.string.reminder_empty_subtitle),
+                                )
+                            }
+                        }
+                    } else {
+                        items(
+                            items = uiState.reminders,
+                            key = { it.id },
+                        ) { reminder ->
+                            ReminderCard(
+                                reminder = reminder,
+                                onToggleEnabled = { handleToggle(reminder) },
+                                onDelete = { viewModel.onDelete(reminder) },
+                                onClick = { viewModel.onEdit(reminder) },
+                            )
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
-
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
+}
+
+@Composable
+private fun ReminderDiagnosticsCard(
+    diagnostics: ReminderDiagnosticsState,
+    onSendTest: () -> Unit,
+    onOpenNotificationSettings: () -> Unit,
+    onOpenExactAlarmSettings: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = FitLogCard),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.reminder_diag_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = FitLogTextPrimary,
+                fontWeight = FontWeight.SemiBold,
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // ── Notification permission ────────────────────────────────────
+            DiagnosticsRow(
+                label = stringResource(R.string.reminder_diag_permission),
+                status = if (diagnostics.notificationPermissionGranted) {
+                    stringResource(R.string.reminder_diag_permission_ok)
+                } else {
+                    stringResource(R.string.reminder_diag_permission_missing)
+                },
+                statusError = !diagnostics.notificationPermissionGranted,
+            ) {
+                if (!diagnostics.notificationPermissionGranted) {
+                    DiagnosticsAction(
+                        text = stringResource(R.string.reminder_open_notification_settings),
+                        onClick = onOpenNotificationSettings,
+                    )
+                }
+            }
+
+            // ── Notification channel ───────────────────────────────────────
+            DiagnosticsRow(
+                label = stringResource(R.string.reminder_diag_channel),
+                status = when {
+                    !diagnostics.channelExists -> stringResource(R.string.reminder_diag_channel_missing)
+                    diagnostics.channelBlocked -> stringResource(R.string.reminder_diag_channel_blocked)
+                    else -> stringResource(R.string.reminder_diag_channel_ok)
+                },
+                statusError = !diagnostics.channelExists || diagnostics.channelBlocked,
+            ) {
+                if (diagnostics.channelBlocked) {
+                    DiagnosticsAction(
+                        text = stringResource(R.string.reminder_open_notification_settings),
+                        onClick = onOpenNotificationSettings,
+                    )
+                }
+            }
+
+            // ── Exact alarm status ─────────────────────────────────────────
+            DiagnosticsRow(
+                label = stringResource(R.string.reminder_diag_exact),
+                status = if (diagnostics.exactAlarmAllowed) {
+                    stringResource(R.string.reminder_diag_exact_allowed)
+                } else {
+                    stringResource(R.string.reminder_diag_exact_delayed)
+                },
+                statusError = !diagnostics.exactAlarmAllowed,
+            ) {
+                if (!diagnostics.exactAlarmAllowed) {
+                    DiagnosticsAction(
+                        text = stringResource(R.string.reminder_diag_open_settings),
+                        onClick = onOpenExactAlarmSettings,
+                    )
+                }
+            }
+
+            // ── Battery optimization ───────────────────────────────────────
+            DiagnosticsRow(
+                label = stringResource(R.string.reminder_diag_battery),
+                status = if (diagnostics.batteryOptimizationIgnored) {
+                    stringResource(R.string.reminder_diag_battery_ok)
+                } else {
+                    stringResource(R.string.reminder_diag_battery_affected)
+                },
+                statusError = !diagnostics.batteryOptimizationIgnored,
+            ) {
+                if (!diagnostics.batteryOptimizationIgnored) {
+                    DiagnosticsAction(
+                        text = stringResource(R.string.reminder_diag_open_settings),
+                        onClick = onOpenBatterySettings,
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = FitLogTextTertiary.copy(alpha = 0.15f),
+            )
+
+            // ── Test notification button ───────────────────────────────────
+            TextButton(
+                onClick = onSendTest,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.reminder_diag_test),
+                    color = FitLogAccent,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticsRow(
+    label: String,
+    status: String,
+    statusError: Boolean,
+    action: @Composable () -> Unit = {},
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = FitLogTextSecondary,
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = status,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (statusError) FitLogError else FitLogTextPrimary,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        action()
+    }
+}
+
+@Composable
+private fun DiagnosticsAction(
+    text: String,
+    onClick: () -> Unit,
+) {
+    TextButton(onClick = onClick, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+        Text(text = text, color = FitLogAccent, style = MaterialTheme.typography.labelMedium)
     }
 }
 

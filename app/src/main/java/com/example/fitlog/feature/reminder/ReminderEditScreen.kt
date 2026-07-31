@@ -77,12 +77,17 @@ fun ReminderEditScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showPermissionRationale by remember { mutableStateOf(false) }
+    var showPermissionDenied by remember { mutableStateOf(false) }
 
     val postNotificationsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) {
             viewModel.save()
+        } else {
+            // Permission denied: show the "通知权限未开启" dialog with a
+            // "打开通知设置" action.
+            showPermissionDenied = true
         }
     }
 
@@ -104,6 +109,23 @@ fun ReminderEditScreen(
                 TextButton(onClick = { showPermissionRationale = false }) {
                     Text(stringResource(R.string.reminder_notification_permission_deny))
                 }
+            },
+        )
+    }
+
+    // Permission denied dialog: '通知权限未开启' + '打开通知设置'
+    if (showPermissionDenied) {
+        NotificationPermissionDeniedDialog(
+            onDismiss = { showPermissionDenied = false },
+            onOpenSettings = {
+                context.startActivity(
+                    android.content.Intent(
+                        android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                    ).putExtra(
+                        android.provider.Settings.EXTRA_APP_PACKAGE,
+                        context.packageName,
+                    ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
             },
         )
     }

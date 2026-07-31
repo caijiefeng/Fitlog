@@ -13,16 +13,30 @@ import javax.inject.Inject
 
 /**
  * BroadcastReceiver that handles reminder alarm intents and system broadcasts.
- * Uses goAsync() for async work.
+ * Uses goAsync() for async work; the actual handling lives in
+ * [ReminderAlarmHandler] (a plain class, extracted for testability).
  *
  * - REMINDER_ALARM: Shows a notification and schedules the next occurrence.
- * - BOOT_COMPLETED / TIME_SET / TIMEZONE_CHANGED: Reschedules all enabled reminders.
+ * - REMIND_LATER: Re-reminds after a short delay ("稍后10分钟" action).
+ * - SKIP_TODAY: Skips the rest of today, keeps the weekly cadence ("跳过今天" action).
+ * - BOOT_COMPLETED / TIME_SET / TIMEZONE_CHANGED / MY_PACKAGE_REPLACED /
+ *   SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED: Reschedules all enabled reminders.
  */
 @AndroidEntryPoint
 class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "ReminderReceiver"
+
+        /** Notification action "稍后10分钟" — re-schedules a one-shot alarm. */
+        const val ACTION_REMIND_LATER = "com.example.fitlog.action.REMIND_LATER"
+
+        /** Notification action "跳过今天" — skips the rest of today. */
+        const val ACTION_SKIP_TODAY = "com.example.fitlog.action.SKIP_TODAY"
+
+        /** PendingIntent request-code offsets for the later/skip actions. */
+        const val RC_REMIND_LATER = 3100
+        const val RC_SKIP_TODAY = 3200
     }
 
     @Inject
@@ -38,56 +52,12 @@ class ReminderReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                when (intent.action) {
-                    ReminderScheduler.ACTION_REMINDER_ALARM -> {
-                        handleAlarm(intent)
-                    }
-
-                    Intent.ACTION_BOOT_COMPLETED,
-                    "android.intent.action.TIME_SET",
-                    Intent.ACTION_TIMEZONE_CHANGED,
-                    -> {
-                        scheduler.rescheduleAllEnabled()
-                    }
-
-                    else -> {
-                        // Also try to parse as alarm intent from data URI
-                        // (some legacy/manufacturer-triggered delivery)
-                        handleAlarm(intent)
-                    }
-                }
+                ReminderAlarmHandler(repository, scheduler, notificationHelper).handle(intent)
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing alarm intent", e)
             } finally {
-                pendingResult.finish()
+                pendingResult?.finish()
             }
-        }
-    }
-
-    private suspend fun handleAlarm(intent: Intent) {
-        val reminderId = intent.data?.let { uri ->
-            if (uri.scheme == "fitlog" && uri.host == "reminder") {
-                uri.lastPathSegment?.toLongOrNull()
-            } else {
-                null
-            }
-        } ?: return
-
-        runCatching {
-            val reminder = repository.getById(reminderId)
-            if (reminder != null && reminder.isEnabled) {
-                val dateText = notificationHelper.formatDateText()
-                notificationHelper.showNotification(
-                    reminderId = reminder.id,
-                    label = reminder.label,
-                    dateText = dateText,
-                )
-
-                // Schedule the next occurrence (repeating weekly)
-                scheduler.scheduleReminder(reminder)
-            }
-        }.onFailure { e ->
-            Log.e(TAG, "Failed to handle reminder $reminderId", e)
         }
     }
 }
