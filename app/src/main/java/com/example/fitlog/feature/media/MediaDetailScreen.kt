@@ -61,11 +61,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.OptIn
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -377,6 +379,7 @@ fun MediaDetailScreen(
 
 // ── Media Content View ────────────────────────────────────────────────────────
 
+@OptIn(UnstableApi::class)
 @Composable
 private fun MediaContentView(
     record: MediaRecord,

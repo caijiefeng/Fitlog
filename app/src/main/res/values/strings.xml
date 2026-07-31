@@ -346,23 +346,29 @@
 
     <!-- Avatar -->
     <string name="avatar_picker_title">选择头像</string>
-    <string name="avatar_picker_section_builtin">内置头像</string>
+    <string name="avatar_picker_section_basketball">篮球球星</string>
+    <string name="avatar_picker_section_soccer">足球球星</string>
+    <string name="avatar_picker_section_custom">自定义头像</string>
+    <string name="avatar_picker_save">保存头像</string>
+    <string name="avatar_picker_saved">头像已保存</string>
+    <string name="avatar_default">默认头像</string>
     <string name="avatar_picker_from_photos">从手机照片选择</string>
     <string name="avatar_picker_photo_copy_failed">读取照片失败，请重试</string>
     <string name="profile_avatar_edit">更换头像</string>
     <string name="profile_avatar_cd">我的头像</string>
-    <string name="avatar_basketball_pg">篮球控卫</string>
-    <string name="avatar_basketball_sg">篮球分卫</string>
-    <string name="avatar_basketball_dunker">篮球扣将</string>
-    <string name="avatar_basketball_forward">篮球前锋</string>
-    <string name="avatar_basketball_center">篮球中锋</string>
-    <string name="avatar_basketball_defender">篮球防守悍将</string>
-    <string name="avatar_soccer_forward">足球前锋</string>
-    <string name="avatar_soccer_winger">足球边锋</string>
-    <string name="avatar_soccer_midfielder">足球中场</string>
-    <string name="avatar_soccer_defender">足球后卫</string>
-    <string name="avatar_soccer_goalkeeper">足球门将</string>
-    <string name="avatar_street_athlete">街头运动家</string>
+    <string name="avatar_kobe">科比·布莱恩特</string>
+    <string name="avatar_lebron">勒布朗·詹姆斯</string>
+    <string name="avatar_durant">凯文·杜兰特</string>
+    <string name="avatar_curry">斯蒂芬·库里</string>
+    <string name="avatar_jordan">迈克尔·乔丹</string>
+    <string name="avatar_harden">詹姆斯·哈登</string>
+    <string name="avatar_irving">凯里·欧文</string>
+    <string name="avatar_george">保罗·乔治</string>
+    <string name="avatar_westbrook">拉塞尔·威斯布鲁克</string>
+    <string name="avatar_ronaldo">克里斯蒂亚诺·罗纳尔多</string>
+    <string name="avatar_messi">利昂内尔·梅西</string>
+    <string name="avatar_mbappe">基利安·姆巴佩</string>
+    <string name="avatar_neymar">内马尔</string>
     <!-- Body Profile -->
     <string name="body_profile_title">身体档案</string>
     <string name="body_profile_gender">性别</string>

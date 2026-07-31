@@ -13,8 +13,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class AvatarPickerUiState(
+    /** Pending avatar type — updates the preview immediately on selection. */
     val avatarType: AvatarType = AvatarType.DEFAULT,
+    /** Pending built-in avatar key ("" resolves to null at save time). */
     val avatarKey: String? = null,
+    /** Pending custom photo path (relative to filesDir). */
     val customAvatarPath: String? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
@@ -41,28 +44,43 @@ class AvatarPickerViewModel @Inject constructor(
         }
     }
 
-    /** Selects one of the built-in sports avatars and persists it immediately. */
+    /** Updates the preview to a built-in sports star; persisted on [save]. */
     fun selectBuiltIn(avatar: BuiltInAvatar) {
-        applyAndSave(AvatarType.BUILT_IN, avatar.key, null)
+        _uiState.value = _uiState.value.copy(
+            avatarType = AvatarType.BUILT_IN,
+            avatarKey = avatar.key,
+            customAvatarPath = null,
+            saved = false,
+            error = null,
+        )
     }
 
-    /** Persists a photo previously copied into internal storage ([AvatarPickerScreen] does the copy). */
+    /**
+     * Updates the preview to a photo previously copied into internal storage
+     * ([AvatarPickerScreen] does the copy); persisted on [save].
+     */
     fun selectCustom(customAvatarPath: String) {
-        applyAndSave(AvatarType.CUSTOM, null, customAvatarPath)
+        _uiState.value = _uiState.value.copy(
+            avatarType = AvatarType.CUSTOM,
+            avatarKey = null,
+            customAvatarPath = customAvatarPath,
+            saved = false,
+            error = null,
+        )
     }
 
-    /** Reports a UI-level failure (e.g. the picked photo could not be read). */
-    fun onError(message: String) {
-        _uiState.value = _uiState.value.copy(error = message)
-    }
-
-    private fun applyAndSave(avatarType: AvatarType, avatarKey: String?, customAvatarPath: String?) {
+    /** Persists the pending selection, then marks the screen as saved. */
+    fun save() {
         val current = _uiState.value
         if (current.isSaving) return
         viewModelScope.launch {
             _uiState.value = current.copy(isSaving = true, error = null, saved = false)
             try {
-                userProfileRepository.updateAvatar(avatarType, avatarKey, customAvatarPath)
+                userProfileRepository.updateAvatar(
+                    avatarType = current.avatarType,
+                    avatarKey = current.avatarKey,
+                    customAvatarPath = current.customAvatarPath,
+                )
                 _uiState.value = _uiState.value.copy(isSaving = false, saved = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -71,5 +89,10 @@ class AvatarPickerViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /** Reports a UI-level failure (e.g. the picked photo could not be read). */
+    fun onError(message: String) {
+        _uiState.value = _uiState.value.copy(error = message)
     }
 }

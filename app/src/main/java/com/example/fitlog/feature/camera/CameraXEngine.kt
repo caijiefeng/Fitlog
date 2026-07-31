@@ -1,6 +1,8 @@
 package com.example.fitlog.feature.camera
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -243,7 +245,10 @@ class CameraXEngine(
         val outputOptions = FileOutputOptions.Builder(outputFile).build()
         val pendingRecording = recorder.prepareRecording(context, outputOptions)
 
-        if (audioEnabled) {
+        if (audioEnabled &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
             pendingRecording.withAudioEnabled()
         }
 
