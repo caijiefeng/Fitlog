@@ -21,6 +21,8 @@ import javax.inject.Inject
 
 data class TemplateListUiState(
     val templates: List<WorkoutTemplate> = emptyList(),
+    /** templateId -> 第一个动作的 builtInKey（用于列表缩略图） */
+    val firstBuiltInKeys: Map<Long, String> = emptyMap(),
     val isLoading: Boolean = true,
     val showScheduleDialog: Boolean = false,
     val scheduleTemplateId: Long? = null,
@@ -62,7 +64,20 @@ class TemplateListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             templateRepository.getAllActive().collect { templates ->
-                _uiState.value = _uiState.value.copy(templates = templates, isLoading = false)
+                val firstKeys = HashMap<Long, String>()
+                templates.forEach { template ->
+                    try {
+                        val detail = templateRepository.getDetail(template.id)
+                        firstKeys[template.id] = detail?.exercises
+                            ?.firstNotNullOfOrNull { it.exercise?.builtInKey }
+                            .orEmpty()
+                    } catch (_: Exception) { }
+                }
+                _uiState.value = _uiState.value.copy(
+                    templates = templates,
+                    firstBuiltInKeys = firstKeys,
+                    isLoading = false,
+                )
             }
         }
     }

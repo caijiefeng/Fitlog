@@ -53,6 +53,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
+import com.example.fitlog.feature.exercise.muscleGroupLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

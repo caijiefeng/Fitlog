@@ -1,4 +1,9 @@
 package com.example.fitlog.feature.template
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.example.fitlog.R
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -106,6 +111,44 @@ fun TemplateEditScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // 模板摘要：动作数量 / 总组数 / 预计时长 / 主要肌群
+                val totalSets = state.exercises.sumOf {
+                    it.targetSets.toIntOrNull() ?: 0
+                }
+                val estimatedMinutes = (totalSets * 60 + state.exercises.sumOf {
+                    (it.restSeconds.toIntOrNull() ?: 90) * ((it.targetSets.toIntOrNull() ?: 3) - 1).coerceAtLeast(0)
+                }) / 60
+                val primaryGroups = state.exercises.map { it.muscleGroup }.distinct()
+                com.example.fitlog.core.designsystem.component.FitLogCard(
+                    style = com.example.fitlog.core.designsystem.component.FitLogCardStyle.TONAL,
+                ) {
+                    com.example.fitlog.core.designsystem.component.MetricRow(
+                        label = stringResource(R.string.template_summary_exercises),
+                        value = "${state.exercises.size}",
+                        valueColor = FitLogAccent,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    com.example.fitlog.core.designsystem.component.MetricRow(
+                        label = stringResource(R.string.template_summary_total_sets),
+                        value = "$totalSets",
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    com.example.fitlog.core.designsystem.component.MetricRow(
+                        label = stringResource(R.string.template_summary_estimated_duration),
+                        value = stringResource(R.string.template_summary_minutes, estimatedMinutes),
+                    )
+                    if (primaryGroups.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        com.example.fitlog.core.designsystem.component.MetricRow(
+                            label = stringResource(R.string.template_summary_muscle_groups),
+                            value = primaryGroups.joinToString(" · ") {
+                                com.example.fitlog.feature.exercise.muscleGroupLabel(it)
+                            },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+
                 OutlinedTextField(
                     value = state.notes,
                     onValueChange = { viewModel.onNotesChanged(it) },
@@ -201,12 +244,21 @@ private fun ExerciseAdder(
 private fun ExerciseConfigCard(
     index: Int,
     item: TemplateExerciseItem,
+    builtInKey: String? = null,
     onFieldChanged: (String, String) -> Unit,
     onRemove: () -> Unit,
 ) {
     FitLogCard {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (builtInKey != null) {
+                    com.example.fitlog.feature.exercise.ExerciseThumbnailByKey(
+                        builtInKey = builtInKey,
+                        contentDescription = item.exerciseName,
+                        modifier = Modifier.size(40.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                }
                 Text(
                     "${index + 1}. ${item.exerciseName}",
                     style = MaterialTheme.typography.titleSmall,

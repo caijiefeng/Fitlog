@@ -1,27 +1,25 @@
 package com.example.fitlog.feature.workout
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -38,8 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
-import com.example.fitlog.core.designsystem.component.EmptyState
-import com.example.fitlog.core.designsystem.component.FitLogCard
+import com.example.fitlog.core.designsystem.component.EmptyStateIllustration
+import com.example.fitlog.core.designsystem.component.PrimaryBottomAction
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
@@ -49,8 +47,14 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
-import com.example.fitlog.core.model.TrackingType
+import com.example.fitlog.feature.exercise.ExerciseRowCard
+import com.example.fitlog.feature.exercise.equipmentLabel
+import com.example.fitlog.feature.exercise.muscleGroupLabel
 
+/**
+ * 动作选择器（多选）：勾选多个动作，底部固定「已选择 N 个动作 / 加入训练」。
+ * 不再点击一条就立即退出。
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExercisePickerScreen(
@@ -63,7 +67,6 @@ fun ExercisePickerScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is ExercisePickerEvent.NavigateBack -> onNavigateBack()
-                is ExercisePickerEvent.ShowError -> { /* handled via snackbar / toast in future */ }
             }
         }
     }
@@ -89,15 +92,21 @@ fun ExercisePickerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(padding),
         ) {
-            // Search field
+            // 搜索
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.exercise_picker_search_placeholder), color = FitLogTextSecondary) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = {
+                    Text(
+                        stringResource(R.string.exercise_picker_search_placeholder),
+                        color = FitLogTextSecondary,
+                    )
+                },
                 leadingIcon = { Icon(Icons.Filled.Search, null, tint = FitLogTextSecondary) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -112,8 +121,11 @@ fun ExercisePickerScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Muscle group filter chips
-            LazyRow {
+            // 肌群筛选
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 items(
                     listOf(null) + MuscleGroup.entries,
                     key = { it?.name ?: "all" },
@@ -123,17 +135,40 @@ fun ExercisePickerScreen(
                         onClick = { viewModel.onMuscleGroupSelected(group) },
                         label = {
                             Text(
-                                group?.let { muscleGroupLabel(it) } ?: stringResource(R.string.exercise_picker_all_groups),
+                                group?.let { muscleGroupLabel(it) }
+                                    ?: stringResource(R.string.exercise_picker_all_groups),
                             )
                         },
-                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 器械筛选
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    listOf(null) + EquipmentType.entries,
+                    key = { it?.name ?: "all" },
+                ) { equipment ->
+                    FilterChip(
+                        selected = uiState.selectedEquipment == equipment,
+                        onClick = { viewModel.onEquipmentSelected(equipment) },
+                        label = {
+                            Text(
+                                equipment?.let { equipmentLabel(it) }
+                                    ?: stringResource(R.string.exercise_picker_all_groups),
+                            )
+                        },
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Content
+            // 动作列表
             when {
                 uiState.isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -141,114 +176,50 @@ fun ExercisePickerScreen(
                     }
                 }
                 uiState.isEmpty -> {
-                    EmptyState(
+                    EmptyStateIllustration(
                         icon = Icons.Filled.Search,
-                        title = stringResource(R.string.exercise_picker_empty_title),
-                        subtitle = stringResource(R.string.exercise_picker_empty_subtitle),
+                        title = stringResource(R.string.exercise_library_empty_title),
+                        subtitle = stringResource(R.string.exercise_library_empty_subtitle),
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
                 else -> {
-                    LazyColumn {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f),
+                    ) {
                         items(uiState.exercises, key = { it.id }) { exercise ->
-                            ExerciseRow(
+                            ExerciseRowCard(
                                 exercise = exercise,
-                                onClick = { viewModel.addExercise(exercise.id) },
-                                enabled = !uiState.isAdding,
+                                selected = exercise.id in uiState.selectedIds,
+                                showChevron = false,
+                                onClick = { viewModel.toggleSelection(exercise.id) },
                             )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun ExerciseRow(
-    exercise: Exercise,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    FitLogCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        onClick = if (enabled) onClick else null,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    exercise.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = FitLogTextPrimary,
-                )
-                Text(
-                    trackingTypeDescription(exercise),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = FitLogTextSecondary,
-                )
-            }
-            Icon(
-                Icons.Default.Add,
-                contentDescription = stringResource(R.string.exercise_picker_add),
-                tint = FitLogAccent,
-                modifier = Modifier.size(20.dp),
+            // 底部固定操作条
+            PrimaryBottomAction(
+                text = if (uiState.isAdding) {
+                    stringResource(R.string.exercise_picker_confirm_adding)
+                } else {
+                    stringResource(R.string.exercise_picker_add_all)
+                },
+                onClick = { viewModel.confirmSelection() },
+                enabled = uiState.selectedIds.isNotEmpty() && !uiState.isAdding,
+                loading = uiState.isAdding,
+                badge = stringResource(
+                    R.string.exercise_picker_selected_count,
+                    uiState.selectedIds.size,
+                ),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
         }
     }
-}
-
-internal fun trackingTypeDescription(exercise: Exercise): String {
-    return when (exercise.equipmentType) {
-        EquipmentType.BARBELL, EquipmentType.DUMBBELL,
-        EquipmentType.MACHINE, EquipmentType.CABLE,
-        EquipmentType.KETTLEBELL -> {
-            "${equipmentLabel(exercise.equipmentType)} · ${muscleGroupLabel(exercise.primaryMuscleGroup)} · 重量×次数"
-        }
-        EquipmentType.BODYWEIGHT -> {
-            when (exercise.trackingType) {
-                TrackingType.BODYWEIGHT_REPS -> "自重次数 + 附加重量(可选)"
-                TrackingType.DURATION -> "计时 · 保持姿势"
-                else -> "自重 · ${muscleGroupLabel(exercise.primaryMuscleGroup)}"
-            }
-        }
-        EquipmentType.CARDIO_MACHINE -> {
-            when (exercise.trackingType) {
-                TrackingType.DISTANCE_DURATION -> "有氧 · 距离/时长"
-                TrackingType.DURATION -> "有氧 · 计时"
-                else -> "有氧 · ${muscleGroupLabel(exercise.primaryMuscleGroup)}"
-            }
-        }
-        EquipmentType.OTHER -> {
-            muscleGroupLabel(exercise.primaryMuscleGroup)
-        }
-    }
-}
-
-internal fun equipmentLabel(type: EquipmentType): String = when (type) {
-    EquipmentType.BARBELL -> "杠铃"
-    EquipmentType.DUMBBELL -> "哑铃"
-    EquipmentType.MACHINE -> "器械"
-    EquipmentType.CABLE -> "绳索"
-    EquipmentType.BODYWEIGHT -> "自重"
-    EquipmentType.KETTLEBELL -> "壶铃"
-    EquipmentType.CARDIO_MACHINE -> "有氧"
-    EquipmentType.OTHER -> "其他"
-}
-
-internal fun muscleGroupLabel(group: MuscleGroup): String = when (group) {
-    MuscleGroup.CHEST -> "胸"
-    MuscleGroup.BACK -> "背"
-    MuscleGroup.SHOULDERS -> "肩"
-    MuscleGroup.BICEPS -> "肱二头肌"
-    MuscleGroup.TRICEPS -> "肱三头肌"
-    MuscleGroup.FOREARMS -> "前臂"
-    MuscleGroup.QUADRICEPS -> "股四头肌"
-    MuscleGroup.HAMSTRINGS -> "腘绳肌"
-    MuscleGroup.GLUTES -> "臀"
-    MuscleGroup.CALVES -> "小腿"
-    MuscleGroup.CORE -> "核心"
-    MuscleGroup.CARDIO -> "有氧"
-    MuscleGroup.FULL_BODY -> "全身"
 }

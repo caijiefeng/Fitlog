@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -62,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogError
@@ -173,6 +175,7 @@ fun WorkoutExecutionScreen(
                     sessionId = sessionId,
                     isInProgress = isInProgress,
                     restTimerState = uiState.restTimerState,
+                    builtInKeysByExerciseId = uiState.builtInKeysByExerciseId,
                     onTickRest = viewModel::tickRest,
                     onSkipRest = viewModel::skipRest,
                     onAdd15Seconds = viewModel::add15Seconds,
@@ -314,6 +317,7 @@ fun WorkoutExecutionScreen(
 
 // ─── Content ───────────────────────────────────────────────────────────────────
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun WorkoutContent(
     detail: com.example.fitlog.core.model.WorkoutSessionDetail,
@@ -333,10 +337,16 @@ private fun WorkoutContent(
     onUpdateNotes: (Long, String) -> Unit,
     onNavigateToExercisePicker: () -> Unit,
     onCancelWorkout: () -> Unit,
+    builtInKeysByExerciseId: Map<Long, String> = emptyMap(),
     modifier: Modifier = Modifier,
 ) {
     // Track which completed sets are in edit mode (keyed by setRecordId)
     val editingSets = remember { mutableStateMapOf<Long, Boolean>() }
+
+    // 当前正在训练的动作 = 第一个还有未完成组的动作
+    val currentExerciseId = detail.exercises.firstOrNull { (exercise, sets) ->
+        !exercise.isSkipped && !exercise.isCompleted && sets.any { !it.completed }
+    }?.first?.id
 
     if (detail.exercises.isEmpty() && isInProgress) {
         // Empty state: no exercises added yet
@@ -373,25 +383,25 @@ private fun WorkoutContent(
         return
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-    ) {
-        // Rest timer bar (shown when active)
+    Column(modifier = modifier.fillMaxSize()) {
+        // 休息计时器固定在列表上方（活动时始终可见）
         if (restTimerState.isRunning || restTimerState.isFinished) {
-            item(key = "rest_timer") {
-                RestTimerBar(
-                    state = restTimerState,
-                    onTick = onTickRest,
-                    onSkip = onSkipRest,
-                    onAdd15 = onAdd15Seconds,
-                    onSubtract15 = onSubtract15Seconds,
-                )
-                Spacer(Modifier.height(12.dp))
-            }
+            RestTimerBar(
+                state = restTimerState,
+                onTick = onTickRest,
+                onSkip = onSkipRest,
+                onAdd15 = onAdd15Seconds,
+                onSubtract15 = onSubtract15Seconds,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(Modifier.height(12.dp))
         }
 
+    LazyColumn(
+        modifier = modifier
+            .weight(1f)
+            .padding(horizontal = 16.dp),
+    ) {
         // Exercise cards
         itemsIndexed(
             items = detail.exercises,
@@ -401,6 +411,8 @@ private fun WorkoutContent(
                 exercise = exercise,
                 sets = sets,
                 editingSets = editingSets,
+                isCurrentExercise = exercise.id == currentExerciseId,
+                builtInKey = builtInKeysByExerciseId[exercise.id],
                 onCompleteSet = onCompleteSet,
                 onAddSet = onAddSet,
                 onDeleteSet = onDeleteSet,
@@ -441,6 +453,7 @@ private fun WorkoutContent(
         // Bottom padding for navigation bar
         item { Spacer(Modifier.height(80.dp)) }
     }
+    }
 }
 
 // ─── Rest Timer Bar ────────────────────────────────────────────────────────────
@@ -452,6 +465,7 @@ private fun RestTimerBar(
     onSkip: () -> Unit,
     onAdd15: () -> Unit,
     onSubtract15: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // Auto-tick every second while running
     LaunchedEffect(state.isRunning, state.isFinished) {
@@ -535,6 +549,8 @@ private fun ExerciseCard(
     exercise: ExerciseSession,
     sets: List<SetRecord>,
     editingSets: MutableMap<Long, Boolean>,
+    isCurrentExercise: Boolean = false,
+    builtInKey: String? = null,
     onCompleteSet: (Long, Long, Int?, Double?, Double?, Int?, SetType) -> Unit,
     onAddSet: (Long) -> Unit,
     onDeleteSet: (Long) -> Unit,
@@ -548,11 +564,18 @@ private fun ExerciseCard(
         mutableStateOf(exercise.notes ?: "")
     }
     var showCompleteConfirmDialog by remember { mutableStateOf(false) }
+    var showForm by remember { mutableStateOf(false) }
 
     val allPlannedSetsDone =
         exercise.isCompleted || completionEvaluator.isExerciseComplete(exercise, sets)
 
-    FitLogCard {
+    FitLogCard(
+        style = if (isCurrentExercise) {
+            com.example.fitlog.core.designsystem.component.FitLogCardStyle.HERO
+        } else {
+            com.example.fitlog.core.designsystem.component.FitLogCardStyle.STANDARD
+        },
+    ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // ── Header ────────────────────────────────────────────────────────
             Row(
@@ -560,6 +583,14 @@ private fun ExerciseCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (builtInKey != null) {
+                    com.example.fitlog.feature.exercise.ExerciseThumbnailByKey(
+                        builtInKey = builtInKey,
+                        contentDescription = exercise.exerciseNameSnapshot,
+                        modifier = Modifier.size(48.dp),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = exercise.exerciseNameSnapshot,
@@ -570,6 +601,20 @@ private fun ExerciseCard(
                     TargetInfoLine(exercise)
                 }
 
+                if (isCurrentExercise && !exercise.isSkipped && !exercise.isCompleted) {
+                    Surface(
+                        color = FitLogAccentContainer,
+                        shape = MaterialTheme.shapes.extraSmall,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.workout_execution_current_exercise),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = FitLogAccent,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                }
                 if (exercise.isSkipped) {
                     Surface(
                         color = FitLogSurfaceVariant,
@@ -598,6 +643,79 @@ private fun ExerciseCard(
             }
 
             Spacer(Modifier.height(12.dp))
+
+            // ── 查看动作示意（可展开）────────────────────────────────────────
+            if (builtInKey != null && !exercise.isSkipped) {
+                androidx.compose.material3.TextButton(
+                    onClick = { showForm = !showForm },
+                ) {
+                    Icon(
+                        Icons.Default.Visibility,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = FitLogAccent,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(
+                            if (showForm) {
+                                R.string.workout_execution_hide_form
+                            } else {
+                                R.string.workout_execution_view_form
+                            }
+                        ),
+                        color = FitLogAccent,
+                    )
+                }
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showForm,
+                    enter = androidx.compose.animation.expandVertically(
+                        animationSpec = androidx.compose.animation.core.tween(220),
+                    ),
+                    exit = androidx.compose.animation.shrinkVertically(
+                        animationSpec = androidx.compose.animation.core.tween(220),
+                    ),
+                ) {
+                    Column {
+                        com.example.fitlog.feature.exercise.ExerciseStartEndImages(
+                            builtInKey = builtInKey,
+                            contentDescription = exercise.exerciseNameSnapshot,
+                            fallbackText = stringResource(R.string.exercise_detail_no_illustration),
+                            autoAlternate = false,
+                        )
+                        val asset = com.example.fitlog.feature.exercise.rememberExerciseAsset(builtInKey)
+                        val steps = asset?.instructionsZh.orEmpty()
+                        if (steps.isNotEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.workout_execution_steps_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = FitLogTextPrimary,
+                            )
+                            steps.forEachIndexed { index, step ->
+                                Row(
+                                    verticalAlignment = Alignment.Top,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                ) {
+                                    Text(
+                                        text = "${index + 1}.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = FitLogAccent,
+                                        modifier = Modifier.width(24.dp),
+                                    )
+                                    Text(
+                                        text = step,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = FitLogTextSecondary,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
 
             // ── Set Rows ──────────────────────────────────────────────────────
             sets.forEach { setRecord ->
@@ -961,6 +1079,7 @@ private fun EditableSetRow(
                     errorMessage = weightError,
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(1f),
+                    textStyle = com.example.fitlog.core.designsystem.theme.FitLogType.statistic,
                 )
                 NumericField(
                     value = repsText,
@@ -971,6 +1090,7 @@ private fun EditableSetRow(
                     errorMessage = repsError,
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f),
+                    textStyle = com.example.fitlog.core.designsystem.theme.FitLogType.statistic,
                 )
             }
 
@@ -1145,6 +1265,7 @@ private fun NumericField(
     errorMessage: String?,
     keyboardType: KeyboardType,
     modifier: Modifier = Modifier,
+    textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
     OutlinedTextField(
         value = value,
@@ -1170,7 +1291,7 @@ private fun NumericField(
         singleLine = true,
         modifier = modifier,
         colors = fieldColors(),
-        textStyle = MaterialTheme.typography.bodyMedium,
+        textStyle = textStyle,
     )
 }
 

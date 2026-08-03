@@ -134,6 +134,18 @@
     <string name="set_type_working">正式组</string>
     <string name="set_type_drop">递减组</string>
     <string name="set_type_failure">力竭组</string>
+    <string name="workout_execution_view_form">查看动作示意</string>
+    <string name="workout_execution_hide_form">收起示意</string>
+    <string name="workout_execution_steps_title">动作步骤</string>
+    <string name="workout_execution_current_exercise">进行中</string>
+    <string name="workout_execution_rest_sticky_hint">休息计时</string>
+    <string name="template_summary_exercises">动作数量</string>
+    <string name="template_summary_total_sets">计划总组数</string>
+    <string name="template_summary_estimated_duration">预计训练时长</string>
+    <string name="template_summary_muscle_groups">主要训练肌群</string>
+    <string name="template_summary_minutes" formatted="false">约 %d 分钟</string>
+
+
 
     <!-- Workout Summary -->
     <string name="workout_summary_title">训练摘要</string>
@@ -167,6 +179,33 @@
     <string name="exercise_picker_back">返回</string>
     <string name="exercise_picker_search_placeholder">搜索动作...</string>
     <string name="exercise_picker_all_groups">全部</string>
+    <string name="exercise_library_title">动作库</string>
+    <string name="exercise_search_placeholder">搜索动作...</string>
+    <string name="exercise_filter_all">全部</string>
+    <string name="exercise_scope_all">全部</string>
+    <string name="exercise_scope_custom">自定义</string>
+    <string name="exercise_library_empty_title">没有动作</string>
+    <string name="exercise_library_empty_subtitle">点击右上角 + 创建自定义动作，或调整筛选条件</string>
+    <string name="exercise_create">新增动作</string>
+    <string name="action_back_to_plan">← 计划</string>
+    <string name="exercise_detail_title">动作详情</string>
+    <string name="exercise_detail_start_pose">起始姿势</string>
+    <string name="exercise_detail_end_pose">结束姿势</string>
+    <string name="exercise_detail_primary_muscle">主要肌群</string>
+    <string name="exercise_detail_secondary_muscle">次要肌群</string>
+    <string name="exercise_detail_equipment">器械</string>
+    <string name="exercise_detail_tracking">记录类型</string>
+    <string name="exercise_detail_steps">动作步骤</string>
+    <string name="exercise_detail_notes">备注</string>
+    <string name="exercise_detail_no_illustration">暂无动作示意图</string>
+    <string name="exercise_detail_add_to_template">加入模板</string>
+    <string name="exercise_detail_add_to_workout">加入当前训练</string>
+    <string name="exercise_detail_edit">编辑动作</string>
+    <string name="exercise_detail_added">已加入训练</string>
+    <string name="exercise_detail_no_session">当前没有进行中的训练</string>
+    <string name="exercise_picker_selected_count">已选择 %1$d 个动作</string>
+    <string name="exercise_picker_add_all">加入训练</string>
+    <string name="exercise_picker_confirm_adding">正在加入…</string>
     <string name="exercise_picker_empty_title">没有动作</string>
     <string name="exercise_picker_empty_subtitle">请先在动作库中创建动作</string>
     <string name="exercise_picker_add">添加</string>

@@ -16,6 +16,7 @@ import com.example.fitlog.feature.body.BodyMeasurementScreen
 import com.example.fitlog.feature.body.BodyProfileScreen
 import com.example.fitlog.feature.body.ProgressPhotoScreen
 import com.example.fitlog.feature.camera.FitLogCameraScreen
+import com.example.fitlog.feature.exercise.ExerciseDetailScreen
 import com.example.fitlog.feature.exercise.ExerciseFormScreen
 import com.example.fitlog.feature.exercise.ExerciseListScreen
 import com.example.fitlog.feature.goal.GoalScreen
@@ -48,6 +49,7 @@ object Routes {
     const val EXERCISE_LIST = "exercise/list"
     const val EXERCISE_CREATE = "exercise/create"
     const val EXERCISE_EDIT = "exercise/edit/{exerciseId}"
+    const val EXERCISE_DETAIL = "exercise/detail/{exerciseId}"
     const val TEMPLATE_LIST = "template/list"
     const val TEMPLATE_CREATE = "template/create"
     const val TEMPLATE_EDIT = "template/edit/{templateId}"
@@ -65,6 +67,7 @@ object Routes {
     const val REMINDER_EDIT = "reminder/edit/{reminderId}"
 
     fun exerciseEdit(id: Long) = "exercise/edit/$id"
+    fun exerciseDetail(id: Long) = "exercise/detail/$id"
     fun templateEdit(id: Long) = "template/edit/$id"
     fun workoutExecution(id: Long) = "workout/session/$id"
     fun workoutSummary(id: Long) = "workout/summary/$id"
@@ -167,8 +170,25 @@ fun FitLogNavHost(
         composable(Routes.EXERCISE_LIST) {
             ExerciseListScreen(
                 onNavigateToCreate = { navController.navigate(Routes.EXERCISE_CREATE) },
-                onNavigateToEdit = { id -> navController.navigate(Routes.exerciseEdit(id)) },
+                onNavigateToDetail = { id -> navController.navigate(Routes.exerciseDetail(id)) },
                 onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.EXERCISE_DETAIL,
+            arguments = listOf(navArgument("exerciseId") { type = NavType.LongType }),
+        ) {
+            ExerciseDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { id -> navController.navigate(Routes.exerciseEdit(id)) },
+                onNavigateToTemplate = { templateId ->
+                    navController.navigate(Routes.templateEdit(templateId)) {
+                        popUpTo(Routes.EXERCISE_LIST) { inclusive = false }
+                    }
+                },
+                onNavigateToExecution = { sessionId ->
+                    navController.navigate(Routes.workoutExecution(sessionId))
+                },
             )
         }
         composable(Routes.EXERCISE_CREATE) {

@@ -242,37 +242,3 @@ private fun fieldColors() = OutlinedTextFieldDefaults.colors(
     disabledTextColor = FitLogTextSecondary,
     disabledBorderColor = FitLogTextSecondary.copy(alpha = 0.15f),
 )
-
-private fun muscleGroupLabel(group: MuscleGroup): String = when (group) {
-    MuscleGroup.CHEST -> "胸"
-    MuscleGroup.BACK -> "背"
-    MuscleGroup.SHOULDERS -> "肩"
-    MuscleGroup.BICEPS -> "肱二头肌"
-    MuscleGroup.TRICEPS -> "肱三头肌"
-    MuscleGroup.FOREARMS -> "前臂"
-    MuscleGroup.QUADRICEPS -> "股四头肌"
-    MuscleGroup.HAMSTRINGS -> "腘绳肌"
-    MuscleGroup.GLUTES -> "臀"
-    MuscleGroup.CALVES -> "小腿"
-    MuscleGroup.CORE -> "核心"
-    MuscleGroup.CARDIO -> "有氧"
-    MuscleGroup.FULL_BODY -> "全身"
-}
-
-private fun equipmentTypeLabel(type: EquipmentType): String = when (type) {
-    EquipmentType.BARBELL -> "杠铃"
-    EquipmentType.DUMBBELL -> "哑铃"
-    EquipmentType.MACHINE -> "器械"
-    EquipmentType.CABLE -> "绳索"
-    EquipmentType.BODYWEIGHT -> "自重"
-    EquipmentType.KETTLEBELL -> "壶铃"
-    EquipmentType.CARDIO_MACHINE -> "有氧器械"
-    EquipmentType.OTHER -> "其他"
-}
-
-private fun trackingTypeLabel(type: TrackingType): String = when (type) {
-    TrackingType.WEIGHT_REPS -> "重量 × 次数"
-    TrackingType.BODYWEIGHT_REPS -> "自重次数 (可加附加重量)"
-    TrackingType.DURATION -> "计时"
-    TrackingType.DISTANCE_DURATION -> "距离 / 时长"
-}

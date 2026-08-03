@@ -2,21 +2,24 @@ package com.example.fitlog.feature.exercise
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
 import com.example.fitlog.data.repository.ExerciseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class ExerciseScopeFilter { ALL, CUSTOM }
 
 data class ExerciseListUiState(
     val exercises: List<Exercise> = emptyList(),
@@ -25,16 +28,18 @@ data class ExerciseListUiState(
     val error: String? = null,
     val searchQuery: String = "",
     val selectedMuscleGroup: MuscleGroup? = null,
+    val selectedEquipment: EquipmentType? = null,
+    val scopeFilter: ExerciseScopeFilter = ExerciseScopeFilter.ALL,
     val muscleGroups: List<MuscleGroup> = MuscleGroup.entries,
 )
 
 sealed interface ExerciseListEvent {
     data class ShowError(val message: String) : ExerciseListEvent
-    data class NavigateToEdit(val exerciseId: Long) : ExerciseListEvent
+    data class NavigateToDetail(val exerciseId: Long) : ExerciseListEvent
     data object NavigateToCreate : ExerciseListEvent
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ExerciseListViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
@@ -48,15 +53,32 @@ class ExerciseListViewModel @Inject constructor(
 
     private val searchQuery = MutableStateFlow("")
     private val muscleGroupFilter = MutableStateFlow<MuscleGroup?>(null)
+    private val equipmentFilter = MutableStateFlow<EquipmentType?>(null)
+    private val scopeFilter = MutableStateFlow(ExerciseScopeFilter.ALL)
 
     init {
         viewModelScope.launch {
-            searchQuery.flatMapLatest { query ->
-                muscleGroupFilter.flatMapLatest { group ->
-                    when {
-                        !query.isNullOrBlank() -> exerciseRepository.searchByName(query)
-                        group != null -> exerciseRepository.getByMuscleGroup(group)
-                        else -> exerciseRepository.getAllActive()
+            combine(
+                searchQuery,
+                muscleGroupFilter,
+                equipmentFilter,
+                scopeFilter,
+            ) { query, muscle, equipment, scope ->
+                Filter(query, muscle, equipment, scope)
+            }.flatMapLatest { filter ->
+                exerciseRepository.getAllActive().map { exercises ->
+                    exercises.filter { ex ->
+                        val matchesQuery = filter.query.isBlank() ||
+                            ex.name.contains(filter.query, ignoreCase = true)
+                        val matchesMuscle = filter.muscle == null ||
+                            ex.primaryMuscleGroup == filter.muscle
+                        val matchesEquipment = filter.equipment == null ||
+                            ex.equipmentType == filter.equipment
+                        val matchesScope = when (filter.scope) {
+                            ExerciseScopeFilter.ALL -> true
+                            ExerciseScopeFilter.CUSTOM -> ex.isCustom
+                        }
+                        matchesQuery && matchesMuscle && matchesEquipment && matchesScope
                     }
                 }
             }.collect { exercises ->
@@ -80,9 +102,19 @@ class ExerciseListViewModel @Inject constructor(
         muscleGroupFilter.value = group
     }
 
+    fun onEquipmentSelected(equipment: EquipmentType?) {
+        _uiState.value = _uiState.value.copy(selectedEquipment = equipment)
+        equipmentFilter.value = equipment
+    }
+
+    fun onScopeFilterSelected(scope: ExerciseScopeFilter) {
+        _uiState.value = _uiState.value.copy(scopeFilter = scope)
+        scopeFilter.value = scope
+    }
+
     fun onExerciseClicked(exercise: Exercise) {
         viewModelScope.launch {
-            _events.emit(ExerciseListEvent.NavigateToEdit(exercise.id))
+            _events.emit(ExerciseListEvent.NavigateToDetail(exercise.id))
         }
     }
 
@@ -92,13 +124,10 @@ class ExerciseListViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteExercise(id: Long) {
-        viewModelScope.launch {
-            try {
-                exerciseRepository.softDelete(id)
-            } catch (e: Exception) {
-                _events.emit(ExerciseListEvent.ShowError("删除失败: ${e.message}"))
-            }
-        }
-    }
+    private data class Filter(
+        val query: String,
+        val muscle: MuscleGroup?,
+        val equipment: EquipmentType?,
+        val scope: ExerciseScopeFilter,
+    )
 }

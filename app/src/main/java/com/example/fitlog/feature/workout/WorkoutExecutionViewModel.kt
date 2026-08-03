@@ -12,6 +12,8 @@ import com.example.fitlog.domain.workout.WorkoutCompletion
 import com.example.fitlog.domain.workout.WorkoutCompletionEvaluator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,8 @@ data class WorkoutExecutionUiState(
     val showPartialCompleteDialog: Boolean = false,
     val isSaving: Boolean = false,
     val elapsedSeconds: Long = 0L,
+    /** exerciseId -> builtInKey，用于展示动作缩略图与示意图 */
+    val builtInKeysByExerciseId: Map<Long, String> = emptyMap(),
 ) {
     val exerciseCount: Int get() = sessionDetail?.exercises?.size ?: 0
 }
@@ -45,6 +49,7 @@ sealed interface WorkoutExecutionEvent {
 class WorkoutExecutionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sessionRepository: WorkoutSessionRepository,
+    private val exerciseRepository: com.example.fitlog.data.repository.ExerciseRepository,
 ) : ViewModel() {
 
     val timer = RestTimerController()
@@ -61,6 +66,18 @@ class WorkoutExecutionViewModel @Inject constructor(
 
     init {
         if (sessionId > 0) loadSession()
+        viewModelScope.launch {
+            // 加载 exerciseId -> builtInKey 映射（仅用于展示素材，不改业务逻辑）
+            exerciseRepository.getAllActive().firstOrNull()?.let { exercises ->
+                _uiState.update {
+                    it.copy(
+                        builtInKeysByExerciseId = exercises
+                            .filter { ex -> ex.builtInKey != null }
+                            .associate { ex -> ex.id to ex.builtInKey!! },
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             timer.state.collect { s ->
                 val prev = _uiState.value.restTimerState

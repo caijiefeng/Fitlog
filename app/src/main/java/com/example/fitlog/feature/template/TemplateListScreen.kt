@@ -490,6 +490,12 @@ fun TemplateListScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                com.example.fitlog.feature.exercise.ExerciseThumbnailByKey(
+                                    builtInKey = uiState.firstBuiltInKeys[template.id],
+                                    contentDescription = template.name,
+                                    modifier = Modifier.size(48.dp),
+                                )
+                                Spacer(Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         template.name,

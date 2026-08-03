@@ -25,6 +25,8 @@ data class TemplateEditUiState(
     val notes: String = "",
     val exercises: List<TemplateExerciseItem> = emptyList(),
     val availableExercises: List<Exercise> = emptyList(),
+    /** exerciseId -> builtInKey，用于模板中动作的小型缩略图 */
+    val exerciseBuiltInKeys: Map<Long, String> = emptyMap(),
     val isSaving: Boolean = false,
     val isLoaded: Boolean = false,
     val error: String? = null,
@@ -71,7 +73,14 @@ class TemplateEditViewModel @Inject constructor(
         viewModelScope.launch {
             // Load available exercises
             exerciseRepository.getAllActive().collect { exercises ->
-                _state.update { it.copy(availableExercises = exercises) }
+                _state.update {
+                    it.copy(
+                        availableExercises = exercises,
+                        exerciseBuiltInKeys = exercises
+                            .filter { ex -> ex.builtInKey != null }
+                            .associate { ex -> ex.id to ex.builtInKey!! },
+                    )
+                }
             }
         }
         if (templateId != null) {

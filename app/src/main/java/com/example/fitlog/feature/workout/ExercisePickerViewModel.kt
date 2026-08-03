@@ -3,6 +3,7 @@ package com.example.fitlog.feature.workout
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitlog.core.model.EquipmentType
 import com.example.fitlog.core.model.Exercise
 import com.example.fitlog.core.model.MuscleGroup
 import com.example.fitlog.data.repository.ExerciseRepository
@@ -15,7 +16,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,12 +28,14 @@ data class ExercisePickerUiState(
     val isEmpty: Boolean = false,
     val searchQuery: String = "",
     val selectedMuscleGroup: MuscleGroup? = null,
+    val selectedEquipment: EquipmentType? = null,
+    /** 多选集合 */
+    val selectedIds: Set<Long> = emptySet(),
     val isAdding: Boolean = false,
 )
 
 sealed interface ExercisePickerEvent {
     data object NavigateBack : ExercisePickerEvent
-    data class ShowError(val message: String) : ExercisePickerEvent
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,7 +46,7 @@ class ExercisePickerViewModel @Inject constructor(
     private val sessionRepository: WorkoutSessionRepository,
 ) : ViewModel() {
 
-    private val sessionId: Long = savedStateHandle.get<Long>("sessionId") ?: 0L
+    private val sessionId: Long = checkNotNull(savedStateHandle["sessionId"])
 
     private val _uiState = MutableStateFlow(ExercisePickerUiState())
     val uiState: StateFlow<ExercisePickerUiState> = _uiState.asStateFlow()
@@ -51,15 +56,19 @@ class ExercisePickerViewModel @Inject constructor(
 
     private val searchQuery = MutableStateFlow("")
     private val muscleGroupFilter = MutableStateFlow<MuscleGroup?>(null)
+    private val equipmentFilter = MutableStateFlow<EquipmentType?>(null)
 
     init {
         viewModelScope.launch {
-            searchQuery.flatMapLatest { query ->
-                muscleGroupFilter.flatMapLatest { group ->
-                    when {
-                        !query.isNullOrBlank() -> exerciseRepository.searchByName(query)
-                        group != null -> exerciseRepository.getByMuscleGroup(group)
-                        else -> exerciseRepository.getAllActive()
+            combine(searchQuery, muscleGroupFilter, equipmentFilter) { q, m, e ->
+                Triple(q, m, e)
+            }.flatMapLatest { (q, m, e) ->
+                exerciseRepository.getAllActive().map { exercises ->
+                    exercises.filter { ex ->
+                        val matchesQuery = q.isBlank() || ex.name.contains(q, ignoreCase = true)
+                        val matchesMuscle = m == null || ex.primaryMuscleGroup == m
+                        val matchesEquipment = e == null || ex.equipmentType == e
+                        matchesQuery && matchesMuscle && matchesEquipment
                     }
                 }
             }.collect { exercises ->
@@ -82,15 +91,36 @@ class ExercisePickerViewModel @Inject constructor(
         muscleGroupFilter.value = group
     }
 
-    fun addExercise(exerciseId: Long) {
+    fun onEquipmentSelected(equipment: EquipmentType?) {
+        _uiState.value = _uiState.value.copy(selectedEquipment = equipment)
+        equipmentFilter.value = equipment
+    }
+
+    /** 勾选/取消勾选（不立即退出）。 */
+    fun toggleSelection(exerciseId: Long) {
+        val current = _uiState.value.selectedIds
+        _uiState.value = _uiState.value.copy(
+            selectedIds = if (exerciseId in current) {
+                current - exerciseId
+            } else {
+                current + exerciseId
+            },
+        )
+    }
+
+    /** 一次性把全部所选动作加入训练，然后返回。 */
+    fun confirmSelection() {
+        val ids = _uiState.value.selectedIds
+        if (ids.isEmpty() || _uiState.value.isAdding) return
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isAdding = true)
             try {
-                _uiState.value = _uiState.value.copy(isAdding = true)
-                sessionRepository.addExerciseToQuickWorkout(sessionId, exerciseId)
+                ids.forEach { id ->
+                    sessionRepository.addExerciseToQuickWorkout(sessionId, id)
+                }
                 _events.emit(ExercisePickerEvent.NavigateBack)
-            } catch (e: Exception) {
+            } finally {
                 _uiState.value = _uiState.value.copy(isAdding = false)
-                _events.emit(ExercisePickerEvent.ShowError("添加失败: ${e.message}"))
             }
         }
     }

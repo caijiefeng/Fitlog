@@ -168,6 +168,7 @@ fun ExerciseListItem(
 /**
  * 动作示意面板：起始姿势 / 结束姿势双图。
  *
+ * 接受 Coil 可加载 model（assets URI / File / URL 等），异步加载并缓存。
  * - 左右滑动切换
  * - 点击下方标签切换
  * - 默认 3 秒缓慢自动交替（用户交互后暂停）
@@ -177,15 +178,15 @@ fun ExerciseListItem(
 @Composable
 fun ExerciseMediaPanel(
     modifier: Modifier = Modifier,
-    startPainter: Painter? = null,
-    endPainter: Painter? = null,
+    startModel: Any? = null,
+    endModel: Any? = null,
     startLabel: String,
     endLabel: String,
     fallbackText: String? = null,
     contentDescription: String,
     autoAlternate: Boolean = true,
 ) {
-    val painters = listOf(startPainter, endPainter)
+    val models = listOf(startModel, endModel)
     val labels = listOf(startLabel, endLabel)
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
@@ -209,7 +210,7 @@ fun ExerciseMediaPanel(
             .clip(FitLogShapes.card)
             .background(FitLogSurfaceVariant),
     ) {
-        if (startPainter == null && endPainter == null) {
+        if (startModel == null && endModel == null) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center),
@@ -234,8 +235,8 @@ fun ExerciseMediaPanel(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
             ) { page ->
-                val painter = painters[page]
-                if (painter != null) {
+                val model = models[page]
+                if (model != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -254,12 +255,17 @@ fun ExerciseMediaPanel(
                             },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Image(
-                            painter = painter,
-                            contentDescription = contentDescription,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit,
-                        )
+                        androidx.compose.ui.platform.LocalContext.current.let { context ->
+                            coil.compose.AsyncImage(
+                                model = coil.request.ImageRequest.Builder(context)
+                                    .data(model)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = contentDescription,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit,
+                            )
+                        }
                     }
                 }
             }
@@ -331,8 +337,8 @@ private fun ExerciseListItemPreviewDark() {
 private fun ExerciseMediaPanelPreview() {
     FitLogTheme {
         ExerciseMediaPanel(
-            startPainter = painterResource(com.example.fitlog.R.drawable.avatar_kobe),
-            endPainter = painterResource(com.example.fitlog.R.drawable.avatar_messi),
+            startModel = "file:///android_asset/exercises/barbell_bench_press/start.webp",
+            endModel = "file:///android_asset/exercises/barbell_bench_press/end.webp",
             startLabel = "起始姿势",
             endLabel = "结束姿势",
             contentDescription = "动作姿势预览",
