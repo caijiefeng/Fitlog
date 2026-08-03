@@ -20,39 +20,61 @@ data class FitLogColorScheme(
     val textTertiary: Color,
     val accent: Color,
     val accentVariant: Color,
+    val accentContainer: Color,
+    val onAccent: Color,
     val divider: Color,
     val error: Color,
+    val errorContainer: Color,
     val success: Color,
+    val successContainer: Color,
+    val warning: Color,
+    val warningContainer: Color,
 )
 
+/**
+ * V5.9 palette — light theme by default. Green is the single accent hue used
+ * across the whole app; containers are soft tints for tonal surfaces/pills.
+ */
 val DarkFitLogColors = FitLogColorScheme(
-    background = Color(0xFF0D0D0D),
-    surface = Color(0xFF0D0D0D),
-    surfaceVariant = Color(0xFF1A1A1A),
-    card = Color(0xFF1A1A1A),
-    textPrimary = Color(0xFFF2F2F2),
-    textSecondary = Color(0xFF999999),
-    textTertiary = Color(0xFF666666),
-    accent = Color(0xFF4CAF9B),
-    accentVariant = Color(0xFF388E7C),
-    divider = Color(0xFF2A2A2A),
-    error = Color(0xFFCF6679),
-    success = Color(0xFF81C784),
+    background = Color(0xFF111613),
+    surface = Color(0xFF191F1C),
+    surfaceVariant = Color(0xFF222925),
+    card = Color(0xFF191F1C),
+    textPrimary = Color(0xFFF2F5F3),
+    textSecondary = Color(0xFFAAB4AF),
+    textTertiary = Color(0xFF7F8C86),
+    accent = Color(0xFF5BBFA4),
+    accentVariant = Color(0xFF3E9C85),
+    accentContainer = Color(0xFF1F4D40),
+    onAccent = Color(0xFF0E1A16),
+    divider = Color(0xFF35403B),
+    error = Color(0xFFF2B8B5),
+    errorContainer = Color(0xFF4C2B28),
+    success = Color(0xFF8FD6A5),
+    successContainer = Color(0xFF23482F),
+    warning = Color(0xFFE3B26E),
+    warningContainer = Color(0xFF4A3518),
 )
 
 val LightFitLogColors = FitLogColorScheme(
-    background = Color(0xFFFFFFFF),
+    background = Color(0xFFF4F6F5),
     surface = Color(0xFFFFFFFF),
-    surfaceVariant = Color(0xFFF5F5F5),
+    surfaceVariant = Color(0xFFEDF1EF),
     card = Color(0xFFFFFFFF),
-    textPrimary = Color(0xFF1A1A1A),
-    textSecondary = Color(0xFF666666),
-    textTertiary = Color(0xFF999999),
-    accent = Color(0xFF388E7C),
-    accentVariant = Color(0xFF2E7D6F),
-    divider = Color(0xFFE0E0E0),
-    error = Color(0xFFB00020),
-    success = Color(0xFF4CAF50),
+    textPrimary = Color(0xFF17201D),
+    textSecondary = Color(0xFF64706C),
+    textTertiary = Color(0xFF8A948F),
+    accent = Color(0xFF287867),
+    accentVariant = Color(0xFF1E5C4F),
+    accentContainer = Color(0xFFDCEFE9),
+    onAccent = Color(0xFFFFFFFF),
+    divider = Color(0xFFDCE3E0),
+    error = Color(0xFFB3261E),
+    errorContainer = Color(0xFFF9DEDC),
+    success = Color(0xFF2E7D4F),
+    successContainer = Color(0xFFDCEFDF),
+    warning = Color(0xFFB87320),
+    warningContainer = Color(0xFFF9EBD8),
 )
 
 val LocalFitLogColors = staticCompositionLocalOf { DarkFitLogColors }
@@ -68,6 +90,12 @@ val FitLogTextSecondary: Color @Composable get() = LocalFitLogColors.current.tex
 val FitLogTextTertiary: Color @Composable get() = LocalFitLogColors.current.textTertiary
 val FitLogAccent: Color @Composable get() = LocalFitLogColors.current.accent
 val FitLogAccentVariant: Color @Composable get() = LocalFitLogColors.current.accentVariant
+val FitLogAccentContainer: Color @Composable get() = LocalFitLogColors.current.accentContainer
+val FitLogOnAccent: Color @Composable get() = LocalFitLogColors.current.onAccent
 val FitLogDivider: Color @Composable get() = LocalFitLogColors.current.divider
 val FitLogError: Color @Composable get() = LocalFitLogColors.current.error
+val FitLogErrorContainer: Color @Composable get() = LocalFitLogColors.current.errorContainer
 val FitLogSuccess: Color @Composable get() = LocalFitLogColors.current.success
+val FitLogSuccessContainer: Color @Composable get() = LocalFitLogColors.current.successContainer
+val FitLogWarning: Color @Composable get() = LocalFitLogColors.current.warning
+val FitLogWarningContainer: Color @Composable get() = LocalFitLogColors.current.warningContainer
