@@ -1,0 +1,189 @@
+源仓库: yuhonas/free-exercise-db @ b0eed061e1c832b3ed815fbaa4b45b3cdc14df49
+许可证: Unlicense（公有领域）
+作者/署名: yuhonas（数据与图片源自 wger 项目，本仓库以 Unlicense 发布）
+修改说明: 已等比缩放至 512/160px 并重编码为 WebP，添加统一浅灰背景留白
+
+
+builtInKey: arnold_press
+  源文件: exercises/Arnold_Dumbbell_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: arnold_press（阿诺德推举）
+
+builtInKey: barbell_bench_press
+  源文件: exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_bench_press（杠铃卧推）
+
+builtInKey: barbell_curl
+  源文件: exercises/Barbell_Curl/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_curl（杠铃弯举）
+
+builtInKey: barbell_overhead_press
+  源文件: exercises/Barbell_Shoulder_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_overhead_press（杠铃推举）
+
+builtInKey: barbell_row
+  源文件: exercises/Bent_Over_Barbell_Row/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_row（杠铃划船）
+
+builtInKey: barbell_shoulder_press
+  源文件: exercises/Barbell_Shoulder_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_shoulder_press（杠铃肩上推举）
+
+builtInKey: barbell_squat
+  源文件: exercises/Barbell_Squat/0.jpg, 1.jpg
+  FitLog 中对应动作: barbell_squat（杠铃深蹲）
+
+builtInKey: bent_over_dumbbell_reverse_fly
+  源文件: exercises/Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench/0.jpg, 1.jpg
+  FitLog 中对应动作: bent_over_dumbbell_reverse_fly（俯身哑铃反向飞鸟）
+
+builtInKey: cable_face_pull
+  源文件: exercises/Face_Pull/0.jpg, 1.jpg
+  FitLog 中对应动作: cable_face_pull（绳索面拉）
+
+builtInKey: cable_lateral_raise
+  源文件: exercises/Cable_Seated_Lateral_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: cable_lateral_raise（绳索侧平举）
+
+builtInKey: cable_triceps_pushdown
+  源文件: exercises/Triceps_Pushdown/0.jpg, 1.jpg
+  FitLog 中对应动作: cable_triceps_pushdown（绳索下压）
+
+builtInKey: close_grip_bench_press
+  源文件: exercises/Close-Grip_Barbell_Bench_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: close_grip_bench_press（窄距卧推）
+
+builtInKey: cycling
+  源文件: exercises/Bicycling_Stationary/0.jpg, 1.jpg
+  FitLog 中对应动作: cycling（自行车）
+
+builtInKey: deadlift
+  源文件: exercises/Barbell_Deadlift/0.jpg, 1.jpg
+  FitLog 中对应动作: deadlift（硬拉）
+
+builtInKey: dip
+  源文件: exercises/Parallel_Bar_Dip/0.jpg, 1.jpg
+  FitLog 中对应动作: dip（双杠臂屈伸）
+
+builtInKey: dumbbell_curl
+  源文件: exercises/Dumbbell_Bicep_Curl/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_curl（哑铃弯举）
+
+builtInKey: dumbbell_fly
+  源文件: exercises/Dumbbell_Flyes/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_fly（哑铃飞鸟）
+
+builtInKey: dumbbell_front_raise
+  源文件: exercises/Front_Two-Dumbbell_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_front_raise（哑铃前平举）
+
+builtInKey: dumbbell_incline_bench_press
+  源文件: exercises/Hammer_Grip_Incline_DB_Bench_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_incline_bench_press（上斜哑铃卧推）
+
+builtInKey: dumbbell_lateral_raise
+  源文件: exercises/Side_Lateral_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_lateral_raise（哑铃侧平举）
+
+builtInKey: dumbbell_one_arm_row
+  源文件: exercises/One-Arm_Dumbbell_Row/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_one_arm_row（单臂哑铃划船）
+
+builtInKey: dumbbell_overhead_press
+  源文件: exercises/Dumbbell_Shoulder_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_overhead_press（哑铃推举）
+
+builtInKey: dumbbell_shoulder_press
+  源文件: exercises/Dumbbell_Shoulder_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: dumbbell_shoulder_press（哑铃肩上推举）
+
+builtInKey: elliptical
+  源文件: exercises/Elliptical_Trainer/0.jpg, 1.jpg
+  FitLog 中对应动作: elliptical（椭圆机）
+
+builtInKey: french_press
+  源文件: exercises/Lying_Triceps_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: french_press（法式弯举）
+
+builtInKey: front_raise
+  源文件: exercises/Front_Dumbbell_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: front_raise（前平举）
+
+builtInKey: front_squat
+  源文件: exercises/Front_Barbell_Squat/0.jpg, 1.jpg
+  FitLog 中对应动作: front_squat（前蹲）
+
+builtInKey: hammer_curl
+  源文件: exercises/Hammer_Curls/0.jpg, 1.jpg
+  FitLog 中对应动作: hammer_curl（锤式弯举）
+
+builtInKey: hanging_leg_raise
+  源文件: exercises/Hanging_Leg_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: hanging_leg_raise（悬垂举腿）
+
+builtInKey: hip_thrust
+  源文件: exercises/Barbell_Hip_Thrust/0.jpg, 1.jpg
+  FitLog 中对应动作: hip_thrust（臀推）
+
+builtInKey: jump_rope
+  源文件: exercises/Rope_Jumping/0.jpg, 1.jpg
+  FitLog 中对应动作: jump_rope（跳绳）
+
+builtInKey: kettlebell_swing
+  源文件: exercises/One-Arm_Kettlebell_Swings/0.jpg, 1.jpg
+  FitLog 中对应动作: kettlebell_swing（壶铃摆荡）
+
+builtInKey: lat_pulldown
+  源文件: exercises/Wide-Grip_Lat_Pulldown/0.jpg, 1.jpg
+  FitLog 中对应动作: lat_pulldown（高位下拉）
+
+builtInKey: leg_curl
+  源文件: exercises/Lying_Leg_Curls/0.jpg, 1.jpg
+  FitLog 中对应动作: leg_curl（腿弯举）
+
+builtInKey: leg_extension
+  源文件: exercises/Leg_Extensions/0.jpg, 1.jpg
+  FitLog 中对应动作: leg_extension（腿屈伸）
+
+builtInKey: leg_press
+  源文件: exercises/Leg_Press/0.jpg, 1.jpg
+  FitLog 中对应动作: leg_press（腿举）
+
+builtInKey: machine_chest_fly
+  源文件: exercises/Butterfly/0.jpg, 1.jpg
+  FitLog 中对应动作: machine_chest_fly（器械夹胸）
+
+builtInKey: plank
+  源文件: exercises/Plank/0.jpg, 1.jpg
+  FitLog 中对应动作: plank（平板支撑）
+
+builtInKey: pull_up
+  源文件: exercises/Pullups/0.jpg, 1.jpg
+  FitLog 中对应动作: pull_up（引体向上）
+
+builtInKey: romanian_deadlift
+  源文件: exercises/Romanian_Deadlift/0.jpg, 1.jpg
+  FitLog 中对应动作: romanian_deadlift（罗马尼亚硬拉）
+
+builtInKey: rower
+  源文件: exercises/Rowing_Stationary/0.jpg, 1.jpg
+  FitLog 中对应动作: rower（划船机）
+
+builtInKey: running
+  源文件: exercises/Running_Treadmill/0.jpg, 1.jpg
+  FitLog 中对应动作: running（跑步）
+
+builtInKey: russian_twist
+  源文件: exercises/Russian_Twist/0.jpg, 1.jpg
+  FitLog 中对应动作: russian_twist（俄罗斯转体）
+
+builtInKey: seated_cable_row
+  源文件: exercises/Seated_Cable_Rows/0.jpg, 1.jpg
+  FitLog 中对应动作: seated_cable_row（坐姿划船）
+
+builtInKey: seated_calf_raise
+  源文件: exercises/Seated_Calf_Raise/0.jpg, 1.jpg
+  FitLog 中对应动作: seated_calf_raise（坐姿提踵）
+
+builtInKey: standing_calf_raise
+  源文件: exercises/Standing_Calf_Raises/0.jpg, 1.jpg
+  FitLog 中对应动作: standing_calf_raise（站姿提踵）

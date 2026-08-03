@@ -1,0 +1,20 @@
+来源: FitLog 自绘肌群占位图（原创）
+许可证: original
+作者/署名: FitLog 项目
+修改说明: 无（原创插图）
+
+
+builtInKey: bulgarian_split_squat
+  FitLog 中对应动作: bulgarian_split_squat（保加利亚分腿蹲）
+
+builtInKey: machine_lateral_raise
+  FitLog 中对应动作: machine_lateral_raise（器械侧平举）
+
+builtInKey: nordic_curl
+  FitLog 中对应动作: nordic_curl（北欧弯举）
+
+builtInKey: reverse_pec_deck
+  FitLog 中对应动作: reverse_pec_deck（反向蝴蝶机）
+
+builtInKey: reverse_pec_deck_fly
+  FitLog 中对应动作: reverse_pec_deck_fly（反向飞鸟）

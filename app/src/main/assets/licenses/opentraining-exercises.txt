@@ -1,0 +1,17 @@
+源仓库: chaosbastler/opentraining-exercises @ 03aa2b3370064b519a53c6cebe22b4c74ed960fc
+许可证: CC-BY-SA-3.0
+作者/署名: Everkinetic
+修改说明: 已等比缩放至 512/160px 并重编码为 WebP，添加统一浅灰背景留白
+
+
+builtInKey: crunch
+  源文件: Crunches-1.png, -2.png
+  FitLog 中对应动作: crunch（卷腹）
+
+builtInKey: glute_bridge
+  源文件: Bridge-1.png, -2.png
+  FitLog 中对应动作: glute_bridge（臀桥）
+
+builtInKey: push_up
+  源文件: Push-up-1.png, -2.png
+  FitLog 中对应动作: push_up（俯卧撑）

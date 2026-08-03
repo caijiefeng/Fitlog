@@ -1,0 +1,806 @@
+{
+  "arnold_press": {
+    "thumbnail": "exercises/arnold_press/thumb.webp",
+    "startImage": "exercises/arnold_press/start.webp",
+    "endImage": "exercises/arnold_press/end.webp",
+    "instructionsZh": [
+      "坐姿，双手持哑铃于胸前，掌心朝向自己",
+      "向上推起同时旋转手腕至掌心向前",
+      "推至手臂伸直",
+      "原路旋转还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Arnold_Dumbbell_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_bench_press": {
+    "thumbnail": "exercises/barbell_bench_press/thumb.webp",
+    "startImage": "exercises/barbell_bench_press/start.webp",
+    "endImage": "exercises/barbell_bench_press/end.webp",
+    "instructionsZh": [
+      "平躺在卧推凳上，双脚踩实地面",
+      "肩胛骨向后下方收紧，双手略宽于肩握住杠铃",
+      "将杠铃缓慢下放至胸部中段，手肘约呈 90 度",
+      "向上推起杠铃至手臂伸直，保持肩胛稳定"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Bench_Press_-_Medium_Grip",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_curl": {
+    "thumbnail": "exercises/barbell_curl/thumb.webp",
+    "startImage": "exercises/barbell_curl/start.webp",
+    "endImage": "exercises/barbell_curl/end.webp",
+    "instructionsZh": [
+      "站姿，双手与肩同宽反握杠铃",
+      "上臂贴近身体，弯举至前臂接近垂直",
+      "顶端收紧肱二头肌",
+      "缓慢下放至手臂接近伸直"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Curl",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_overhead_press": {
+    "thumbnail": "exercises/barbell_overhead_press/thumb.webp",
+    "startImage": "exercises/barbell_overhead_press/start.webp",
+    "endImage": "exercises/barbell_overhead_press/end.webp",
+    "instructionsZh": [
+      "站姿，杠铃置于锁骨前，握距略宽于肩",
+      "收紧核心与臀部",
+      "垂直向上推起杠铃至手臂伸直",
+      "缓慢下放回锁骨位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Shoulder_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_row": {
+    "thumbnail": "exercises/barbell_row/thumb.webp",
+    "startImage": "exercises/barbell_row/start.webp",
+    "endImage": "exercises/barbell_row/end.webp",
+    "instructionsZh": [
+      "双脚与肩同宽，屈髋俯身，背部平直",
+      "双手与肩同宽握住杠铃自然下垂",
+      "将杠铃拉向腹部，肘部贴近身体",
+      "缓慢下放至手臂伸直，保持躯干稳定"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Bent_Over_Barbell_Row",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_shoulder_press": {
+    "thumbnail": "exercises/barbell_shoulder_press/thumb.webp",
+    "startImage": "exercises/barbell_shoulder_press/start.webp",
+    "endImage": "exercises/barbell_shoulder_press/end.webp",
+    "instructionsZh": [
+      "站姿或坐姿，杠铃置于锁骨前",
+      "收紧核心，垂直向上推起至手臂伸直",
+      "缓慢下放回锁骨位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Shoulder_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "barbell_squat": {
+    "thumbnail": "exercises/barbell_squat/thumb.webp",
+    "startImage": "exercises/barbell_squat/start.webp",
+    "endImage": "exercises/barbell_squat/end.webp",
+    "instructionsZh": [
+      "杠铃置于上背，双脚与肩同宽",
+      "收紧核心，屈髋屈膝下蹲至大腿平行或更低",
+      "膝盖与脚尖方向一致",
+      "蹬地站起回到起始位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Squat",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "bent_over_dumbbell_reverse_fly": {
+    "thumbnail": "exercises/bent_over_dumbbell_reverse_fly/thumb.webp",
+    "startImage": "exercises/bent_over_dumbbell_reverse_fly/start.webp",
+    "endImage": "exercises/bent_over_dumbbell_reverse_fly/end.webp",
+    "instructionsZh": [
+      "俯身与地面接近平行，双手持哑铃自然下垂",
+      "手肘微屈，向两侧抬起至与肩同高",
+      "顶端停顿感受后肩收缩",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "bulgarian_split_squat": {
+    "thumbnail": "exercises/bulgarian_split_squat/thumb.webp",
+    "startImage": "exercises/bulgarian_split_squat/start.webp",
+    "endImage": "exercises/bulgarian_split_squat/end.webp",
+    "instructionsZh": [
+      "暂无动作示意图",
+      "保加利亚分腿蹲：后脚抬高置于凳面",
+      "前腿下蹲至大腿接近平行",
+      "蹬地站起，注意平衡"
+    ],
+    "sourceName": "placeholder",
+    "sourceExerciseId": null,
+    "license": "original",
+    "isPlaceholder": true
+  },
+  "cable_face_pull": {
+    "thumbnail": "exercises/cable_face_pull/thumb.webp",
+    "startImage": "exercises/cable_face_pull/start.webp",
+    "endImage": "exercises/cable_face_pull/end.webp",
+    "instructionsZh": [
+      "将绳索滑轮调至面部高度",
+      "双手握住绳索两端，后退一步",
+      "向面部方向拉绳索，肘部外展，肩胛骨后收",
+      "缓慢还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Face_Pull",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "cable_lateral_raise": {
+    "thumbnail": "exercises/cable_lateral_raise/thumb.webp",
+    "startImage": "exercises/cable_lateral_raise/start.webp",
+    "endImage": "exercises/cable_lateral_raise/end.webp",
+    "instructionsZh": [
+      "站姿，绳索滑轮位于体侧",
+      "单手或双手握把，向侧面抬起至肩高",
+      "保持手肘微屈",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Cable_Seated_Lateral_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "cable_triceps_pushdown": {
+    "thumbnail": "exercises/cable_triceps_pushdown/thumb.webp",
+    "startImage": "exercises/cable_triceps_pushdown/start.webp",
+    "endImage": "exercises/cable_triceps_pushdown/end.webp",
+    "instructionsZh": [
+      "面对绳索高位滑轮站立，握住横杆或绳把",
+      "上臂贴近身体两侧",
+      "向下压直至手臂伸直",
+      "缓慢还原至前臂高于水平"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Triceps_Pushdown",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "close_grip_bench_press": {
+    "thumbnail": "exercises/close_grip_bench_press/thumb.webp",
+    "startImage": "exercises/close_grip_bench_press/start.webp",
+    "endImage": "exercises/close_grip_bench_press/end.webp",
+    "instructionsZh": [
+      "仰卧于平凳，双手窄于肩距握住杠铃",
+      "将杠铃下放至胸部下段",
+      "肘部贴近身体向上推起至手臂伸直"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Close-Grip_Barbell_Bench_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "crunch": {
+    "thumbnail": "exercises/crunch/thumb.webp",
+    "startImage": "exercises/crunch/start.webp",
+    "endImage": "exercises/crunch/end.webp",
+    "instructionsZh": [
+      "仰卧，屈膝，双手轻扶头部两侧",
+      "收紧腹部，卷起肩胛骨离开地面",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ],
+    "sourceName": "opentraining-exercises",
+    "sourceExerciseId": "Crunches",
+    "license": "CC-BY-SA-3.0",
+    "isPlaceholder": false
+  },
+  "cycling": {
+    "thumbnail": "exercises/cycling/thumb.webp",
+    "startImage": "exercises/cycling/start.webp",
+    "endImage": "exercises/cycling/end.webp",
+    "instructionsZh": [
+      "调整座椅高度至膝盖微屈",
+      "保持躯干稳定，核心收紧",
+      "以均匀节奏踩踏",
+      "根据心率调整阻力"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Bicycling_Stationary",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "deadlift": {
+    "thumbnail": "exercises/deadlift/thumb.webp",
+    "startImage": "exercises/deadlift/start.webp",
+    "endImage": "exercises/deadlift/end.webp",
+    "instructionsZh": [
+      "双脚与髋同宽站在杠铃前，杠铃贴近小腿",
+      "屈髋屈膝俯身，双手与肩同宽握住杠铃",
+      "收紧背部与核心，蹬地伸髋将杠铃拉起至站立",
+      "挺直站立后控制杠铃沿原路下放"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Deadlift",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dip": {
+    "thumbnail": "exercises/dip/thumb.webp",
+    "startImage": "exercises/dip/start.webp",
+    "endImage": "exercises/dip/end.webp",
+    "instructionsZh": [
+      "双手撑在双杠上，身体悬空",
+      "屈肘下放身体，保持躯干前倾",
+      "至肩部低于肘部或胸部有拉伸感",
+      "推起身体回到起始位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Parallel_Bar_Dip",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_curl": {
+    "thumbnail": "exercises/dumbbell_curl/thumb.webp",
+    "startImage": "exercises/dumbbell_curl/start.webp",
+    "endImage": "exercises/dumbbell_curl/end.webp",
+    "instructionsZh": [
+      "站姿，双手持哑铃，掌心向前",
+      "上臂固定，弯举哑铃至肩前",
+      "顶端收紧后缓慢下放"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Dumbbell_Bicep_Curl",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_fly": {
+    "thumbnail": "exercises/dumbbell_fly/thumb.webp",
+    "startImage": "exercises/dumbbell_fly/start.webp",
+    "endImage": "exercises/dumbbell_fly/end.webp",
+    "instructionsZh": [
+      "仰卧于平凳，双手持哑铃举于胸部上方，掌心相对",
+      "手肘微屈固定，双臂向两侧打开下放",
+      "感受胸部拉伸至最低点",
+      "沿弧线将哑铃合拢至胸部上方"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Dumbbell_Flyes",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_front_raise": {
+    "thumbnail": "exercises/dumbbell_front_raise/thumb.webp",
+    "startImage": "exercises/dumbbell_front_raise/start.webp",
+    "endImage": "exercises/dumbbell_front_raise/end.webp",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于大腿前",
+      "保持手臂伸直，同时向前抬起至肩高",
+      "顶端停顿后缓慢下放"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Front_Two-Dumbbell_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_incline_bench_press": {
+    "thumbnail": "exercises/dumbbell_incline_bench_press/thumb.webp",
+    "startImage": "exercises/dumbbell_incline_bench_press/start.webp",
+    "endImage": "exercises/dumbbell_incline_bench_press/end.webp",
+    "instructionsZh": [
+      "将训练凳调至约 30 度倾角，背部贴紧凳面",
+      "双手各持一只哑铃举至肩部两侧",
+      "缓慢下放哑铃至胸部两侧",
+      "向上推起哑铃至手臂伸直，在顶端轻微停顿"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Hammer_Grip_Incline_DB_Bench_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_lateral_raise": {
+    "thumbnail": "exercises/dumbbell_lateral_raise/thumb.webp",
+    "startImage": "exercises/dumbbell_lateral_raise/start.webp",
+    "endImage": "exercises/dumbbell_lateral_raise/end.webp",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于体侧",
+      "手肘微屈，向两侧抬起手臂至与肩同高",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Side_Lateral_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_one_arm_row": {
+    "thumbnail": "exercises/dumbbell_one_arm_row/thumb.webp",
+    "startImage": "exercises/dumbbell_one_arm_row/start.webp",
+    "endImage": "exercises/dumbbell_one_arm_row/end.webp",
+    "instructionsZh": [
+      "单膝与单手撑在训练凳上，另一手持哑铃",
+      "背部平直，哑铃自然下垂",
+      "将哑铃拉向髋部，肘部贴近身体",
+      "缓慢下放至手臂伸直"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "One-Arm_Dumbbell_Row",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_overhead_press": {
+    "thumbnail": "exercises/dumbbell_overhead_press/thumb.webp",
+    "startImage": "exercises/dumbbell_overhead_press/start.webp",
+    "endImage": "exercises/dumbbell_overhead_press/end.webp",
+    "instructionsZh": [
+      "站姿或坐姿，双手持哑铃举至肩部两侧",
+      "收紧核心",
+      "垂直向上推起哑铃至手臂伸直",
+      "缓慢下放回肩部高度"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Dumbbell_Shoulder_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "dumbbell_shoulder_press": {
+    "thumbnail": "exercises/dumbbell_shoulder_press/thumb.webp",
+    "startImage": "exercises/dumbbell_shoulder_press/start.webp",
+    "endImage": "exercises/dumbbell_shoulder_press/end.webp",
+    "instructionsZh": [
+      "坐姿，双手持哑铃举至肩部两侧",
+      "向上推起至手臂伸直",
+      "缓慢下放回肩部高度"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Dumbbell_Shoulder_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "elliptical": {
+    "thumbnail": "exercises/elliptical/thumb.webp",
+    "startImage": "exercises/elliptical/start.webp",
+    "endImage": "exercises/elliptical/end.webp",
+    "instructionsZh": [
+      "双脚踩稳踏板，双手握住扶手",
+      "保持躯干直立",
+      "以流畅的椭圆轨迹交替蹬踏",
+      "根据体能调整阻力和坡度"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Elliptical_Trainer",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "french_press": {
+    "thumbnail": "exercises/french_press/thumb.webp",
+    "startImage": "exercises/french_press/start.webp",
+    "endImage": "exercises/french_press/end.webp",
+    "instructionsZh": [
+      "仰卧或坐姿，双手窄握杠铃/曲杆举于头顶",
+      "固定上臂，屈肘将杠铃下放至头顶后方",
+      "感受肱三头肌拉伸",
+      "伸肘将杠铃举回起始位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Lying_Triceps_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "front_raise": {
+    "thumbnail": "exercises/front_raise/thumb.webp",
+    "startImage": "exercises/front_raise/start.webp",
+    "endImage": "exercises/front_raise/end.webp",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于大腿前",
+      "手臂伸直，向前抬起至与肩同高",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Front_Dumbbell_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "front_squat": {
+    "thumbnail": "exercises/front_squat/thumb.webp",
+    "startImage": "exercises/front_squat/start.webp",
+    "endImage": "exercises/front_squat/end.webp",
+    "instructionsZh": [
+      "杠铃架于锁骨与肩部前侧，肘部抬高",
+      "双脚与肩同宽",
+      "保持躯干直立，下蹲至大腿平行或更低",
+      "蹬地站起"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Front_Barbell_Squat",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "glute_bridge": {
+    "thumbnail": "exercises/glute_bridge/thumb.webp",
+    "startImage": "exercises/glute_bridge/start.webp",
+    "endImage": "exercises/glute_bridge/end.webp",
+    "instructionsZh": [
+      "仰卧，屈膝，双脚踩地",
+      "收紧臀部与核心，向上顶起髋部",
+      "躯干与大腿呈一条直线",
+      "缓慢下放回到地面"
+    ],
+    "sourceName": "opentraining-exercises",
+    "sourceExerciseId": "Bridge",
+    "license": "CC-BY-SA-3.0",
+    "isPlaceholder": false
+  },
+  "hammer_curl": {
+    "thumbnail": "exercises/hammer_curl/thumb.webp",
+    "startImage": "exercises/hammer_curl/start.webp",
+    "endImage": "exercises/hammer_curl/end.webp",
+    "instructionsZh": [
+      "站姿，双手持哑铃，掌心相对",
+      "上臂固定，弯举哑铃至肩前",
+      "保持掌心相对",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Hammer_Curls",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "hanging_leg_raise": {
+    "thumbnail": "exercises/hanging_leg_raise/thumb.webp",
+    "startImage": "exercises/hanging_leg_raise/start.webp",
+    "endImage": "exercises/hanging_leg_raise/end.webp",
+    "instructionsZh": [
+      "双手悬垂于单杠",
+      "收紧核心，将双腿抬起至与地面平行或更高",
+      "顶端短暂停顿",
+      "缓慢下放双腿还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Hanging_Leg_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "hip_thrust": {
+    "thumbnail": "exercises/hip_thrust/thumb.webp",
+    "startImage": "exercises/hip_thrust/start.webp",
+    "endImage": "exercises/hip_thrust/end.webp",
+    "instructionsZh": [
+      "上背靠在训练凳边缘，杠铃置于髋部",
+      "双脚踩地，屈膝",
+      "收紧臀部向上顶起髋部至躯干与地面平行",
+      "顶端挤压臀部后缓慢下放"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Barbell_Hip_Thrust",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "jump_rope": {
+    "thumbnail": "exercises/jump_rope/thumb.webp",
+    "startImage": "exercises/jump_rope/start.webp",
+    "endImage": "exercises/jump_rope/end.webp",
+    "instructionsZh": [
+      "双手握住绳柄，绳子置于身后",
+      "保持身体直立，小臂发力摇绳",
+      "双脚轻轻跳起让绳子通过",
+      "保持手腕与脚踝放松，控制节奏"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Rope_Jumping",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "kettlebell_swing": {
+    "thumbnail": "exercises/kettlebell_swing/thumb.webp",
+    "startImage": "exercises/kettlebell_swing/start.webp",
+    "endImage": "exercises/kettlebell_swing/end.webp",
+    "instructionsZh": [
+      "双脚略宽于肩，壶铃置于身前",
+      "屈髋俯身抓住壶铃，背部平直",
+      "以髋部爆发力将壶铃甩至胸口高度",
+      "控制壶铃沿弧线下落，重复动作"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "One-Arm_Kettlebell_Swings",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "lat_pulldown": {
+    "thumbnail": "exercises/lat_pulldown/thumb.webp",
+    "startImage": "exercises/lat_pulldown/start.webp",
+    "endImage": "exercises/lat_pulldown/end.webp",
+    "instructionsZh": [
+      "坐在高位下拉器械上，大腿固定于压垫下",
+      "双手略宽于肩握住横杆",
+      "将横杆下拉至锁骨上方，挺胸收肘",
+      "缓慢还原至手臂伸直，保持背阔肌张力"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Wide-Grip_Lat_Pulldown",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "leg_curl": {
+    "thumbnail": "exercises/leg_curl/thumb.webp",
+    "startImage": "exercises/leg_curl/start.webp",
+    "endImage": "exercises/leg_curl/end.webp",
+    "instructionsZh": [
+      "俯卧或坐于腿弯举机，滚垫置于脚踝后方",
+      "屈膝将滚垫拉向臀部",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Lying_Leg_Curls",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "leg_extension": {
+    "thumbnail": "exercises/leg_extension/thumb.webp",
+    "startImage": "exercises/leg_extension/start.webp",
+    "endImage": "exercises/leg_extension/end.webp",
+    "instructionsZh": [
+      "坐在腿屈伸机上，小腿抵住滚垫",
+      "伸展膝关节至双腿伸直",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Leg_Extensions",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "leg_press": {
+    "thumbnail": "exercises/leg_press/thumb.webp",
+    "startImage": "exercises/leg_press/start.webp",
+    "endImage": "exercises/leg_press/end.webp",
+    "instructionsZh": [
+      "坐于腿举机，双脚与肩同宽踩在踏板上",
+      "解锁安全扣，缓慢下放踏板至膝盖接近 90 度",
+      "保持腰部贴紧靠垫",
+      "蹬起踏板至膝盖接近伸直，不锁死"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Leg_Press",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "machine_chest_fly": {
+    "thumbnail": "exercises/machine_chest_fly/thumb.webp",
+    "startImage": "exercises/machine_chest_fly/start.webp",
+    "endImage": "exercises/machine_chest_fly/end.webp",
+    "instructionsZh": [
+      "调节座椅高度，使手柄与胸部齐平",
+      "背部贴紧靠垫，双手握住手柄",
+      "保持手肘微屈，双臂向胸前合拢",
+      "缓慢还原至胸部充分拉伸的位置"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Butterfly",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "machine_lateral_raise": {
+    "thumbnail": "exercises/machine_lateral_raise/thumb.webp",
+    "startImage": "exercises/machine_lateral_raise/start.webp",
+    "endImage": "exercises/machine_lateral_raise/end.webp",
+    "instructionsZh": [
+      "暂无动作示意图",
+      "器械侧平举：坐姿，手臂抵住活动臂垫",
+      "向两侧抬臂至与肩同高",
+      "缓慢下放还原"
+    ],
+    "sourceName": "placeholder",
+    "sourceExerciseId": null,
+    "license": "original",
+    "isPlaceholder": true
+  },
+  "nordic_curl": {
+    "thumbnail": "exercises/nordic_curl/thumb.webp",
+    "startImage": "exercises/nordic_curl/start.webp",
+    "endImage": "exercises/nordic_curl/end.webp",
+    "instructionsZh": [
+      "暂无动作示意图",
+      "北欧腿弯举：跪姿，脚踝固定",
+      "躯干缓慢前倾，用腘绳肌控制下放",
+      "用手支撑缓冲后推回"
+    ],
+    "sourceName": "placeholder",
+    "sourceExerciseId": null,
+    "license": "original",
+    "isPlaceholder": true
+  },
+  "plank": {
+    "thumbnail": "exercises/plank/thumb.webp",
+    "startImage": "exercises/plank/start.webp",
+    "endImage": "exercises/plank/end.webp",
+    "instructionsZh": [
+      "俯撑，前臂与脚尖支撑身体",
+      "身体从头到脚呈一条直线",
+      "收紧腹部与臀部",
+      "保持呼吸，坚持目标时长"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Plank",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "pull_up": {
+    "thumbnail": "exercises/pull_up/thumb.webp",
+    "startImage": "exercises/pull_up/start.webp",
+    "endImage": "exercises/pull_up/end.webp",
+    "instructionsZh": [
+      "双手略宽于肩正握单杠，身体自然悬垂",
+      "收紧肩胛，向上拉起至下巴过杠",
+      "顶端短暂停顿后缓慢下放",
+      "手臂完全伸直后再进行下一次"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Pullups",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "push_up": {
+    "thumbnail": "exercises/push_up/thumb.webp",
+    "startImage": "exercises/push_up/start.webp",
+    "endImage": "exercises/push_up/end.webp",
+    "instructionsZh": [
+      "双手略宽于肩撑地，身体呈一条直线",
+      "收紧核心与臀部，避免塌腰",
+      "屈肘下放身体至胸部接近地面",
+      "推起身体回到起始位置，保持躯干稳定"
+    ],
+    "sourceName": "opentraining-exercises",
+    "sourceExerciseId": "Push-up",
+    "license": "CC-BY-SA-3.0",
+    "isPlaceholder": false
+  },
+  "reverse_pec_deck": {
+    "thumbnail": "exercises/reverse_pec_deck/thumb.webp",
+    "startImage": "exercises/reverse_pec_deck/start.webp",
+    "endImage": "exercises/reverse_pec_deck/end.webp",
+    "instructionsZh": [
+      "暂无动作示意图",
+      "反向飞鸟：坐姿，胸部贴紧靠垫",
+      "双臂向后打开至与肩同高",
+      "感受后肩与上背收缩"
+    ],
+    "sourceName": "placeholder",
+    "sourceExerciseId": null,
+    "license": "original",
+    "isPlaceholder": true
+  },
+  "reverse_pec_deck_fly": {
+    "thumbnail": "exercises/reverse_pec_deck_fly/thumb.webp",
+    "startImage": "exercises/reverse_pec_deck_fly/start.webp",
+    "endImage": "exercises/reverse_pec_deck_fly/end.webp",
+    "instructionsZh": [
+      "暂无动作示意图",
+      "反向蝴蝶机飞鸟：坐姿，胸部贴紧靠垫",
+      "双臂向后打开至与肩同高",
+      "感受后肩与上背收缩"
+    ],
+    "sourceName": "placeholder",
+    "sourceExerciseId": null,
+    "license": "original",
+    "isPlaceholder": true
+  },
+  "romanian_deadlift": {
+    "thumbnail": "exercises/romanian_deadlift/thumb.webp",
+    "startImage": "exercises/romanian_deadlift/start.webp",
+    "endImage": "exercises/romanian_deadlift/end.webp",
+    "instructionsZh": [
+      "站姿，杠铃置于大腿前",
+      "膝盖微屈，以髋部为轴俯身下放杠铃",
+      "杠铃沿腿部下滑，背部保持平直",
+      "收紧臀腿，伸髋站起"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Romanian_Deadlift",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "rower": {
+    "thumbnail": "exercises/rower/thumb.webp",
+    "startImage": "exercises/rower/start.webp",
+    "endImage": "exercises/rower/end.webp",
+    "instructionsZh": [
+      "坐在划船机上，双脚固定，握紧把手",
+      "蹬腿、后倾、拉把手至胸前",
+      "反向依次还原手臂、躯干、腿部",
+      "保持节奏流畅，背部平直"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Rowing_Stationary",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "running": {
+    "thumbnail": "exercises/running/thumb.webp",
+    "startImage": "exercises/running/start.webp",
+    "endImage": "exercises/running/end.webp",
+    "instructionsZh": [
+      "跑步机设置合适速度与坡度",
+      "保持身体直立，目视前方",
+      "自然摆臂，脚掌中部着地",
+      "保持稳定步频，控制呼吸节奏"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Running_Treadmill",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "russian_twist": {
+    "thumbnail": "exercises/russian_twist/thumb.webp",
+    "startImage": "exercises/russian_twist/start.webp",
+    "endImage": "exercises/russian_twist/end.webp",
+    "instructionsZh": [
+      "坐姿，上身后倾，双脚抬起或交叉",
+      "双手合十于胸前",
+      "左右转动躯干，保持核心收紧",
+      "控制节奏，交替进行"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Russian_Twist",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "seated_cable_row": {
+    "thumbnail": "exercises/seated_cable_row/thumb.webp",
+    "startImage": "exercises/seated_cable_row/start.webp",
+    "endImage": "exercises/seated_cable_row/end.webp",
+    "instructionsZh": [
+      "坐姿，双脚踩稳踏板，膝盖微屈",
+      "背部挺直，双手握住把手",
+      "将把手拉向腹部，肩胛骨向后收紧",
+      "缓慢还原，感受背部伸展"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Seated_Cable_Rows",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "seated_calf_raise": {
+    "thumbnail": "exercises/seated_calf_raise/thumb.webp",
+    "startImage": "exercises/seated_calf_raise/start.webp",
+    "endImage": "exercises/seated_calf_raise/end.webp",
+    "instructionsZh": [
+      "坐在提踵机上，前脚掌踩住踏板，滚垫压在大腿",
+      "踮起脚尖至最高点",
+      "缓慢下放至小腿充分拉伸"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Seated_Calf_Raise",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  },
+  "standing_calf_raise": {
+    "thumbnail": "exercises/standing_calf_raise/thumb.webp",
+    "startImage": "exercises/standing_calf_raise/start.webp",
+    "endImage": "exercises/standing_calf_raise/end.webp",
+    "instructionsZh": [
+      "站在提踵机踏板前脚掌位置，肩部抵住垫肩",
+      "下沉脚跟感受小腿拉伸",
+      "踮起脚尖至最高点",
+      "缓慢下放还原"
+    ],
+    "sourceName": "free-exercise-db",
+    "sourceExerciseId": "Standing_Calf_Raises",
+    "license": "Unlicense",
+    "isPlaceholder": false
+  }
+}

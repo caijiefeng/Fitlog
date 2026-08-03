@@ -1,0 +1,14 @@
+{
+  "free_exercise_db": {
+    "repository": "yuhonas/free-exercise-db",
+    "commit": "b0eed061e1c832b3ed815fbaa4b45b3cdc14df49",
+    "license": "Unlicense",
+    "notes": "主素材来源。动作 JSON、起始/结束姿势图（0.jpg / 1.jpg）、英文动作说明。图片由 wger 项目（GPLv2+）衍生数据集整理而来，本仓库以 Unlicense 发布。"
+  },
+  "opentraining": {
+    "repository": "chaosbastler/opentraining-exercises",
+    "commit": "03aa2b3370064b519a53c6cebe22b4c74ed960fc",
+    "license": "CC-BY-SA-3.0",
+    "notes": "补充来源，仅当主来源找不到准确对应动作时使用（俯卧撑、卷腹、臀桥）。图片作者：Everkinetic。"
+  }
+}

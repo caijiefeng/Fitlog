@@ -1,0 +1,536 @@
+{
+  "barbell_bench_press": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Bench_Press_-_Medium_Grip",
+    "instructionsZh": [
+      "平躺在卧推凳上，双脚踩实地面",
+      "肩胛骨向后下方收紧，双手略宽于肩握住杠铃",
+      "将杠铃缓慢下放至胸部中段，手肘约呈 90 度",
+      "向上推起杠铃至手臂伸直，保持肩胛稳定"
+    ]
+  },
+  "dumbbell_incline_bench_press": {
+    "source": "free_exercise_db",
+    "source_id": "Hammer_Grip_Incline_DB_Bench_Press",
+    "instructionsZh": [
+      "将训练凳调至约 30 度倾角，背部贴紧凳面",
+      "双手各持一只哑铃举至肩部两侧",
+      "缓慢下放哑铃至胸部两侧",
+      "向上推起哑铃至手臂伸直，在顶端轻微停顿"
+    ]
+  },
+  "machine_chest_fly": {
+    "source": "free_exercise_db",
+    "source_id": "Butterfly",
+    "instructionsZh": [
+      "调节座椅高度，使手柄与胸部齐平",
+      "背部贴紧靠垫，双手握住手柄",
+      "保持手肘微屈，双臂向胸前合拢",
+      "缓慢还原至胸部充分拉伸的位置"
+    ]
+  },
+  "push_up": {
+    "source": "opentraining",
+    "source_id": "Push-up",
+    "instructionsZh": [
+      "双手略宽于肩撑地，身体呈一条直线",
+      "收紧核心与臀部，避免塌腰",
+      "屈肘下放身体至胸部接近地面",
+      "推起身体回到起始位置，保持躯干稳定"
+    ]
+  },
+  "dumbbell_fly": {
+    "source": "free_exercise_db",
+    "source_id": "Dumbbell_Flyes",
+    "instructionsZh": [
+      "仰卧于平凳，双手持哑铃举于胸部上方，掌心相对",
+      "手肘微屈固定，双臂向两侧打开下放",
+      "感受胸部拉伸至最低点",
+      "沿弧线将哑铃合拢至胸部上方"
+    ]
+  },
+  "pull_up": {
+    "source": "free_exercise_db",
+    "source_id": "Pullups",
+    "instructionsZh": [
+      "双手略宽于肩正握单杠，身体自然悬垂",
+      "收紧肩胛，向上拉起至下巴过杠",
+      "顶端短暂停顿后缓慢下放",
+      "手臂完全伸直后再进行下一次"
+    ]
+  },
+  "lat_pulldown": {
+    "source": "free_exercise_db",
+    "source_id": "Wide-Grip_Lat_Pulldown",
+    "instructionsZh": [
+      "坐在高位下拉器械上，大腿固定于压垫下",
+      "双手略宽于肩握住横杆",
+      "将横杆下拉至锁骨上方，挺胸收肘",
+      "缓慢还原至手臂伸直，保持背阔肌张力"
+    ]
+  },
+  "barbell_row": {
+    "source": "free_exercise_db",
+    "source_id": "Bent_Over_Barbell_Row",
+    "instructionsZh": [
+      "双脚与肩同宽，屈髋俯身，背部平直",
+      "双手与肩同宽握住杠铃自然下垂",
+      "将杠铃拉向腹部，肘部贴近身体",
+      "缓慢下放至手臂伸直，保持躯干稳定"
+    ]
+  },
+  "seated_cable_row": {
+    "source": "free_exercise_db",
+    "source_id": "Seated_Cable_Rows",
+    "instructionsZh": [
+      "坐姿，双脚踩稳踏板，膝盖微屈",
+      "背部挺直，双手握住把手",
+      "将把手拉向腹部，肩胛骨向后收紧",
+      "缓慢还原，感受背部伸展"
+    ]
+  },
+  "dumbbell_one_arm_row": {
+    "source": "free_exercise_db",
+    "source_id": "One-Arm_Dumbbell_Row",
+    "instructionsZh": [
+      "单膝与单手撑在训练凳上，另一手持哑铃",
+      "背部平直，哑铃自然下垂",
+      "将哑铃拉向髋部，肘部贴近身体",
+      "缓慢下放至手臂伸直"
+    ]
+  },
+  "deadlift": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Deadlift",
+    "instructionsZh": [
+      "双脚与髋同宽站在杠铃前，杠铃贴近小腿",
+      "屈髋屈膝俯身，双手与肩同宽握住杠铃",
+      "收紧背部与核心，蹬地伸髋将杠铃拉起至站立",
+      "挺直站立后控制杠铃沿原路下放"
+    ]
+  },
+  "barbell_overhead_press": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Shoulder_Press",
+    "instructionsZh": [
+      "站姿，杠铃置于锁骨前，握距略宽于肩",
+      "收紧核心与臀部",
+      "垂直向上推起杠铃至手臂伸直",
+      "缓慢下放回锁骨位置"
+    ]
+  },
+  "dumbbell_overhead_press": {
+    "source": "free_exercise_db",
+    "source_id": "Dumbbell_Shoulder_Press",
+    "instructionsZh": [
+      "站姿或坐姿，双手持哑铃举至肩部两侧",
+      "收紧核心",
+      "垂直向上推起哑铃至手臂伸直",
+      "缓慢下放回肩部高度"
+    ]
+  },
+  "dumbbell_lateral_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Side_Lateral_Raise",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于体侧",
+      "手肘微屈，向两侧抬起手臂至与肩同高",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ]
+  },
+  "front_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Front_Dumbbell_Raise",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于大腿前",
+      "手臂伸直，向前抬起至与肩同高",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ]
+  },
+  "barbell_shoulder_press": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Shoulder_Press",
+    "instructionsZh": [
+      "站姿或坐姿，杠铃置于锁骨前",
+      "收紧核心，垂直向上推起至手臂伸直",
+      "缓慢下放回锁骨位置"
+    ]
+  },
+  "dumbbell_shoulder_press": {
+    "source": "free_exercise_db",
+    "source_id": "Dumbbell_Shoulder_Press",
+    "instructionsZh": [
+      "坐姿，双手持哑铃举至肩部两侧",
+      "向上推起至手臂伸直",
+      "缓慢下放回肩部高度"
+    ]
+  },
+  "arnold_press": {
+    "source": "free_exercise_db",
+    "source_id": "Arnold_Dumbbell_Press",
+    "instructionsZh": [
+      "坐姿，双手持哑铃于胸前，掌心朝向自己",
+      "向上推起同时旋转手腕至掌心向前",
+      "推至手臂伸直",
+      "原路旋转还原"
+    ]
+  },
+  "dumbbell_front_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Front_Two-Dumbbell_Raise",
+    "instructionsZh": [
+      "站姿，双手持哑铃垂于大腿前",
+      "保持手臂伸直，同时向前抬起至肩高",
+      "顶端停顿后缓慢下放"
+    ]
+  },
+  "cable_lateral_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Cable_Seated_Lateral_Raise",
+    "instructionsZh": [
+      "站姿，绳索滑轮位于体侧",
+      "单手或双手握把，向侧面抬起至肩高",
+      "保持手肘微屈",
+      "缓慢下放还原"
+    ]
+  },
+  "cable_face_pull": {
+    "source": "free_exercise_db",
+    "source_id": "Face_Pull",
+    "instructionsZh": [
+      "将绳索滑轮调至面部高度",
+      "双手握住绳索两端，后退一步",
+      "向面部方向拉绳索，肘部外展，肩胛骨后收",
+      "缓慢还原"
+    ]
+  },
+  "bent_over_dumbbell_reverse_fly": {
+    "source": "free_exercise_db",
+    "source_id": "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench",
+    "instructionsZh": [
+      "俯身与地面接近平行，双手持哑铃自然下垂",
+      "手肘微屈，向两侧抬起至与肩同高",
+      "顶端停顿感受后肩收缩",
+      "缓慢下放还原"
+    ]
+  },
+  "barbell_curl": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Curl",
+    "instructionsZh": [
+      "站姿，双手与肩同宽反握杠铃",
+      "上臂贴近身体，弯举至前臂接近垂直",
+      "顶端收紧肱二头肌",
+      "缓慢下放至手臂接近伸直"
+    ]
+  },
+  "dumbbell_curl": {
+    "source": "free_exercise_db",
+    "source_id": "Dumbbell_Bicep_Curl",
+    "instructionsZh": [
+      "站姿，双手持哑铃，掌心向前",
+      "上臂固定，弯举哑铃至肩前",
+      "顶端收紧后缓慢下放"
+    ]
+  },
+  "hammer_curl": {
+    "source": "free_exercise_db",
+    "source_id": "Hammer_Curls",
+    "instructionsZh": [
+      "站姿，双手持哑铃，掌心相对",
+      "上臂固定，弯举哑铃至肩前",
+      "保持掌心相对",
+      "缓慢下放还原"
+    ]
+  },
+  "cable_triceps_pushdown": {
+    "source": "free_exercise_db",
+    "source_id": "Triceps_Pushdown",
+    "instructionsZh": [
+      "面对绳索高位滑轮站立，握住横杆或绳把",
+      "上臂贴近身体两侧",
+      "向下压直至手臂伸直",
+      "缓慢还原至前臂高于水平"
+    ]
+  },
+  "dip": {
+    "source": "free_exercise_db",
+    "source_id": "Parallel_Bar_Dip",
+    "instructionsZh": [
+      "双手撑在双杠上，身体悬空",
+      "屈肘下放身体，保持躯干前倾",
+      "至肩部低于肘部或胸部有拉伸感",
+      "推起身体回到起始位置"
+    ]
+  },
+  "close_grip_bench_press": {
+    "source": "free_exercise_db",
+    "source_id": "Close-Grip_Barbell_Bench_Press",
+    "instructionsZh": [
+      "仰卧于平凳，双手窄于肩距握住杠铃",
+      "将杠铃下放至胸部下段",
+      "肘部贴近身体向上推起至手臂伸直"
+    ]
+  },
+  "french_press": {
+    "source": "free_exercise_db",
+    "source_id": "Lying_Triceps_Press",
+    "instructionsZh": [
+      "仰卧或坐姿，双手窄握杠铃/曲杆举于头顶",
+      "固定上臂，屈肘将杠铃下放至头顶后方",
+      "感受肱三头肌拉伸",
+      "伸肘将杠铃举回起始位置"
+    ]
+  },
+  "barbell_squat": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Squat",
+    "instructionsZh": [
+      "杠铃置于上背，双脚与肩同宽",
+      "收紧核心，屈髋屈膝下蹲至大腿平行或更低",
+      "膝盖与脚尖方向一致",
+      "蹬地站起回到起始位置"
+    ]
+  },
+  "leg_press": {
+    "source": "free_exercise_db",
+    "source_id": "Leg_Press",
+    "instructionsZh": [
+      "坐于腿举机，双脚与肩同宽踩在踏板上",
+      "解锁安全扣，缓慢下放踏板至膝盖接近 90 度",
+      "保持腰部贴紧靠垫",
+      "蹬起踏板至膝盖接近伸直，不锁死"
+    ]
+  },
+  "leg_extension": {
+    "source": "free_exercise_db",
+    "source_id": "Leg_Extensions",
+    "instructionsZh": [
+      "坐在腿屈伸机上，小腿抵住滚垫",
+      "伸展膝关节至双腿伸直",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ]
+  },
+  "front_squat": {
+    "source": "free_exercise_db",
+    "source_id": "Front_Barbell_Squat",
+    "instructionsZh": [
+      "杠铃架于锁骨与肩部前侧，肘部抬高",
+      "双脚与肩同宽",
+      "保持躯干直立，下蹲至大腿平行或更低",
+      "蹬地站起"
+    ]
+  },
+  "romanian_deadlift": {
+    "source": "free_exercise_db",
+    "source_id": "Romanian_Deadlift",
+    "instructionsZh": [
+      "站姿，杠铃置于大腿前",
+      "膝盖微屈，以髋部为轴俯身下放杠铃",
+      "杠铃沿腿部下滑，背部保持平直",
+      "收紧臀腿，伸髋站起"
+    ]
+  },
+  "leg_curl": {
+    "source": "free_exercise_db",
+    "source_id": "Lying_Leg_Curls",
+    "instructionsZh": [
+      "俯卧或坐于腿弯举机，滚垫置于脚踝后方",
+      "屈膝将滚垫拉向臀部",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ]
+  },
+  "hip_thrust": {
+    "source": "free_exercise_db",
+    "source_id": "Barbell_Hip_Thrust",
+    "instructionsZh": [
+      "上背靠在训练凳边缘，杠铃置于髋部",
+      "双脚踩地，屈膝",
+      "收紧臀部向上顶起髋部至躯干与地面平行",
+      "顶端挤压臀部后缓慢下放"
+    ]
+  },
+  "glute_bridge": {
+    "source": "opentraining",
+    "source_id": "Bridge",
+    "instructionsZh": [
+      "仰卧，屈膝，双脚踩地",
+      "收紧臀部与核心，向上顶起髋部",
+      "躯干与大腿呈一条直线",
+      "缓慢下放回到地面"
+    ]
+  },
+  "kettlebell_swing": {
+    "source": "free_exercise_db",
+    "source_id": "One-Arm_Kettlebell_Swings",
+    "instructionsZh": [
+      "双脚略宽于肩，壶铃置于身前",
+      "屈髋俯身抓住壶铃，背部平直",
+      "以髋部爆发力将壶铃甩至胸口高度",
+      "控制壶铃沿弧线下落，重复动作"
+    ]
+  },
+  "standing_calf_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Standing_Calf_Raises",
+    "instructionsZh": [
+      "站在提踵机踏板前脚掌位置，肩部抵住垫肩",
+      "下沉脚跟感受小腿拉伸",
+      "踮起脚尖至最高点",
+      "缓慢下放还原"
+    ]
+  },
+  "seated_calf_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Seated_Calf_Raise",
+    "instructionsZh": [
+      "坐在提踵机上，前脚掌踩住踏板，滚垫压在大腿",
+      "踮起脚尖至最高点",
+      "缓慢下放至小腿充分拉伸"
+    ]
+  },
+  "plank": {
+    "source": "free_exercise_db",
+    "source_id": "Plank",
+    "instructionsZh": [
+      "俯撑，前臂与脚尖支撑身体",
+      "身体从头到脚呈一条直线",
+      "收紧腹部与臀部",
+      "保持呼吸，坚持目标时长"
+    ]
+  },
+  "crunch": {
+    "source": "opentraining",
+    "source_id": "Crunches",
+    "instructionsZh": [
+      "仰卧，屈膝，双手轻扶头部两侧",
+      "收紧腹部，卷起肩胛骨离开地面",
+      "顶端短暂停顿",
+      "缓慢下放还原"
+    ]
+  },
+  "hanging_leg_raise": {
+    "source": "free_exercise_db",
+    "source_id": "Hanging_Leg_Raise",
+    "instructionsZh": [
+      "双手悬垂于单杠",
+      "收紧核心，将双腿抬起至与地面平行或更高",
+      "顶端短暂停顿",
+      "缓慢下放双腿还原"
+    ]
+  },
+  "russian_twist": {
+    "source": "free_exercise_db",
+    "source_id": "Russian_Twist",
+    "instructionsZh": [
+      "坐姿，上身后倾，双脚抬起或交叉",
+      "双手合十于胸前",
+      "左右转动躯干，保持核心收紧",
+      "控制节奏，交替进行"
+    ]
+  },
+  "running": {
+    "source": "free_exercise_db",
+    "source_id": "Running_Treadmill",
+    "instructionsZh": [
+      "跑步机设置合适速度与坡度",
+      "保持身体直立，目视前方",
+      "自然摆臂，脚掌中部着地",
+      "保持稳定步频，控制呼吸节奏"
+    ]
+  },
+  "elliptical": {
+    "source": "free_exercise_db",
+    "source_id": "Elliptical_Trainer",
+    "instructionsZh": [
+      "双脚踩稳踏板，双手握住扶手",
+      "保持躯干直立",
+      "以流畅的椭圆轨迹交替蹬踏",
+      "根据体能调整阻力和坡度"
+    ]
+  },
+  "cycling": {
+    "source": "free_exercise_db",
+    "source_id": "Bicycling_Stationary",
+    "instructionsZh": [
+      "调整座椅高度至膝盖微屈",
+      "保持躯干稳定，核心收紧",
+      "以均匀节奏踩踏",
+      "根据心率调整阻力"
+    ]
+  },
+  "rower": {
+    "source": "free_exercise_db",
+    "source_id": "Rowing_Stationary",
+    "instructionsZh": [
+      "坐在划船机上，双脚固定，握紧把手",
+      "蹬腿、后倾、拉把手至胸前",
+      "反向依次还原手臂、躯干、腿部",
+      "保持节奏流畅，背部平直"
+    ]
+  },
+  "jump_rope": {
+    "source": "free_exercise_db",
+    "source_id": "Rope_Jumping",
+    "instructionsZh": [
+      "双手握住绳柄，绳子置于身后",
+      "保持身体直立，小臂发力摇绳",
+      "双脚轻轻跳起让绳子通过",
+      "保持手腕与脚踝放松，控制节奏"
+    ]
+  },
+  "reverse_pec_deck_fly": {
+    "source": "placeholder",
+    "source_id": null,
+    "instructionsZh": [
+      "暂无动作示意图",
+      "反向蝴蝶机飞鸟：坐姿，胸部贴紧靠垫",
+      "双臂向后打开至与肩同高",
+      "感受后肩与上背收缩"
+    ]
+  },
+  "machine_lateral_raise": {
+    "source": "placeholder",
+    "source_id": null,
+    "instructionsZh": [
+      "暂无动作示意图",
+      "器械侧平举：坐姿，手臂抵住活动臂垫",
+      "向两侧抬臂至与肩同高",
+      "缓慢下放还原"
+    ]
+  },
+  "reverse_pec_deck": {
+    "source": "placeholder",
+    "source_id": null,
+    "instructionsZh": [
+      "暂无动作示意图",
+      "反向飞鸟：坐姿，胸部贴紧靠垫",
+      "双臂向后打开至与肩同高",
+      "感受后肩与上背收缩"
+    ]
+  },
+  "bulgarian_split_squat": {
+    "source": "placeholder",
+    "source_id": null,
+    "instructionsZh": [
+      "暂无动作示意图",
+      "保加利亚分腿蹲：后脚抬高置于凳面",
+      "前腿下蹲至大腿接近平行",
+      "蹬地站起，注意平衡"
+    ]
+  },
+  "nordic_curl": {
+    "source": "placeholder",
+    "source_id": null,
+    "instructionsZh": [
+      "暂无动作示意图",
+      "北欧腿弯举：跪姿，脚踝固定",
+      "躯干缓慢前倾，用腘绳肌控制下放",
+      "用手支撑缓冲后推回"
+    ]
+  }
+}

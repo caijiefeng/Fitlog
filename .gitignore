@@ -32,3 +32,6 @@ Thumbs.db
 !gradlew.bat
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
+
+# Claude Code session temp files
+.claude/settings.local.json.tmp.*
