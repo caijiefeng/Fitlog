@@ -48,6 +48,34 @@ fun ProgressScreen(
         ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // ── 顶部三个主要指标 ──────────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    com.example.fitlog.core.designsystem.component.MetricCard(
+                        label = stringResource(R.string.progress_metric_weight),
+                        value = uiState.currentWeightKg?.let { "%.1f".format(it) } ?: "—",
+                        modifier = Modifier.weight(1f),
+                    )
+                    com.example.fitlog.core.designsystem.component.MetricCard(
+                        label = stringResource(R.string.progress_metric_month_workouts),
+                        value = "${uiState.monthWorkoutCount}",
+                        modifier = Modifier.weight(1f),
+                    )
+                    com.example.fitlog.core.designsystem.component.MetricCard(
+                        label = stringResource(R.string.progress_metric_month_volume),
+                        value = if (uiState.monthVolumeKg >= 1000) {
+                            "%.1f".format(uiState.monthVolumeKg / 1000)
+                        } else {
+                            "%.0f".format(uiState.monthVolumeKg)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 // ── Training statistics ──────────────────────────────────
                 SectionHeader(title = stringResource(R.string.section_training_stats))
 

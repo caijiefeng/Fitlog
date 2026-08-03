@@ -24,6 +24,8 @@ import com.example.fitlog.feature.media.MediaDetailScreen
 import com.example.fitlog.feature.media.MediaLibraryScreen
 import com.example.fitlog.feature.nutrition.NutritionScreen
 import com.example.fitlog.feature.plan.PlanScreen
+import com.example.fitlog.feature.profile.AboutScreen
+import com.example.fitlog.feature.profile.LicensesScreen
 import com.example.fitlog.feature.profile.ProfileScreen
 import com.example.fitlog.feature.progress.ProgressScreen
 import com.example.fitlog.feature.record.RecordScreen
@@ -81,6 +83,8 @@ object Routes {
 
     // Avatar
     const val AVATAR_PICKER = "profile/avatar-picker"
+    const val ABOUT = "profile/about"
+    const val LICENSES = "profile/licenses"
 
     // Body & Nutrition routes
     const val BODY_PROFILE = "body/profile"
@@ -159,6 +163,7 @@ fun FitLogNavHost(
         composable(BottomNavItem.Progress.route) { ProgressScreen() }
         composable(BottomNavItem.Profile.route) {
             ProfileScreen(
+                onNavigateToAbout = { navController.navigate(Routes.ABOUT) },
                 onNavigateToBodyProfile = { navController.navigate(Routes.BODY_PROFILE) },
                 onNavigateToDataManagement = { navController.navigate(Routes.DATA_MANAGEMENT) },
                 onNavigateToMedia = { navController.navigate(Routes.MEDIA_LIBRARY) },
@@ -449,6 +454,17 @@ fun FitLogNavHost(
         }
 
         // ── Avatar picker ───────────────────────────────────────────────────
+        composable(Routes.ABOUT) {
+            AboutScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToLicenses = { navController.navigate(Routes.LICENSES) },
+            )
+        }
+        composable(Routes.LICENSES) {
+            LicensesScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
         composable(Routes.AVATAR_PICKER) {
             AvatarPickerScreen(
                 onNavigateBack = { navController.popBackStack() },

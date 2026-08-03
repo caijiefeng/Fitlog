@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitlog.core.datastore.UserPreferencesRepository
 import com.example.fitlog.core.designsystem.theme.ThemeMode
+import com.example.fitlog.data.repository.BodyMeasurementRepository
 import com.example.fitlog.data.repository.UserProfileRepository
 import com.example.fitlog.domain.avatar.AvatarType
+import com.example.fitlog.domain.body.GoalType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,12 +22,17 @@ data class ProfileUiState(
     val avatarType: AvatarType = AvatarType.DEFAULT,
     val avatarKey: String? = null,
     val customAvatarPath: String? = null,
+    // ── Hero 数据 ──────────────────────────────────────────────
+    val goalLabel: String? = null,
+    val heightCm: Double? = null,
+    val latestWeightKg: Double? = null,
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val preferencesRepository: UserPreferencesRepository,
     private val userProfileRepository: UserProfileRepository,
+    private val bodyMeasurementRepository: BodyMeasurementRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -45,9 +52,24 @@ class ProfileViewModel @Inject constructor(
                     avatarType = profile?.avatarType ?: AvatarType.DEFAULT,
                     avatarKey = profile?.avatarKey,
                     customAvatarPath = profile?.customAvatarPath,
+                    heightCm = profile?.heightCm,
+                    goalLabel = profile?.goalType?.let { goalTypeLabel(it) },
                 )
             }
         }
+        viewModelScope.launch {
+            try {
+                val latest = bodyMeasurementRepository.getLatestOnOrBefore(java.time.LocalDate.now())
+                _uiState.value = _uiState.value.copy(latestWeightKg = latest?.weightKg)
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun goalTypeLabel(type: GoalType): String = when (type) {
+        GoalType.MUSCLE_GAIN -> "增肌"
+        GoalType.LEAN_GAIN -> "瘦体重增长"
+        GoalType.FAT_LOSS -> "减脂"
+        GoalType.MAINTAIN -> "保持"
     }
 
     fun setThemeMode(mode: ThemeMode) {

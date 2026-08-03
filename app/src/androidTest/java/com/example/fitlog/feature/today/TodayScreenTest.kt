@@ -23,6 +23,8 @@ class TodayScreenTest {
     private val mockCalendarRepo = mockk<com.example.fitlog.data.repository.CalendarRepository>(relaxed = true)
     private val mockSessionRepo = mockk<com.example.fitlog.data.repository.WorkoutSessionRepository>(relaxed = true)
     private val mockDateProvider = mockk<com.example.fitlog.core.time.CurrentDateProvider>(relaxed = true)
+    private val mockProgressRepo = mockk<com.example.fitlog.data.repository.ProgressRepository>(relaxed = true)
+    private val mockFoodRepo = mockk<com.example.fitlog.data.repository.FoodRecordRepository>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -33,7 +35,7 @@ class TodayScreenTest {
     fun todayScreen_displaysTitleAndPlaceholderContent() {
         composeTestRule.setContent {
             FitLogTheme {
-                TodayScreen(viewModel = TodayViewModel(mockCalendarRepo, mockSessionRepo, mockDateProvider))
+                TodayScreen(viewModel = TodayViewModel(mockCalendarRepo, mockSessionRepo, mockProgressRepo, mockFoodRepo, mockDateProvider))
             }
         }
 

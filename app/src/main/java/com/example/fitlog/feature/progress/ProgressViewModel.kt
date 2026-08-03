@@ -20,6 +20,12 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 data class ProgressUiState(
+    /** 当前体重 kg */
+    val currentWeightKg: Double? = null,
+    /** 本月训练次数 */
+    val monthWorkoutCount: Int = 0,
+    /** 本月总容量 kg */
+    val monthVolumeKg: Double = 0.0,
     val currentStreak: Int = 0,
     val bestStreak: Int = 0,
     val adherenceRate: Double = 0.0,
@@ -45,6 +51,28 @@ class ProgressViewModel @Inject constructor(
     init {
         loadStats()
         loadTrends()
+        loadMonthMetrics()
+    }
+
+    private fun loadMonthMetrics() {
+        viewModelScope.launch {
+            try {
+                val today = java.time.LocalDate.now()
+                val monthStart = today.withDayOfMonth(1)
+                val sessions = sessionRepository.getSessionsInRange(
+                    startEpochDay = monthStart.toEpochDay(),
+                    endEpochDay = today.toEpochDay(),
+                )
+                val monthPoints = progressRepository.getTrendPoints(
+                    com.example.fitlog.data.repository.TrendRange.MONTH_30,
+                )
+                _uiState.value = _uiState.value.copy(
+                    monthWorkoutCount = sessions.size,
+                    monthVolumeKg = monthPoints.sumOf { it.volume ?: 0.0 },
+                    currentWeightKg = monthPoints.lastOrNull { it.weight != null }?.weight,
+                )
+            } catch (_: Exception) { }
+        }
     }
 
     private fun loadStats() {

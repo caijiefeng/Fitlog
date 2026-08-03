@@ -24,6 +24,7 @@ core-testing = "2.2.0"
 test-runner = "1.6.2"
 robolectric = "4.14.1"
 androidx-test-core = "1.6.1"
+roborazzi = "1.34.0"
 
 [libraries]
 # AndroidX Core
@@ -75,6 +76,9 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "core-testing" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
+roborazzi-junit-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test-core" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 hilt-android-compiler-testing = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
@@ -86,3 +90,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }

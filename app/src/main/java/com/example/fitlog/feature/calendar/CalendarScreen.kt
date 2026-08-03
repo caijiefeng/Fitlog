@@ -61,6 +61,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
+import com.example.fitlog.core.designsystem.theme.FitLogWarning
 import com.example.fitlog.domain.calendar.CalendarDay
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
@@ -132,7 +133,12 @@ fun CalendarScreen(
             onGoToToday = { viewModel.goToToday() },
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // ── 状态图例 ────────────────────────────────────────────────────
+        CalendarLegend()
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         // ── Day-of-week headers ──────────────────────────────────────────
         Row(
@@ -188,6 +194,51 @@ fun CalendarScreen(
 }
 
 // ── Month Header ───────────────────────────────────────────────────────────
+
+@Composable
+private fun CalendarLegend() {
+    val legend = listOf(
+        CalendarWorkoutStatus.SCHEDULED to stringResource(R.string.calendar_status_scheduled),
+        CalendarWorkoutStatus.COMPLETED to stringResource(R.string.calendar_status_completed),
+        CalendarWorkoutStatus.PARTIALLY_COMPLETED to stringResource(R.string.calendar_status_partial),
+        CalendarWorkoutStatus.IN_PROGRESS to stringResource(R.string.calendar_status_in_progress),
+        CalendarWorkoutStatus.SKIPPED to stringResource(R.string.calendar_status_skipped),
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        legend.forEach { (status, label) ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(statusColor(status), CircleShape),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = FitLogTextSecondary,
+                )
+            }
+        }
+    }
+}
+
+/** 日格状态点颜色映射（与 DayCell 一致）。 */
+@Composable
+private fun statusColor(status: CalendarWorkoutStatus): Color = when (status) {
+    CalendarWorkoutStatus.SCHEDULED -> FitLogAccent
+    CalendarWorkoutStatus.COMPLETED -> FitLogSuccess
+    CalendarWorkoutStatus.PARTIALLY_COMPLETED -> FitLogSuccess.copy(alpha = 0.5f)
+    CalendarWorkoutStatus.IN_PROGRESS -> FitLogWarning
+    CalendarWorkoutStatus.SKIPPED,
+    CalendarWorkoutStatus.CANCELLED,
+    CalendarWorkoutStatus.RESCHEDULED,
+    -> FitLogTextTertiary
+}
 
 @Composable
 private fun MonthHeader(

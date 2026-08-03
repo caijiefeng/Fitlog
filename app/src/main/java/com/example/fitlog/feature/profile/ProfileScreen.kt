@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
+import com.example.fitlog.core.designsystem.component.FitLogHeroCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
@@ -53,6 +54,7 @@ fun ProfileScreen(
     onNavigateToDataManagement: () -> Unit = {},
     onNavigateToMedia: () -> Unit = {},
     onNavigateToAvatarPicker: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -67,39 +69,45 @@ fun ProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Profile card with avatar
-            FitLogCard(onClick = onNavigateToBodyProfile) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+            // ── 个人 Hero ────────────────────────────────────────────────
+            FitLogHeroCard(
+                title = if (uiState.userName.isNotEmpty()) {
+                    uiState.userName
+                } else {
+                    stringResource(R.string.profile_no_name)
+                },
+                subtitle = uiState.goalLabel
+                    ?.let { stringResource(R.string.profile_hero_goal, it) }
+                    ?: stringResource(R.string.profile_setup_hint),
+                onClick = onNavigateToBodyProfile,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     AvatarImage(
                         avatarType = uiState.avatarType,
                         avatarKey = uiState.avatarKey,
                         customAvatarPath = uiState.customAvatarPath,
                         contentDescription = stringResource(R.string.profile_avatar_cd),
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(88.dp)
                             .clip(CircleShape)
-                            .border(1.dp, FitLogDivider, CircleShape)
+                            .border(2.dp, FitLogAccent.copy(alpha = 0.4f), CircleShape)
                             .clickable(onClick = onNavigateToAvatarPicker),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (uiState.userName.isNotEmpty()) uiState.userName
-                                   else stringResource(R.string.profile_no_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = FitLogTextPrimary,
-                        )
-                        Text(
-                            text = stringResource(R.string.profile_setup_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = FitLogTextSecondary,
+                        com.example.fitlog.core.designsystem.component.MetricRow(
+                            label = stringResource(R.string.profile_hero_height),
+                            value = uiState.heightCm?.let { "%.0f cm".format(it) } ?: "—",
                         )
                         Spacer(modifier = Modifier.height(6.dp))
+                        com.example.fitlog.core.designsystem.component.MetricRow(
+                            label = stringResource(R.string.profile_hero_weight),
+                            value = uiState.latestWeightKg?.let { "%.1f kg".format(it) } ?: "—",
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
                             onClick = onNavigateToAvatarPicker,
-                            modifier = Modifier.heightIn(min = 32.dp),
+                            modifier = Modifier.heightIn(min = 36.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
                             border = BorderStroke(1.dp, FitLogAccent),
                             shape = RoundedCornerShape(16.dp),
@@ -116,9 +124,10 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ── 分组设置标题 ─────────────────────────────────────────────
             Text(
                 text = stringResource(R.string.section_settings),
-                style = MaterialTheme.typography.titleMedium,
+                style = com.example.fitlog.core.designsystem.theme.FitLogType.cardTitle,
                 color = FitLogTextPrimary,
             )
             Spacer(modifier = Modifier.height(8.dp))

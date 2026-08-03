@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -48,6 +49,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -61,6 +63,11 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
+    }
+
+    roborazzi {
+        // 基准截图保存在源码树中，随仓库提交，供 verifyRoborazziDebug 回归比对
+        outputDir.set(file("src/test/snapshots/images"))
     }
 }
 
@@ -124,6 +131,11 @@ dependencies {
     testImplementation(libs.core.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
 
     // Instrumented tests
     androidTestImplementation(libs.androidx.test.ext)

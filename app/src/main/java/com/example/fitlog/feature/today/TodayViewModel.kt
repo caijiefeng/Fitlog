@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitlog.core.time.CurrentDateProvider
 import com.example.fitlog.data.repository.CalendarRepository
+import com.example.fitlog.data.repository.FoodRecordRepository
+import com.example.fitlog.data.repository.ProgressRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
+
+import com.example.fitlog.data.repository.DailyNutritionSummary
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +28,18 @@ data class TodayUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val showStartWorkoutDialog: Boolean = false,
+    // ── 仪表盘补充数据 ──────────────────────────────────────────────
+    /** 本周训练天数（近 7 天有训练量的日期数） */
+    val weekWorkoutCount: Int = 0,
+    /** 本周总容量 kg */
+    val weekVolumeKg: Double = 0.0,
+    /** 最近体重 */
+    val currentWeightKg: Double? = null,
+    /** 今日营养摘要 */
+    val nutritionSummary: DailyNutritionSummary? = null,
+    /** 今日训练总组数（进行中会话） */
+    val inProgressTotalSets: Int = 0,
+    val inProgressCompletedSets: Int = 0,
 )
 
 sealed interface TodayEvent {
@@ -46,6 +62,8 @@ sealed interface TodayEvent {
 class TodayViewModel @Inject constructor(
     private val calendarRepository: CalendarRepository,
     private val sessionRepository: WorkoutSessionRepository,
+    private val progressRepository: ProgressRepository,
+    private val foodRecordRepository: FoodRecordRepository,
     private val dateProvider: CurrentDateProvider,
 ) : ViewModel() {
 
@@ -57,6 +75,7 @@ class TodayViewModel @Inject constructor(
 
     init {
         loadTodayOccurrences()
+        loadDashboardStats()
         viewModelScope.launch {
             sessionRepository.observeInProgress().collect { s ->
                 _uiState.value = _uiState.value.copy(
@@ -83,6 +102,49 @@ class TodayViewModel @Inject constructor(
                     isLoading = false,
                     error = e.message,
                 )
+            }
+        }
+    }
+
+    private fun loadDashboardStats() {
+        viewModelScope.launch {
+            try {
+                val today = dateProvider.today()
+                val weekPoints = progressRepository.getTrendPoints(
+                    com.example.fitlog.data.repository.TrendRange.WEEK_7,
+                )
+                val weekVolume = weekPoints.sumOf { it.volume ?: 0.0 }
+                val weekDays = weekPoints.count { it.volume != null && it.volume!! > 0 }
+                val weight = weekPoints.lastOrNull { it.weight != null }?.weight
+                _uiState.value = _uiState.value.copy(
+                    weekWorkoutCount = weekDays,
+                    weekVolumeKg = weekVolume,
+                    currentWeightKg = weight,
+                )
+            } catch (_: Exception) { }
+        }
+        viewModelScope.launch {
+            try {
+                foodRecordRepository.observeDailySummary(dateProvider.today()).collect { summary ->
+                    _uiState.value = _uiState.value.copy(nutritionSummary = summary)
+                }
+            } catch (_: Exception) { }
+        }
+        viewModelScope.launch {
+            // 进行中训练的组数进度
+            val session = sessionRepository.getInProgress()
+            if (session != null) {
+                val detail = sessionRepository.getDetail(session.id)
+                if (detail != null) {
+                    val total = detail.exercises.sumOf { it.first.targetSets }
+                    val completed = detail.exercises.sumOf { (ex, sets) ->
+                        sets.count { it.completed && it.setNumber <= ex.targetSets }
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        inProgressTotalSets = total,
+                        inProgressCompletedSets = completed,
+                    )
+                }
             }
         }
     }

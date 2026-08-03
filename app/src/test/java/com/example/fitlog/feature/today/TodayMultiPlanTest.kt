@@ -2,6 +2,8 @@ package com.example.fitlog.feature.today
 
 import com.example.fitlog.core.time.CurrentDateProvider
 import com.example.fitlog.data.repository.CalendarRepository
+import com.example.fitlog.data.repository.FoodRecordRepository
+import com.example.fitlog.data.repository.ProgressRepository
 import com.example.fitlog.data.repository.WorkoutSessionRepository
 import com.example.fitlog.domain.calendar.CalendarDay
 import com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence
@@ -27,6 +29,8 @@ class TodayMultiPlanTest {
     private val calendarRepo = mockk<CalendarRepository>(relaxed = true)
     private val sessionRepo = mockk<WorkoutSessionRepository>(relaxed = true)
     private val dateProvider = mockk<CurrentDateProvider>(relaxed = true)
+    private val progressRepo = mockk<ProgressRepository>(relaxed = true)
+    private val foodRepo = mockk<FoodRecordRepository>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -59,7 +63,7 @@ class TodayMultiPlanTest {
         )
         coEvery { calendarRepo.getDayDetail(today.toEpochDay()) } returns listOf(day)
 
-        val vm = TodayViewModel(calendarRepo, sessionRepo, dateProvider)
+        val vm = TodayViewModel(calendarRepo, sessionRepo, progressRepo, foodRepo, dateProvider)
         testDispatcher.scheduler.advanceUntilIdle()
 
         vm.onStartWorkout(occurrence2)

@@ -139,6 +139,47 @@
     <string name="workout_execution_steps_title">动作步骤</string>
     <string name="workout_execution_current_exercise">进行中</string>
     <string name="workout_execution_rest_sticky_hint">休息计时</string>
+    <string name="today_date_format" formatted="false">%1$d月%2$d日 · %3$s</string>
+    <string name="today_dashboard_in_progress_title">训练进行中</string>
+    <string name="today_dashboard_sets_progress" formatted="false">已完成 %1$d / %2$d 组</string>
+    <string name="today_dashboard_continue">继续训练</string>
+    <string name="today_dashboard_start">开始训练</string>
+    <string name="today_dashboard_no_plan_title">今天还没有训练计划</string>
+    <string name="today_dashboard_schedule">安排训练</string>
+    <string name="today_dashboard_free">自由训练</string>
+    <string name="today_section_week_stats">本周统计</string>
+    <string name="today_week_workout_days">训练天数</string>
+    <string name="today_week_volume">本周容量</string>
+    <string name="today_week_volume_unit">kg</string>
+    <string name="today_current_weight">当前体重</string>
+    <string name="today_current_weight_unit">kg</string>
+    <string name="today_section_nutrition">今日营养</string>
+    <string name="today_nutrition_kcal" formatted="false">%1$d / %2$d kcal</string>
+    <string name="today_nutrition_protein" formatted="false">蛋白质 %1$d / %2$d g</string>
+    <string name="today_nutrition_empty">今天还没有饮食记录</string>
+    <string name="progress_metric_weight">当前体重</string>
+    <string name="progress_metric_month_workouts">本月训练</string>
+    <string name="progress_metric_month_volume">本月总容量</string>
+    <string name="calendar_status_scheduled">已安排</string>
+    <string name="calendar_status_completed">已完成</string>
+    <string name="calendar_status_partial">部分完成</string>
+    <string name="calendar_status_in_progress">进行中</string>
+    <string name="calendar_status_skipped">已跳过</string>
+
+    <string name="profile_hero_goal" formatted="false">目标：%1$s</string>
+    <string name="profile_hero_height">身高</string>
+    <string name="profile_hero_weight">体重</string>
+    <string name="profile_about_open">关于 FitLog</string>
+    <string name="profile_about_licenses">开源许可</string>
+    <string name="profile_about_licenses_desc">第三方素材与库的许可证声明</string>
+
+
+    <string name="record_category_workout_summary" formatted="false">最近 %1$d 次训练</string>
+    <string name="record_category_nutrition_summary">今日热量与营养摄入</string>
+    <string name="record_category_body_summary">体重、体脂与围度变化</string>
+    <string name="record_category_media_summary">训练照片与视频记录</string>
+
+
     <string name="template_summary_exercises">动作数量</string>
     <string name="template_summary_total_sets">计划总组数</string>
     <string name="template_summary_estimated_duration">预计训练时长</string>
@@ -225,13 +266,8 @@
     <string name="calendar_sat">六</string>
     <string name="calendar_sun">日</string>
     <string name="calendar_no_workouts">暂无训练</string>
-    <string name="calendar_status_scheduled">已安排</string>
     <string name="calendar_status_rescheduled">已调整</string>
-    <string name="calendar_status_skipped">已跳过</string>
-    <string name="calendar_status_in_progress">进行中</string>
-    <string name="calendar_status_completed">已完成</string>
     <string name="calendar_status_cancelled">已取消</string>
-    <string name="calendar_status_partial">部分完成</string>
 
     <!-- Reminder -->
     <string name="reminder_title">提醒</string>

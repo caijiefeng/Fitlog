@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,10 +38,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
+import com.example.fitlog.core.designsystem.component.FitLogCardStyle
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
@@ -70,32 +73,49 @@ fun RecordScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        RecordEntryCard(
-                            icon = Icons.Filled.FitnessCenter,
-                            label = stringResource(R.string.record_entry_workout),
-                            onClick = { /* Already on Record screen showing workouts */ },
-                        )
-                        RecordEntryCard(
-                            icon = Icons.Filled.Restaurant,
-                            label = stringResource(R.string.record_entry_nutrition),
-                            onClick = onNavigateToNutrition,
-                        )
-                        RecordEntryCard(
-                            icon = Icons.Filled.MonitorWeight,
-                            label = stringResource(R.string.record_entry_body),
-                            onClick = onNavigateToBodyMeasurement,
-                        )
-                        RecordEntryCard(
-                            icon = Icons.Filled.PhotoLibrary,
-                            label = stringResource(R.string.record_entry_media),
-                            onClick = onNavigateToMedia,
-                        )
+                    // 顶部分类 2×2：每个分类有图标和摘要，不再只是相同卡片
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            RecordCategoryTile(
+                                icon = Icons.Filled.FitnessCenter,
+                                label = stringResource(R.string.record_entry_workout),
+                                summary = stringResource(
+                                    R.string.record_category_workout_summary,
+                                    uiState.sessions.size,
+                                ),
+                                onClick = { /* Already on Record screen showing workouts */ },
+                                modifier = Modifier.weight(1f),
+                            )
+                            RecordCategoryTile(
+                                icon = Icons.Filled.Restaurant,
+                                label = stringResource(R.string.record_entry_nutrition),
+                                summary = stringResource(R.string.record_category_nutrition_summary),
+                                onClick = onNavigateToNutrition,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            RecordCategoryTile(
+                                icon = Icons.Filled.MonitorWeight,
+                                label = stringResource(R.string.record_entry_body),
+                                summary = stringResource(R.string.record_category_body_summary),
+                                onClick = onNavigateToBodyMeasurement,
+                                modifier = Modifier.weight(1f),
+                            )
+                            RecordCategoryTile(
+                                icon = Icons.Filled.PhotoLibrary,
+                                label = stringResource(R.string.record_entry_media),
+                                summary = stringResource(R.string.record_category_media_summary),
+                                onClick = onNavigateToMedia,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     SectionHeader(title = stringResource(R.string.section_recent_training))
@@ -269,31 +289,36 @@ private fun formatVolume(volume: Double): String {
 }
 
 @Composable
-private fun RecordEntryCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+private fun RecordCategoryTile(
+    icon: ImageVector,
     label: String,
+    summary: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     FitLogCard(
+        modifier = modifier,
+        style = FitLogCardStyle.TONAL,
         onClick = onClick,
-        modifier = Modifier.width(120.dp),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(12.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-                tint = FitLogAccent,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = FitLogTextPrimary,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = FitLogAccent,
+            modifier = Modifier.size(28.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = label,
+            style = FitLogType.body,
+            color = FitLogTextPrimary,
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = summary,
+            style = FitLogType.caption,
+            color = FitLogTextSecondary,
+            maxLines = 2,
+        )
     }
 }
