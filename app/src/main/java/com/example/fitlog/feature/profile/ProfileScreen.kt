@@ -35,7 +35,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
-import com.example.fitlog.core.designsystem.component.FitLogHeroCard
+import com.example.fitlog.core.designsystem.component.StarCardEmphasis
+import com.example.fitlog.core.designsystem.component.StarThemedCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
@@ -69,18 +70,27 @@ fun ProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── 个人 Hero ────────────────────────────────────────────────
-            FitLogHeroCard(
-                title = if (uiState.userName.isNotEmpty()) {
-                    uiState.userName
-                } else {
-                    stringResource(R.string.profile_no_name)
-                },
-                subtitle = uiState.goalLabel
-                    ?.let { stringResource(R.string.profile_hero_goal, it) }
-                    ?: stringResource(R.string.profile_setup_hint),
-                onClick = onNavigateToBodyProfile,
+            // ── 个人 Hero（球星主题卡片）──────────────────────────────────
+            StarThemedCard(
+                emphasis = StarCardEmphasis.PROMINENT,
             ) {
+                Text(
+                    text = if (uiState.userName.isNotEmpty()) {
+                        uiState.userName
+                    } else {
+                        stringResource(R.string.profile_no_name)
+                    },
+                    style = com.example.fitlog.core.designsystem.theme.FitLogType.cardTitle,
+                    color = FitLogAccent,
+                )
+                Text(
+                    text = uiState.goalLabel
+                        ?.let { stringResource(R.string.profile_hero_goal, it) }
+                        ?: stringResource(R.string.profile_setup_hint),
+                    style = com.example.fitlog.core.designsystem.theme.FitLogType.caption,
+                    color = FitLogTextSecondary,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AvatarImage(
                         avatarType = uiState.avatarType,

@@ -3,6 +3,7 @@ package com.example.fitlog.domain.avatar
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.example.fitlog.R
+import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
 
 enum class AvatarCategory { BASKETBALL, SOCCER }
 
@@ -11,6 +12,8 @@ data class BuiltInAvatar(
     @DrawableRes val drawableRes: Int,
     @StringRes val labelRes: Int,
     val category: AvatarCategory,
+    /** 头像所展示时期对应的视觉身份（驱动 App 主题） */
+    val visualIdentity: StarVisualIdentity = StarVisualIdentity.DEFAULT,
 ) {
     companion object {
         val ALL: List<BuiltInAvatar> = listOf(
@@ -20,54 +23,63 @@ data class BuiltInAvatar(
                 drawableRes = R.drawable.avatar_kobe,
                 labelRes = R.string.avatar_kobe,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.KOBE_LAKERS,
             ),
             BuiltInAvatar(
                 key = "lebron",
                 drawableRes = R.drawable.avatar_lebron,
                 labelRes = R.string.avatar_lebron,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.LEBRON_LAKERS,
             ),
             BuiltInAvatar(
                 key = "durant",
                 drawableRes = R.drawable.avatar_durant,
                 labelRes = R.string.avatar_durant,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.DURANT_NETS,
             ),
             BuiltInAvatar(
                 key = "curry",
                 drawableRes = R.drawable.avatar_curry,
                 labelRes = R.string.avatar_curry,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.CURRY_WARRIORS,
             ),
             BuiltInAvatar(
                 key = "jordan",
                 drawableRes = R.drawable.avatar_jordan,
                 labelRes = R.string.avatar_jordan,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.JORDAN_BULLS,
             ),
             BuiltInAvatar(
                 key = "harden",
                 drawableRes = R.drawable.avatar_harden,
                 labelRes = R.string.avatar_harden,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.HARDEN_ROCKETS,
             ),
             BuiltInAvatar(
                 key = "irving",
                 drawableRes = R.drawable.avatar_irving,
                 labelRes = R.string.avatar_irving,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.IRVING_CURRENT,
             ),
             BuiltInAvatar(
                 key = "george",
                 drawableRes = R.drawable.avatar_george,
                 labelRes = R.string.avatar_george,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.GEORGE_CLIPPERS,
             ),
             BuiltInAvatar(
                 key = "westbrook",
                 drawableRes = R.drawable.avatar_westbrook,
                 labelRes = R.string.avatar_westbrook,
                 category = AvatarCategory.BASKETBALL,
+        visualIdentity = StarVisualIdentity.WESTBROOK_THUNDER,
             ),
             // Football/Soccer
             BuiltInAvatar(
@@ -75,24 +87,28 @@ data class BuiltInAvatar(
                 drawableRes = R.drawable.avatar_ronaldo,
                 labelRes = R.string.avatar_ronaldo,
                 category = AvatarCategory.SOCCER,
+        visualIdentity = StarVisualIdentity.RONALDO_REAL_MADRID,
             ),
             BuiltInAvatar(
                 key = "messi",
                 drawableRes = R.drawable.avatar_messi,
                 labelRes = R.string.avatar_messi,
                 category = AvatarCategory.SOCCER,
+        visualIdentity = StarVisualIdentity.MESSI_ARGENTINA,
             ),
             BuiltInAvatar(
                 key = "mbappe",
                 drawableRes = R.drawable.avatar_mbappe,
                 labelRes = R.string.avatar_mbappe,
                 category = AvatarCategory.SOCCER,
+        visualIdentity = StarVisualIdentity.MBAPPE_FRANCE,
             ),
             BuiltInAvatar(
                 key = "neymar",
                 drawableRes = R.drawable.avatar_neymar,
                 labelRes = R.string.avatar_neymar,
                 category = AvatarCategory.SOCCER,
+        visualIdentity = StarVisualIdentity.NEYMAR_BRAZIL,
             ),
         )
 

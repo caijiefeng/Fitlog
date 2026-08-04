@@ -85,7 +85,7 @@ class StarThemeComposeTest {
         profileFlow.value = profile(AvatarType.BUILT_IN, "kobe")
         composeRule.waitForIdle()
 
-        assertEquals(Color(0xFF552583), primary)
+        assertEquals(Color(0xFF4B2A73), primary)
         assertEquals(Color(0xFFB8860B), secondary)
     }
 

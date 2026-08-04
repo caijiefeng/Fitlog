@@ -5,7 +5,8 @@ import androidx.compose.ui.test.onRoot
 import com.example.fitlog.core.datastore.UserPreferences
 import com.example.fitlog.core.datastore.UserPreferencesRepository
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
-import com.example.fitlog.core.designsystem.theme.StarThemeId
+import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
+import com.example.fitlog.core.designsystem.theme.starVisualProfiles
 import com.example.fitlog.data.repository.BodyMeasurementRepository
 import com.example.fitlog.data.repository.UserProfileRepository
 import com.example.fitlog.domain.avatar.AvatarType
@@ -62,14 +63,14 @@ class StarThemeScreenshotTest {
 
     @Test
     fun profile_kobe_theme_light() = capture("profile_kobe_light_412") {
-        FitLogTheme(starThemeId = StarThemeId.KOBE) {
+        FitLogTheme(profile = starVisualProfiles[StarVisualIdentity.KOBE_LAKERS]!!) {
             ProfileScreen(viewModel = profileViewModel())
         }
     }
 
     @Test
     fun profile_kobe_theme_dark() = capture("profile_kobe_dark_412") {
-        FitLogTheme(darkTheme = true, starThemeId = StarThemeId.KOBE) {
+        FitLogTheme(darkTheme = true, profile = starVisualProfiles[StarVisualIdentity.KOBE_LAKERS]!!) {
             ProfileScreen(viewModel = profileViewModel())
         }
     }

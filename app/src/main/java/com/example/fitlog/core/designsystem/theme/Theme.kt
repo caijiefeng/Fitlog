@@ -63,11 +63,11 @@ private fun FitLogColorScheme.withBrand(brand: StarBrandColors): FitLogColorSche
 @Composable
 fun FitLogTheme(
     darkTheme: Boolean = false,
-    starThemeId: StarThemeId = StarThemeId.DEFAULT,
+    profile: StarVisualProfile = defaultStarVisualProfile,
     content: @Composable () -> Unit,
 ) {
     val base = if (darkTheme) DarkFitLogColors else LightFitLogColors
-    val brand = if (darkTheme) StarThemePalettes.dark(starThemeId) else StarThemePalettes.light(starThemeId)
+    val brand = if (darkTheme) profile.darkColors else profile.lightColors
     val colors = base.withBrand(brand)
     val colorScheme = buildColorScheme(colors, darkTheme)
     val view = LocalView.current
@@ -82,7 +82,10 @@ fun FitLogTheme(
         }
     }
 
-    CompositionLocalProvider(LocalFitLogColors provides colors) {
+    CompositionLocalProvider(
+        LocalFitLogColors provides colors,
+        LocalStarVisualProfile provides profile,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = FitLogTypography,
@@ -116,10 +119,10 @@ fun FitLogAppTheme(
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val starThemeId = resolveStarTheme(
+    val starProfile = resolveStarVisualProfile(
         avatarType = profile?.avatarType ?: AvatarType.DEFAULT,
         avatarKey = profile?.avatarKey,
     )
 
-    FitLogTheme(darkTheme = isDark, starThemeId = starThemeId, content = content)
+    FitLogTheme(darkTheme = isDark, profile = starProfile, content = content)
 }

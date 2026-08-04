@@ -40,8 +40,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.feature.checkin.CheckInCard
 import com.example.fitlog.core.designsystem.component.FitLogCard
-import com.example.fitlog.core.designsystem.component.FitLogHeroCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
+import com.example.fitlog.core.designsystem.component.StarCardEmphasis
+import com.example.fitlog.core.designsystem.component.StarThemedCard
 import com.example.fitlog.core.designsystem.component.MetricCard
 import com.example.fitlog.core.designsystem.component.QuickAction
 import com.example.fitlog.core.designsystem.component.QuickActionGrid
@@ -131,14 +132,24 @@ fun TodayScreen(
                     BoxLoading()
                 }
                 uiState.hasInProgressWorkout -> {
-                    FitLogHeroCard(
-                        title = stringResource(R.string.today_dashboard_in_progress_title),
-                        subtitle = stringResource(
-                            R.string.today_dashboard_sets_progress,
-                            uiState.inProgressCompletedSets,
-                            uiState.inProgressTotalSets.coerceAtLeast(uiState.inProgressCompletedSets),
-                        ),
+                    StarThemedCard(
+                        emphasis = StarCardEmphasis.PROMINENT,
                     ) {
+                        Text(
+                            text = stringResource(R.string.today_dashboard_in_progress_title),
+                            style = FitLogType.cardTitle,
+                            color = FitLogAccent,
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.today_dashboard_sets_progress,
+                                uiState.inProgressCompletedSets,
+                                uiState.inProgressTotalSets.coerceAtLeast(uiState.inProgressCompletedSets),
+                            ),
+                            style = FitLogType.caption,
+                            color = FitLogTextSecondary,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         Button(
                             onClick = { viewModel.onResumeInProgressWorkout() },
                             modifier = Modifier
@@ -156,10 +167,20 @@ fun TodayScreen(
                     }
                 }
                 uiState.occurrences.isEmpty() -> {
-                    FitLogHeroCard(
-                        title = stringResource(R.string.today_dashboard_no_plan_title),
-                        subtitle = stringResource(R.string.empty_today_subtitle),
+                    StarThemedCard(
+                        emphasis = StarCardEmphasis.PROMINENT,
                     ) {
+                        Text(
+                            text = stringResource(R.string.today_dashboard_no_plan_title),
+                            style = FitLogType.cardTitle,
+                            color = FitLogAccent,
+                        )
+                        Text(
+                            text = stringResource(R.string.empty_today_subtitle),
+                            style = FitLogType.caption,
+                            color = FitLogTextSecondary,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -184,10 +205,20 @@ fun TodayScreen(
                 }
                 else -> {
                     val primary = uiState.occurrences.first()
-                    FitLogHeroCard(
-                        title = stringResource(R.string.section_todays_workout),
-                        subtitle = primary.templateName,
+                    StarThemedCard(
+                        emphasis = StarCardEmphasis.PROMINENT,
                     ) {
+                        Text(
+                            text = stringResource(R.string.section_todays_workout),
+                            style = FitLogType.cardTitle,
+                            color = FitLogAccent,
+                        )
+                        Text(
+                            text = primary.templateName,
+                            style = FitLogType.caption,
+                            color = FitLogTextSecondary,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         Button(
                             onClick = { viewModel.onStartWorkout(primary) },
                             modifier = Modifier

@@ -32,11 +32,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
-import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.SectionHeader
+import com.example.fitlog.core.designsystem.component.StarCardEmphasis
+import com.example.fitlog.core.designsystem.component.StarThemedCard
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccentVariant
+import com.example.fitlog.core.designsystem.theme.FitLogAccentVariantContainer
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
+import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
+import com.example.fitlog.core.designsystem.theme.StarAccentRole
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
@@ -79,7 +84,7 @@ fun CheckInCard(
     Column(modifier = modifier) {
         SectionHeader(title = stringResource(R.string.section_daily_checkin))
 
-        FitLogCard {
+        StarThemedCard(emphasis = StarCardEmphasis.PROMINENT) {
             if (uiState.existingCheckIn != null && uiState.isSaved && !uiState.isEditing) {
                 // Already checked in — show summary with edit button
                 ExistingCheckInContent(
@@ -200,23 +205,25 @@ private fun CheckInFormContent(
     onSave: () -> Unit,
     onCancel: (() -> Unit)? = null,
 ) {
-    // Mood row: 5 emoji + label buttons
+    // Mood row: 5 emoji + label buttons（心情使用主色容器）
     RatingSelectorRow(
         title = stringResource(R.string.checkin_mood_label),
         options = moodOptions,
         selectedValue = uiState.mood,
         contentDescriptionFormat = R.string.checkin_mood_option_cd,
+        accentRole = StarAccentRole.PRIMARY,
         onValueChange = onMoodChange,
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Energy row: 5 emoji + label buttons
+    // Energy row: 5 emoji + label buttons（精力使用辅助色容器）
     RatingSelectorRow(
         title = stringResource(R.string.checkin_energy_label),
         options = energyOptions,
         selectedValue = uiState.energyLevel,
         contentDescriptionFormat = R.string.checkin_energy_option_cd,
+        accentRole = StarAccentRole.SECONDARY,
         onValueChange = onEnergyLevelChange,
     )
 
@@ -263,10 +270,7 @@ private fun CheckInFormContent(
         modifier = Modifier.fillMaxWidth().height(48.dp),
         enabled = !uiState.isSaving && (uiState.mood != null || uiState.energyLevel != null || uiState.notes.isNotBlank()),
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = FitLogAccent,
-            disabledContainerColor = FitLogAccentVariant.copy(alpha = 0.4f),
-        ),
+        colors = checkInSaveButtonColors(),
     ) {
         Text(
             text = if (uiState.isSaving) {
@@ -274,7 +278,6 @@ private fun CheckInFormContent(
             } else {
                 stringResource(R.string.checkin_save)
             },
-            color = FitLogTextPrimary,
         )
     }
 
@@ -306,6 +309,7 @@ private fun RatingSelectorRow(
     options: List<CheckInRatingOption>,
     selectedValue: Int?,
     @StringRes contentDescriptionFormat: Int,
+    accentRole: StarAccentRole,
     onValueChange: (Int) -> Unit,
 ) {
     Text(
@@ -323,6 +327,7 @@ private fun RatingSelectorRow(
                 option = option,
                 isSelected = selectedValue == option.value,
                 contentDescriptionFormat = contentDescriptionFormat,
+                accentRole = accentRole,
                 onClick = { onValueChange(option.value) },
                 modifier = Modifier.weight(1f),
             )
@@ -335,6 +340,7 @@ private fun RatingOptionButton(
     option: CheckInRatingOption,
     isSelected: Boolean,
     @StringRes contentDescriptionFormat: Int,
+    accentRole: StarAccentRole,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -346,18 +352,26 @@ private fun RatingOptionButton(
         }
     }
 
+    val selectedContainer = when (accentRole) {
+        StarAccentRole.PRIMARY -> FitLogAccentContainer
+        StarAccentRole.SECONDARY -> FitLogAccentVariantContainer
+    }
+    val selectedText = when (accentRole) {
+        StarAccentRole.PRIMARY -> FitLogAccent
+        StarAccentRole.SECONDARY -> FitLogAccentVariant
+    }
     Surface(
         modifier = modifier
             .heightIn(min = 48.dp)
             .border(
                 width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) FitLogAccent else FitLogDivider,
+                color = if (isSelected) selectedText else FitLogDivider,
                 shape = RoundedCornerShape(10.dp),
             )
             .semantics { contentDescription = description }
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        color = if (isSelected) FitLogAccent.copy(alpha = 0.15f) else FitLogSurfaceVariant,
+        color = if (isSelected) selectedContainer else FitLogSurfaceVariant,
     ) {
         Column(
             modifier = Modifier
@@ -372,8 +386,21 @@ private fun RatingOptionButton(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) FitLogAccent else FitLogTextSecondary,
+                color = if (isSelected) selectedText else FitLogTextSecondary,
             )
         }
     }
 }
+
+/**
+ * 打卡保存按钮配色：主色背景 + onAccent 文字。
+ * 独立函数便于测试断言（containerColor/contentColor 跟随主题）。
+ */
+@Composable
+internal fun checkInSaveButtonColors(): androidx.compose.material3.ButtonColors =
+    ButtonDefaults.buttonColors(
+        containerColor = FitLogAccent,
+        contentColor = FitLogOnAccent,
+        disabledContainerColor = FitLogAccentContainer,
+        disabledContentColor = FitLogTextTertiary,
+    )
