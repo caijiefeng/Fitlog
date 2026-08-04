@@ -22,6 +22,10 @@ data class FitLogColorScheme(
     val accentVariant: Color,
     val accentContainer: Color,
     val onAccent: Color,
+    /** 辅助色容器（球星主题 secondaryContainer） */
+    val accentVariantContainer: Color,
+    /** 辅助色之上的文字/图标颜色 */
+    val onAccentVariant: Color,
     val divider: Color,
     val error: Color,
     val errorContainer: Color,
@@ -47,6 +51,8 @@ val DarkFitLogColors = FitLogColorScheme(
     accentVariant = Color(0xFF3E9C85),
     accentContainer = Color(0xFF1F4D40),
     onAccent = Color(0xFF0E1A16),
+    accentVariantContainer = Color(0xFF1F4D40),
+    onAccentVariant = Color(0xFF0E1A16),
     divider = Color(0xFF35403B),
     error = Color(0xFFF2B8B5),
     errorContainer = Color(0xFF4C2B28),
@@ -68,6 +74,8 @@ val LightFitLogColors = FitLogColorScheme(
     accentVariant = Color(0xFF1E5C4F),
     accentContainer = Color(0xFFDCEFE9),
     onAccent = Color(0xFFFFFFFF),
+    accentVariantContainer = Color(0xFFDCEFE9),
+    onAccentVariant = Color(0xFF1A3B33),
     divider = Color(0xFFDCE3E0),
     error = Color(0xFFB3261E),
     errorContainer = Color(0xFFF9DEDC),
@@ -92,6 +100,8 @@ val FitLogAccent: Color @Composable get() = LocalFitLogColors.current.accent
 val FitLogAccentVariant: Color @Composable get() = LocalFitLogColors.current.accentVariant
 val FitLogAccentContainer: Color @Composable get() = LocalFitLogColors.current.accentContainer
 val FitLogOnAccent: Color @Composable get() = LocalFitLogColors.current.onAccent
+val FitLogAccentVariantContainer: Color @Composable get() = LocalFitLogColors.current.accentVariantContainer
+val FitLogOnAccentVariant: Color @Composable get() = LocalFitLogColors.current.onAccentVariant
 val FitLogDivider: Color @Composable get() = LocalFitLogColors.current.divider
 val FitLogError: Color @Composable get() = LocalFitLogColors.current.error
 val FitLogErrorContainer: Color @Composable get() = LocalFitLogColors.current.errorContainer

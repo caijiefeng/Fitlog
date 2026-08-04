@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
@@ -44,7 +45,7 @@ fun FitLogBottomBar(
                     selectedTextColor = FitLogAccent,
                     unselectedIconColor = FitLogTextSecondary,
                     unselectedTextColor = FitLogTextSecondary,
-                    indicatorColor = FitLogAccent.copy(alpha = 0.15f),
+                    indicatorColor = FitLogAccentContainer,
                 ),
             )
         }

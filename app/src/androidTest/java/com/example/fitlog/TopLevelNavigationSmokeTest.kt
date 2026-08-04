@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.fitlog.core.datastore.UserPreferencesRepository
+import com.example.fitlog.data.repository.UserProfileRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import javax.inject.Inject
@@ -24,6 +25,9 @@ class TopLevelNavigationSmokeTest {
     @Inject
     lateinit var preferencesRepository: UserPreferencesRepository
 
+    @Inject
+    lateinit var userProfileRepository: UserProfileRepository
+
     @Before
     fun setUp() {
         hiltRule.inject()
@@ -32,7 +36,10 @@ class TopLevelNavigationSmokeTest {
     @Test
     fun navigateToAllTabs_processStaysAlive() {
         composeTestRule.setContent {
-            FitLogApp(preferencesRepository = preferencesRepository)
+            FitLogApp(
+                preferencesRepository = preferencesRepository,
+                userProfileRepository = userProfileRepository,
+            )
         }
 
         // Today tab (start destination)

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.fitlog.FitLogApp
 import com.example.fitlog.core.datastore.UserPreferencesRepository
+import com.example.fitlog.data.repository.UserProfileRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import javax.inject.Inject
@@ -24,6 +25,9 @@ class NavigationTest {
     @Inject
     lateinit var preferencesRepository: UserPreferencesRepository
 
+    @Inject
+    lateinit var userProfileRepository: UserProfileRepository
+
     @Before
     fun setUp() {
         hiltRule.inject()
@@ -32,7 +36,10 @@ class NavigationTest {
     @Test
     fun bottomNav_hasAllFiveTabs() {
         composeTestRule.setContent {
-            FitLogApp(preferencesRepository = preferencesRepository)
+            FitLogApp(
+                preferencesRepository = preferencesRepository,
+                userProfileRepository = userProfileRepository,
+            )
         }
 
         composeTestRule
@@ -59,7 +66,10 @@ class NavigationTest {
     @Test
     fun navigateToPlan_tab_showsPlanScreen() {
         composeTestRule.setContent {
-            FitLogApp(preferencesRepository = preferencesRepository)
+            FitLogApp(
+                preferencesRepository = preferencesRepository,
+                userProfileRepository = userProfileRepository,
+            )
         }
 
         composeTestRule
@@ -74,7 +84,10 @@ class NavigationTest {
     @Test
     fun navigateToProfile_tab_showsProfileScreen() {
         composeTestRule.setContent {
-            FitLogApp(preferencesRepository = preferencesRepository)
+            FitLogApp(
+                preferencesRepository = preferencesRepository,
+                userProfileRepository = userProfileRepository,
+            )
         }
 
         composeTestRule

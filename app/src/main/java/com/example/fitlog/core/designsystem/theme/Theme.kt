@@ -2,6 +2,7 @@ package com.example.fitlog.core.designsystem.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -13,56 +14,62 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.fitlog.core.datastore.UserPreferencesRepository
+import com.example.fitlog.data.repository.UserProfileRepository
+import com.example.fitlog.domain.avatar.AvatarType
 
-private val FitLogDarkColorScheme = darkColorScheme(
-    primary = DarkFitLogColors.accent,
-    onPrimary = DarkFitLogColors.background,
-    primaryContainer = DarkFitLogColors.accentVariant,
-    onPrimaryContainer = DarkFitLogColors.textPrimary,
-    secondary = DarkFitLogColors.textSecondary,
-    onSecondary = DarkFitLogColors.background,
-    tertiary = DarkFitLogColors.textTertiary,
-    onTertiary = DarkFitLogColors.background,
-    background = DarkFitLogColors.background,
-    onBackground = DarkFitLogColors.textPrimary,
-    surface = DarkFitLogColors.surface,
-    onSurface = DarkFitLogColors.textPrimary,
-    surfaceVariant = DarkFitLogColors.surfaceVariant,
-    onSurfaceVariant = DarkFitLogColors.textSecondary,
-    outline = DarkFitLogColors.divider,
-    outlineVariant = DarkFitLogColors.divider,
-    error = DarkFitLogColors.error,
-    onError = DarkFitLogColors.background,
-)
+/**
+ * 把一套 [FitLogColorScheme] 映射为 Material 3 [ColorScheme]。
+ * 球星主题只影响品牌色（primary/secondary 家族），
+ * 背景、表面与 error/success/warning 等语义色始终来自 FitLog 中性配色。
+ */
+private fun buildColorScheme(colors: FitLogColorScheme, dark: Boolean): ColorScheme {
+    val scheme = if (dark) darkColorScheme() else lightColorScheme()
+    return scheme.copy(
+        primary = colors.accent,
+        onPrimary = colors.onAccent,
+        primaryContainer = colors.accentContainer,
+        onPrimaryContainer = colors.textPrimary,
+        secondary = colors.accentVariant,
+        onSecondary = colors.onAccentVariant,
+        secondaryContainer = colors.accentVariantContainer,
+        onSecondaryContainer = colors.textPrimary,
+        tertiary = colors.textTertiary,
+        onTertiary = colors.textPrimary,
+        background = colors.background,
+        onBackground = colors.textPrimary,
+        surface = colors.surface,
+        onSurface = colors.textPrimary,
+        surfaceVariant = colors.surfaceVariant,
+        onSurfaceVariant = colors.textSecondary,
+        outline = colors.divider,
+        outlineVariant = colors.divider,
+        error = colors.error,
+        onError = colors.textPrimary,
+        errorContainer = colors.errorContainer,
+        onErrorContainer = colors.textPrimary,
+    )
+}
 
-private val FitLogLightColorScheme = lightColorScheme(
-    primary = LightFitLogColors.accent,
-    onPrimary = LightFitLogColors.background,
-    primaryContainer = LightFitLogColors.accentVariant,
-    onPrimaryContainer = LightFitLogColors.textPrimary,
-    secondary = LightFitLogColors.textSecondary,
-    onSecondary = LightFitLogColors.background,
-    tertiary = LightFitLogColors.textTertiary,
-    onTertiary = LightFitLogColors.background,
-    background = LightFitLogColors.background,
-    onBackground = LightFitLogColors.textPrimary,
-    surface = LightFitLogColors.surface,
-    onSurface = LightFitLogColors.textPrimary,
-    surfaceVariant = LightFitLogColors.surfaceVariant,
-    onSurfaceVariant = LightFitLogColors.textSecondary,
-    outline = LightFitLogColors.divider,
-    outlineVariant = LightFitLogColors.divider,
-    error = LightFitLogColors.error,
-    onError = LightFitLogColors.background,
+/** 把球星品牌色应用到 FitLog 配色（只覆盖品牌相关 token）。 */
+private fun FitLogColorScheme.withBrand(brand: StarBrandColors): FitLogColorScheme = copy(
+    accent = brand.primary,
+    onAccent = brand.onPrimary,
+    accentVariant = brand.secondary,
+    onAccentVariant = brand.onSecondary,
+    accentContainer = brand.primaryContainer,
+    accentVariantContainer = brand.secondaryContainer,
 )
 
 @Composable
 fun FitLogTheme(
     darkTheme: Boolean = false,
+    starThemeId: StarThemeId = StarThemeId.DEFAULT,
     content: @Composable () -> Unit,
 ) {
-    val colors = if (darkTheme) DarkFitLogColors else LightFitLogColors
-    val colorScheme = if (darkTheme) FitLogDarkColorScheme else FitLogLightColorScheme
+    val base = if (darkTheme) DarkFitLogColors else LightFitLogColors
+    val brand = if (darkTheme) StarThemePalettes.dark(starThemeId) else StarThemePalettes.light(starThemeId)
+    val colors = base.withBrand(brand)
+    val colorScheme = buildColorScheme(colors, darkTheme)
     val view = LocalView.current
 
     if (!view.isInEditMode) {
@@ -85,17 +92,23 @@ fun FitLogTheme(
 }
 
 /**
- * Top-level entry point that reads the user's theme preference from
- * [UserPreferencesRepository] and drives [FitLogTheme].
+ * Top-level entry point：观察主题偏好（明暗模式）与用户头像（球星主题），
+ * 在 App 根部统一解析并应用主题。
+ *
+ * - [UserPreferencesRepository.preferences] 负责 ThemeMode（明暗）
+ * - [UserProfileRepository.observe] 负责 StarThemeId（品牌色）
+ * - 两者相互独立：球星主题不修改 ThemeMode，明暗模式不修改 StarThemeId
  */
 @Composable
 fun FitLogAppTheme(
     preferencesRepository: UserPreferencesRepository,
+    userProfileRepository: UserProfileRepository,
     content: @Composable () -> Unit,
 ) {
     val preferences by preferencesRepository.preferences.collectAsState(
         initial = com.example.fitlog.core.datastore.UserPreferences()
     )
+    val profile by userProfileRepository.observe().collectAsState(initial = null)
     val themeMode = preferences.themeMode
 
     val isDark = when (themeMode) {
@@ -103,6 +116,10 @@ fun FitLogAppTheme(
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
+    val starThemeId = resolveStarTheme(
+        avatarType = profile?.avatarType ?: AvatarType.DEFAULT,
+        avatarKey = profile?.avatarKey,
+    )
 
-    FitLogTheme(darkTheme = isDark, content = content)
+    FitLogTheme(darkTheme = isDark, starThemeId = starThemeId, content = content)
 }

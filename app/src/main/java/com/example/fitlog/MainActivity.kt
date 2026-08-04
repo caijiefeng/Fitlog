@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.fitlog.core.datastore.UserPreferencesRepository
+import com.example.fitlog.data.repository.UserProfileRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -15,6 +16,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var preferencesRepository: UserPreferencesRepository
+
+    @Inject
+    lateinit var userProfileRepository: UserProfileRepository
 
     /**
      * Incremented whenever the activity receives a reminder deep link
@@ -31,6 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             FitLogApp(
                 preferencesRepository = preferencesRepository,
+                userProfileRepository = userProfileRepository,
                 openTodayCounter = openTodayRequests.intValue,
             )
         }

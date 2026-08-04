@@ -21,15 +21,20 @@ import com.example.fitlog.core.navigation.FitLogBottomBar
 import com.example.fitlog.core.navigation.FitLogNavHost
 import androidx.compose.foundation.layout.padding
 import com.example.fitlog.core.navigation.Routes
+import com.example.fitlog.data.repository.UserProfileRepository
 
 private val topLevelRoutes = BottomNavItem.items.map { it.route }.toSet()
 
 @Composable
 fun FitLogApp(
     preferencesRepository: UserPreferencesRepository,
+    userProfileRepository: UserProfileRepository,
     openTodayCounter: Int = 0,
 ) {
-    FitLogAppTheme(preferencesRepository = preferencesRepository) {
+    FitLogAppTheme(
+        preferencesRepository = preferencesRepository,
+        userProfileRepository = userProfileRepository,
+    ) {
         val navController = rememberNavController()
 
         // Reminder notification deep link: navigate to the Today tab whenever
