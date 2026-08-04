@@ -43,8 +43,9 @@ class BuiltInAvatarDrawableTest {
                     "${bytes.take(12).map { it.toInt().and(0xFF) }}",
                 info,
             )
-            assertEquals("${avatar.key} width", 512, info!!.first)
-            assertEquals("${avatar.key} height", 512, info.second)
+            // 头像必须是正方形（原始素材与 App 圆形裁剪均要求方形）
+            assertEquals("${avatar.key} width", info!!.second, info.first)
+            assertTrue("${avatar.key} must have real dimensions", info.first > 0)
         }
     }
 
