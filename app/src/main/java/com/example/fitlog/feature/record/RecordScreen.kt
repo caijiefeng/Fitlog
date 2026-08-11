@@ -1,9 +1,9 @@
 package com.example.fitlog.feature.record
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -33,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,13 +41,12 @@ import com.example.fitlog.core.designsystem.component.EmptyState
 import com.example.fitlog.core.designsystem.component.FitLogCard
 import com.example.fitlog.core.designsystem.component.FitLogCardStyle
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
-import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
-import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
-import com.example.fitlog.core.designsystem.component.StarPageSceneHeader
+import com.example.fitlog.core.designsystem.component.StarSceneBanner
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
+import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.StarScenePlacement
@@ -69,111 +68,105 @@ fun RecordScreen(
 
     Scaffold(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_record)) },
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        containerColor = FitLogBackground,
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            StarPageSceneBackground(placement = StarScenePlacement.RECORD)
-            Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                StarPageSceneHeader(placement = StarScenePlacement.RECORD)
-                PageContainer(modifier = Modifier.weight(1f)) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().weight(1f),
-                ) {
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // 顶部分类 2×2：每个分类有图标和摘要，不再只是相同卡片
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            RecordCategoryTile(
-                                icon = Icons.Filled.FitnessCenter,
-                                label = stringResource(R.string.record_entry_workout),
-                                summary = stringResource(
-                                    R.string.record_category_workout_summary,
-                                    uiState.sessions.size,
-                                ),
-                                onClick = { /* Already on Record screen showing workouts */ },
-                                modifier = Modifier.weight(1f),
-                            )
-                            RecordCategoryTile(
-                                icon = Icons.Filled.Restaurant,
-                                label = stringResource(R.string.record_entry_nutrition),
-                                summary = stringResource(R.string.record_category_nutrition_summary),
-                                onClick = onNavigateToNutrition,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            RecordCategoryTile(
-                                icon = Icons.Filled.MonitorWeight,
-                                label = stringResource(R.string.record_entry_body),
-                                summary = stringResource(R.string.record_category_body_summary),
-                                onClick = onNavigateToBodyMeasurement,
-                                modifier = Modifier.weight(1f),
-                            )
-                            RecordCategoryTile(
-                                icon = Icons.Filled.PhotoLibrary,
-                                label = stringResource(R.string.record_entry_media),
-                                summary = stringResource(R.string.record_category_media_summary),
-                                onClick = onNavigateToMedia,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            item {
+                RecordSceneHero(sessionCount = uiState.sessions.size, isLoading = uiState.isLoading)
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RecordCategoryTile(
+                            icon = Icons.Filled.FitnessCenter,
+                            label = stringResource(R.string.record_entry_workout),
+                            summary = stringResource(R.string.record_category_workout_summary, uiState.sessions.size),
+                            onClick = { /* Already on Record screen showing workouts */ },
+                            modifier = Modifier.weight(1f).height(112.dp),
+                        )
+                        RecordCategoryTile(
+                            icon = Icons.Filled.Restaurant,
+                            label = stringResource(R.string.record_entry_nutrition),
+                            summary = stringResource(R.string.record_category_nutrition_summary),
+                            onClick = onNavigateToNutrition,
+                            modifier = Modifier.weight(1f).height(112.dp),
+                        )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SectionHeader(title = stringResource(R.string.section_recent_training))
-                }
-
-                when {
-                    uiState.isLoading -> {
-                        item {
-                            CircularProgressIndicator(
-                                color = FitLogAccent,
-                                modifier = Modifier.padding(32.dp),
-                            )
-                        }
-                    }
-                    uiState.isEmpty -> {
-                        item {
-                            EmptyState(
-                                icon = Icons.Filled.EditNote,
-                                title = stringResource(R.string.empty_record_title),
-                                subtitle = stringResource(R.string.empty_record_subtitle),
-                            )
-                        }
-                    }
-                    else -> {
-                        items(uiState.sessions, key = { it.session.id }) { item ->
-                            HistoryCard(
-                                session = item.session,
-                                volume = item.volume,
-                                completedSetCount = item.completedSetCount,
-                                exerciseCount = item.exerciseCount,
-                                onClick = { onNavigateToWorkoutDetail(item.session.id) },
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RecordCategoryTile(
+                            icon = Icons.Filled.MonitorWeight,
+                            label = stringResource(R.string.record_entry_body),
+                            summary = stringResource(R.string.record_category_body_summary),
+                            onClick = onNavigateToBodyMeasurement,
+                            modifier = Modifier.weight(1f).height(112.dp),
+                        )
+                        RecordCategoryTile(
+                            icon = Icons.Filled.PhotoLibrary,
+                            label = stringResource(R.string.record_entry_media),
+                            summary = stringResource(R.string.record_category_media_summary),
+                            onClick = onNavigateToMedia,
+                            modifier = Modifier.weight(1f).height(112.dp),
+                        )
                     }
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    SectionHeader(title = stringResource(R.string.section_body_data))
-                    Text(
-                        stringResource(R.string.record_placeholder),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = FitLogTextSecondary,
+                Spacer(modifier = Modifier.height(20.dp))
+                SectionHeader(title = stringResource(R.string.section_recent_training))
+            }
+            when {
+                uiState.isLoading -> item {
+                    CircularProgressIndicator(color = FitLogAccent, modifier = Modifier.padding(32.dp))
+                }
+                uiState.isEmpty -> item {
+                    EmptyState(
+                        icon = Icons.Filled.EditNote,
+                        title = stringResource(R.string.empty_record_title),
+                        subtitle = stringResource(R.string.empty_record_subtitle),
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                }
+                else -> items(uiState.sessions, key = { it.session.id }) { item ->
+                    HistoryCard(
+                        session = item.session,
+                        volume = item.volume,
+                        completedSetCount = item.completedSetCount,
+                        exerciseCount = item.exerciseCount,
+                        onClick = { onNavigateToWorkoutDetail(item.session.id) },
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionHeader(title = stringResource(R.string.section_body_data))
+                Text(
+                    stringResource(R.string.record_placeholder),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FitLogTextSecondary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecordSceneHero(sessionCount: Int, isLoading: Boolean) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        StarSceneBanner(placement = StarScenePlacement.RECORD, height = 132.dp)
+        Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
+            Text("记录", style = FitLogType.cardTitle, color = FitLogOnAccent)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (isLoading) "训练记录" else "$sessionCount 次训练记录",
+                style = FitLogType.statistic,
+                color = FitLogOnAccent,
+            )
         }
     }
 }
@@ -322,6 +315,8 @@ private fun RecordCategoryTile(
             text = label,
             style = FitLogType.body,
             color = FitLogTextPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
@@ -329,6 +324,7 @@ private fun RecordCategoryTile(
             style = FitLogType.caption,
             color = FitLogTextSecondary,
             maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +30,8 @@ import com.example.fitlog.core.designsystem.theme.StarHeroOverlayStyle
 /**
  * Full-bleed visual anchor for an athlete-themed page.
  *
- * With approved scene art it crops to the profile's focal point. Until that
+ * With approved scene art it crops to the profile's focal point. Its explicit
+ * [minHeight] bounds full-bleed artwork inside scrollable parents. Until that
  * art exists, the fallback deliberately remains brand-led rather than using a
  * random photograph: gradient, abstract motif and the athlete's number.
  */
@@ -45,7 +46,7 @@ fun StarHero(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = minHeight),
+            .height(minHeight),
     ) {
         StarHeroBackground(backgroundRes = backgroundRes)
         StarHeroOverlay(style = overlayStyle)

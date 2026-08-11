@@ -26,7 +26,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -114,13 +116,23 @@ fun CalendarScreen(
             .padding(horizontal = 16.dp),
     ) {
         // Quick links
-        Row {
-            TextButton(onClick = onNavigateToTemplates) {
-                Text(stringResource(R.string.calendar_templates), color = FitLogAccent)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            IconButton(onClick = onNavigateToTemplates) {
+                Icon(
+                    Icons.Filled.ViewList,
+                    contentDescription = stringResource(R.string.calendar_templates),
+                    tint = FitLogAccent,
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            TextButton(onClick = onNavigateToExercises) {
-                Text(stringResource(R.string.calendar_exercises), color = FitLogAccent)
+            IconButton(onClick = onNavigateToExercises) {
+                Icon(
+                    Icons.Filled.FitnessCenter,
+                    contentDescription = stringResource(R.string.calendar_exercises),
+                    tint = FitLogAccent,
+                )
             }
             topBarExtra()
         }

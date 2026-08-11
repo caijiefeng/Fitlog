@@ -2,14 +2,14 @@ package com.example.fitlog.feature.plan
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -17,11 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.PageContainer
-import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
-import com.example.fitlog.core.designsystem.component.StarPageSceneHeader
-import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.component.StarSceneBanner
+import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
+import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.feature.calendar.CalendarScreen
+import java.time.YearMonth
 
 @Composable
 fun PlanScreen(
@@ -32,33 +33,33 @@ fun PlanScreen(
     onNavigateToDayDetail: (Long) -> Unit = {},
     onNavigateToReminders: () -> Unit = {},
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        StarPageSceneBackground(placement = StarScenePlacement.PLAN)
-        Column(modifier = Modifier.fillMaxSize()) {
-            StarPageSceneHeader(placement = StarScenePlacement.PLAN)
-            PageContainer(modifier = Modifier.weight(1f)) {
-                CalendarScreen(
-                    onNavigateToExercises = onNavigateToExercises,
-                    onNavigateToTemplates = onNavigateToTemplates,
-                    onNavigateToSession = onNavigateToSession,
-                    onNavigateToDayDetail = onNavigateToDayDetail,
-                    topBarExtra = {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        TextButton(onClick = onNavigateToReminders) {
-                            Icon(
-                                Icons.Filled.Notifications,
-                                contentDescription = null,
-                                modifier = Modifier.width(16.dp),
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                stringResource(R.string.reminder_manage),
-                                color = FitLogAccent,
-                            )
-                        }
-                    }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            StarSceneBanner(placement = StarScenePlacement.PLAN, height = 104.dp)
+            Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
+                Text("训练计划", style = FitLogType.cardTitle, color = FitLogOnAccent)
+                Text(
+                    "${YearMonth.now().year} · ${YearMonth.now().month.name}",
+                    style = FitLogType.caption,
+                    color = FitLogOnAccent.copy(alpha = 0.78f),
                 )
             }
+        }
+        PageContainer(modifier = Modifier.weight(1f)) {
+            CalendarScreen(
+                onNavigateToExercises = onNavigateToExercises,
+                onNavigateToTemplates = onNavigateToTemplates,
+                onNavigateToSession = onNavigateToSession,
+                onNavigateToDayDetail = onNavigateToDayDetail,
+                topBarExtra = {
+                    IconButton(onClick = onNavigateToReminders) {
+                        Icon(
+                            Icons.Filled.Notifications,
+                            contentDescription = stringResource(R.string.reminder_manage),
+                        )
+                    }
+                },
+            )
         }
     }
 }

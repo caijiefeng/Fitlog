@@ -106,6 +106,22 @@ val FitLogTypography = Typography(
  * steady when values change.
  */
 object FitLogType {
+    /** Today hero's athlete-associated quote, bounded to three short lines. */
+    val heroQuote = TextStyle(
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 27.sp,
+        letterSpacing = (-0.1).sp,
+    )
+
+    /** Small athlete identity above a hero quote. */
+    val heroKicker = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 1.6.sp,
+    )
+
     /** 大号关键数字，如 80 kg / 12 次 / 2300 kcal / 75% */
     val heroNumber = TextStyle(
         fontWeight = FontWeight.Bold,

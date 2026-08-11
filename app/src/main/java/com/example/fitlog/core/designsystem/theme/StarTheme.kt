@@ -171,19 +171,19 @@ private data class StarHeroCopy(
 )
 
 private val starHeroCopy = mapOf(
-    StarVisualIdentity.KOBE_LAKERS to StarHeroCopy("KOBE", "MAMBA MENTALITY"),
-    StarVisualIdentity.LEBRON_LAKERS to StarHeroCopy("KING", "KEEP BUILDING."),
-    StarVisualIdentity.DURANT_NETS to StarHeroCopy("KD", "JUST WORK.", StarHeroOverlayStyle.DARK_LEFT),
-    StarVisualIdentity.CURRY_WARRIORS to StarHeroCopy("30", "LOCK IN."),
-    StarVisualIdentity.JORDAN_BULLS to StarHeroCopy("23", "COMPETE."),
-    StarVisualIdentity.HARDEN_ROCKETS to StarHeroCopy("13", "STAY IN YOUR BAG."),
-    StarVisualIdentity.IRVING_CURRENT to StarHeroCopy("11", "STAY CREATIVE."),
-    StarVisualIdentity.GEORGE_CLIPPERS to StarHeroCopy("13", "STAY READY."),
-    StarVisualIdentity.WESTBROOK_THUNDER to StarHeroCopy("WHY NOT?", "ATTACK THE DAY."),
-    StarVisualIdentity.RONALDO_REAL_MADRID to StarHeroCopy("CR7", "WORK. BELIEVE. REPEAT."),
-    StarVisualIdentity.MESSI_ARGENTINA to StarHeroCopy("10", "KEEP GOING."),
-    StarVisualIdentity.MBAPPE_FRANCE to StarHeroCopy("10", "FULL SPEED."),
-    StarVisualIdentity.NEYMAR_BRAZIL to StarHeroCopy("NEY", "ENJOY THE WORK."),
+    StarVisualIdentity.KOBE_LAKERS to StarHeroCopy("KOBE", "SECOND PLACE JUST MEANS YOU'RE THE FIRST LOSER."),
+    StarVisualIdentity.LEBRON_LAKERS to StarHeroCopy("KING", "NO MATTER. I GOT NO WORDS."),
+    StarVisualIdentity.DURANT_NETS to StarHeroCopy("KD", "GREATNESS DON'T SHAKE HIS HEAD.", StarHeroOverlayStyle.DARK_LEFT),
+    StarVisualIdentity.CURRY_WARRIORS to StarHeroCopy("30", "YOU DON'T WANT TO SEE US NEXT YEAR."),
+    StarVisualIdentity.JORDAN_BULLS to StarHeroCopy("23", "I CAN'T ACCEPT NOT TRYING."),
+    StarVisualIdentity.HARDEN_ROCKETS to StarHeroCopy("13", "I JUST WANT TO WIN. WHATEVER IT TAKES."),
+    StarVisualIdentity.IRVING_CURRENT to StarHeroCopy("11", "I'M BUILT FOR THESE MOMENTS."),
+    StarVisualIdentity.GEORGE_CLIPPERS to StarHeroCopy("13", "I THRIVE UNDER PRESSURE."),
+    StarVisualIdentity.WESTBROOK_THUNDER to StarHeroCopy("WHY NOT?", "WHY NOT?"),
+    StarVisualIdentity.RONALDO_REAL_MADRID to StarHeroCopy("CR7", "I DON'T FOLLOW THE RECORDS. THE RECORDS FOLLOW ME."),
+    StarVisualIdentity.MESSI_ARGENTINA to StarHeroCopy("10", "EVERY SEASON IS A NEW CHALLENGE."),
+    StarVisualIdentity.MBAPPE_FRANCE to StarHeroCopy("10", "I ALWAYS WANT MORE."),
+    StarVisualIdentity.NEYMAR_BRAZIL to StarHeroCopy("NEY", "1% CHANCE. 99% FAITH."),
 )
 
 val starVisualProfiles: Map<StarVisualIdentity, StarVisualProfile> = mapOf(

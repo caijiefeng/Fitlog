@@ -2,6 +2,9 @@ package com.example.fitlog.screenshot
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.SavedStateHandle
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
 import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
@@ -167,6 +170,17 @@ class CoreScreensScreenshotTest {
 
     @Test
     fun today_kobe_light_withPlan() = capture("today_kobe_light_plan_412") {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.KOBE_LAKERS)) {
+            TodayScreen(
+                viewModel = todayViewModel(withPlan = true, inProgress = false),
+                checkInViewModel = checkInViewModel(),
+            )
+        }
+    }
+
+    @Config(qualifiers = "w320dp-h720dp")
+    @Test
+    fun today_kobe_longQuote_compactWidth() = capture("today_kobe_long_quote_320") {
         FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.KOBE_LAKERS)) {
             TodayScreen(
                 viewModel = todayViewModel(withPlan = true, inProgress = false),
@@ -481,6 +495,17 @@ class CoreScreensScreenshotTest {
         }
     }
 
+    @Config(qualifiers = "w360dp-h800dp")
+    @Test
+    fun progress_durant_largeFont_compactWidth() = capture(
+        "progress_durant_large_font_360",
+        fontScale = 1.3f,
+    ) {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.DURANT_NETS)) {
+            com.example.fitlog.feature.progress.ProgressScreen(viewModel = progressViewModel())
+        }
+    }
+
     // ── Profile ───────────────────────────────────────────────────────────
 
     private fun profileViewModel(): ProfileViewModel {
@@ -511,8 +536,17 @@ class CoreScreensScreenshotTest {
 
     // ── 捕获助手 ─────────────────────────────────────────────────────────
 
-    private fun capture(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
-        composeRule.setContent { content() }
+    private fun capture(
+        name: String,
+        fontScale: Float = 1f,
+        content: @androidx.compose.runtime.Composable () -> Unit,
+    ) {
+        composeRule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                content()
+            }
+        }
         // 无路径调用：Roborazzi 按测试名生成基准图（src/test/snapshots/images/），随仓库提交
         composeRule.onRoot().captureRoboImage()
     }

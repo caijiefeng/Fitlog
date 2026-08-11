@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -230,8 +231,21 @@ private fun TodayImmersiveHero(
                 color = FitLogOnAccent.copy(alpha = 0.72f),
             )
             Spacer(Modifier.height(12.dp))
-            profile.slogan?.let { Text(it, style = FitLogType.pageTitle, color = FitLogOnAccent) }
-            Spacer(Modifier.height(8.dp))
+            profile.shortName?.let {
+                Text(it, style = FitLogType.heroKicker, color = FitLogOnAccent.copy(alpha = 0.80f))
+                Spacer(Modifier.height(4.dp))
+            }
+            profile.slogan?.let {
+                Text(
+                    text = it,
+                    style = FitLogType.heroQuote,
+                    color = FitLogOnAccent,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(0.76f),
+                )
+            }
+            Spacer(Modifier.height(12.dp))
             when {
                 uiState.isLoading -> CircularProgressIndicator(color = FitLogOnAccent)
                 uiState.hasInProgressWorkout -> {
