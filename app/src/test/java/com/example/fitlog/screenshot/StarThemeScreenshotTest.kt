@@ -75,6 +75,13 @@ class StarThemeScreenshotTest {
         }
     }
 
+    @Test
+    fun profile_messi_theme_light() = capture("profile_messi_light_412") {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.MESSI_ARGENTINA)) {
+            ProfileScreen(viewModel = profileViewModel())
+        }
+    }
+
     private fun capture(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
         composeRule.setContent { content() }
         composeRule.onRoot().captureRoboImage()

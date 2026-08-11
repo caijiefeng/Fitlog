@@ -4,6 +4,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.lifecycle.SavedStateHandle
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
+import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
+import com.example.fitlog.core.designsystem.theme.starVisualProfiles
 import com.example.fitlog.data.repository.DailyNutritionSummary
 import com.example.fitlog.data.repository.TrendPoint
 import com.example.fitlog.data.repository.TrendRange
@@ -371,6 +373,15 @@ class CoreScreensScreenshotTest {
         }
     }
 
+    @Test
+    fun calendar_ronaldo_light() = capture("calendar_ronaldo_light_412") {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.RONALDO_REAL_MADRID)) {
+            com.example.fitlog.feature.calendar.CalendarScreen(
+                viewModel = calendarViewModel(),
+            )
+        }
+    }
+
     // ── Nutrition ─────────────────────────────────────────────────────────
 
     private fun nutritionViewModel(): NutritionViewModel {
@@ -395,6 +406,13 @@ class CoreScreensScreenshotTest {
     @Test
     fun nutrition_dark() = capture("nutrition_dark_412") {
         FitLogTheme(darkTheme = true) {
+            com.example.fitlog.feature.nutrition.NutritionScreen(viewModel = nutritionViewModel())
+        }
+    }
+
+    @Test
+    fun nutrition_jordan_light() = capture("nutrition_jordan_light_412") {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.JORDAN_BULLS)) {
             com.example.fitlog.feature.nutrition.NutritionScreen(viewModel = nutritionViewModel())
         }
     }
@@ -426,6 +444,16 @@ class CoreScreensScreenshotTest {
     @Test
     fun progress_dark() = capture("progress_dark_412") {
         FitLogTheme(darkTheme = true) {
+            com.example.fitlog.feature.progress.ProgressScreen(viewModel = progressViewModel())
+        }
+    }
+
+    @Test
+    fun progress_curry_dark() = capture("progress_curry_dark_412") {
+        FitLogTheme(
+            darkTheme = true,
+            profile = starVisualProfiles.getValue(StarVisualIdentity.CURRY_WARRIORS),
+        ) {
             com.example.fitlog.feature.progress.ProgressScreen(viewModel = progressViewModel())
         }
     }
