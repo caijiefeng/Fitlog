@@ -44,6 +44,7 @@ import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
+import com.example.fitlog.core.designsystem.component.StarPageSceneHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -72,7 +73,9 @@ fun RecordScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             StarPageSceneBackground(placement = StarScenePlacement.RECORD)
-            PageContainer(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                StarPageSceneHeader(placement = StarScenePlacement.RECORD)
+                PageContainer(modifier = Modifier.weight(1f)) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().weight(1f),
                 ) {
@@ -167,6 +170,7 @@ fun RecordScreen(
                         color = FitLogTextSecondary,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
+                }
                 }
                 }
             }

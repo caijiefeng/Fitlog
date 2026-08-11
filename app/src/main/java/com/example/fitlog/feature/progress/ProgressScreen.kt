@@ -33,6 +33,7 @@ import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
 import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
+import com.example.fitlog.core.designsystem.component.StarPageSceneHeader
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -59,7 +60,9 @@ fun ProgressScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             StarPageSceneBackground(placement = StarScenePlacement.PROGRESS)
-            ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                StarPageSceneHeader(placement = StarScenePlacement.PROGRESS)
+                ScrollablePageContainer(modifier = Modifier.weight(1f)) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MonthHighlight(
@@ -100,6 +103,7 @@ fun ProgressScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+            }
             }
         }
     }

@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.LocalStarVisualProfile
 import com.example.fitlog.core.designsystem.theme.StarScenePlacement
@@ -62,4 +64,24 @@ fun StarPageSceneBackground(
                 ),
         )
     }
+}
+
+/**
+ * A full-width scene band for data pages. Unlike [StarPageSceneBackground],
+ * this is intentionally visible at the start of the page and never competes
+ * with charts, forms, or list controls below it.
+ */
+@Composable
+fun StarPageSceneHeader(
+    placement: StarScenePlacement,
+    modifier: Modifier = Modifier,
+    minHeight: Dp = 128.dp,
+) {
+    val profile = LocalStarVisualProfile.current
+    StarHero(
+        backgroundRes = profile.sceneArtRes(placement),
+        modifier = modifier,
+        minHeight = minHeight,
+        overlayStyle = profile.heroOverlayStyle,
+    ) {}
 }

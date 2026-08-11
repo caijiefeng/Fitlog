@@ -190,7 +190,11 @@ class CoreScreensScreenshotTest {
 
     private fun exerciseListViewModel(): ExerciseListViewModel {
         val repo = mockk<com.example.fitlog.data.repository.ExerciseRepository>(relaxed = true)
-        coEvery { repo.getAllActive() } returns flowOf(exerciseList())
+        // Keep list layout snapshots independent from asynchronous thumbnail
+        // loading. Detail screenshots cover a single exercise asset instead.
+        coEvery { repo.getAllActive() } returns flowOf(
+            exerciseList().map { it.copy(builtInKey = null) },
+        )
         return ExerciseListViewModel(repo)
     }
 
@@ -263,7 +267,12 @@ class CoreScreensScreenshotTest {
     private fun exercisePickerViewModel(): ExercisePickerViewModel {
         val exerciseRepo = mockk<com.example.fitlog.data.repository.ExerciseRepository>(relaxed = true)
         val sessionRepo = mockk<com.example.fitlog.data.repository.WorkoutSessionRepository>(relaxed = true)
-        coEvery { exerciseRepo.getAllActive() } returns flowOf(exerciseList())
+        // The picker screenshot verifies selection state. Exclude asynchronously
+        // loaded thumbnails here so this visual baseline remains deterministic;
+        // ExerciseList screenshots continue to cover the asset catalogue.
+        coEvery { exerciseRepo.getAllActive() } returns flowOf(
+            exerciseList().map { it.copy(builtInKey = null) },
+        )
         return ExercisePickerViewModel(
             SavedStateHandle(mapOf("sessionId" to 1L)),
             exerciseRepo,
