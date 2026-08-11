@@ -10,6 +10,7 @@ import com.example.fitlog.data.repository.WorkoutSessionRepository
 import com.example.fitlog.domain.calendar.OverrideAction
 import com.example.fitlog.domain.calendar.WorkoutPlanOverride
 import com.example.fitlog.domain.stats.WorkoutStreakCalculator
+import com.example.fitlog.core.model.WorkoutStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,8 @@ data class ProgressUiState(
     val selectedRange: TrendRange = TrendRange.MONTH_30,
     val isTrendLoading: Boolean = false,
     val trendError: String? = null,
+    /** UI-only, derived from existing completed sessions for the heatmap. */
+    val trainingDates: Set<LocalDate> = emptySet(),
 )
 
 @HiltViewModel
@@ -94,6 +97,10 @@ class ProgressViewModel @Inject constructor(
                 currentStreak = currentStreak,
                 bestStreak = bestStreak,
                 adherenceRate = adherenceRate,
+                trainingDates = sessions
+                    .filter { it.status == WorkoutStatus.COMPLETED || it.status == WorkoutStatus.PARTIALLY_COMPLETED }
+                    .map { it.date }
+                    .toSet(),
                 isLoaded = true,
             )
         }

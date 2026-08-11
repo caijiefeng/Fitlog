@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +62,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogCard as FitLogCardColor
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
+import com.example.fitlog.core.designsystem.theme.FitLogWarning
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.data.repository.FoodRecord
@@ -88,15 +91,12 @@ fun NutritionScreen(
         },
         containerColor = FitLogBackground,
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { viewModel.showAddForm() },
                 containerColor = FitLogAccent,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.action_add),
-                )
-            }
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text("添加食物") },
+            )
         },
     ) { innerPadding ->
         if (uiState.isLoading) {
@@ -199,13 +199,14 @@ fun NutritionScreen(
                         )
                     }
                 } else {
-                    items(uiState.foodRecords, key = { it.id }) { record ->
-                        FoodRecordCard(
-                            record = record,
-                            onEdit = { viewModel.showEditForm(record) },
-                            onDelete = { viewModel.deleteFoodRecord(record) },
+                    items(uiState.foodRecords.groupBy { it.mealType }.toList(), key = { it.first }) { (mealType, records) ->
+                        MealRecordGroup(
+                            mealType = mealType,
+                            records = records,
+                            onEdit = viewModel::showEditForm,
+                            onDelete = viewModel::deleteFoodRecord,
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
 
@@ -228,49 +229,38 @@ fun NutritionScreen(
 private fun DailySummaryCard(
     summary: com.example.fitlog.data.repository.DailyNutritionSummary,
 ) {
-    FitLogCard {
-        Text(
-            text = stringResource(R.string.nutrition_daily_summary),
-            style = MaterialTheme.typography.titleSmall,
-            color = FitLogTextPrimary,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+    val target = summary.targetCalories.takeIf { it > 0 }?.toDouble()
+    val progress = target?.let { (summary.calories / it).toFloat().coerceIn(0f, 1f) } ?: 0f
+    FitLogCard(style = com.example.fitlog.core.designsystem.component.FitLogCardStyle.HERO) {
+        Text("今日摄入", style = MaterialTheme.typography.titleSmall, color = FitLogTextSecondary)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(154.dp)) {
+                CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 11.dp, color = FitLogAccent, trackColor = FitLogCardColor)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("%.0f".format(summary.calories), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = FitLogTextPrimary)
+                    Text("kcal", style = MaterialTheme.typography.labelMedium, color = FitLogTextSecondary)
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(if (target != null) "目标 %.0f kcal".format(target) else "今日已摄入", style = MaterialTheme.typography.bodyMedium, color = FitLogTextSecondary)
+                if (target != null) Text("还可以摄入 %.0f kcal".format((target - summary.calories).coerceAtLeast(0.0)), style = MaterialTheme.typography.titleSmall, color = FitLogAccent)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            MiniMacro("蛋白质", summary.protein, summary.targetProtein.toDouble(), FitLogSuccess)
+            MiniMacro("碳水", summary.carbs, summary.targetCarbs.toDouble(), FitLogAccent)
+            MiniMacro("脂肪", summary.fat, summary.targetFat.toDouble(), FitLogWarning)
+        }
+    }
+}
 
-        NutrientBar(
-            label = stringResource(R.string.nutrition_calories),
-            current = summary.calories,
-            target = summary.targetCalories.takeIf { it > 0 }?.toDouble(),
-            unit = "kcal",
-            color = FitLogAccent,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-
-        NutrientBar(
-            label = stringResource(R.string.nutrition_protein),
-            current = summary.protein,
-            target = summary.targetProtein.takeIf { it > 0 }?.toDouble(),
-            unit = "g",
-            color = FitLogSuccess,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-
-        NutrientBar(
-            label = stringResource(R.string.nutrition_carbs),
-            current = summary.carbs,
-            target = summary.targetCarbs.takeIf { it > 0 }?.toDouble(),
-            unit = "g",
-            color = FitLogAccent,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-
-        NutrientBar(
-            label = stringResource(R.string.nutrition_fat),
-            current = summary.fat,
-            target = summary.targetFat.takeIf { it > 0 }?.toDouble(),
-            unit = "g",
-            color = FitLogError,
-        )
+@Composable
+private fun MiniMacro(label: String, value: Double, target: Double, color: androidx.compose.ui.graphics.Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = FitLogTextSecondary)
+        Text("%.0fg".format(value), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
+        Text(if (target > 0) "${(value / target * 100).toInt().coerceAtMost(999)}%" else "—", style = MaterialTheme.typography.labelSmall, color = FitLogTextSecondary)
     }
 }
 
@@ -412,12 +402,31 @@ private fun MealTypeTabs(
 }
 
 @Composable
+private fun MealRecordGroup(
+    mealType: String,
+    records: List<FoodRecord>,
+    onEdit: (FoodRecord) -> Unit,
+    onDelete: (FoodRecord) -> Unit,
+) {
+    FitLogCard {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(mealTypeLabel(mealType), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = FitLogTextPrimary)
+            Text("%.0f kcal".format(records.sumOf { it.calories ?: 0.0 }), style = MaterialTheme.typography.bodyMedium, color = FitLogAccent)
+        }
+        Spacer(Modifier.height(8.dp))
+        records.forEachIndexed { index, record ->
+            FoodRecordCard(record, onEdit = { onEdit(record) }, onDelete = { onDelete(record) })
+            if (index != records.lastIndex) androidx.compose.material3.HorizontalDivider()
+        }
+    }
+}
+
+@Composable
 private fun FoodRecordCard(
     record: FoodRecord,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    FitLogCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -489,7 +498,6 @@ private fun FoodRecordCard(
                 }
             }
         }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
