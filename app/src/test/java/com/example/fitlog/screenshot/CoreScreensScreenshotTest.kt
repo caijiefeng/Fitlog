@@ -165,6 +165,16 @@ class CoreScreensScreenshotTest {
         }
     }
 
+    @Test
+    fun today_kobe_light_withPlan() = capture("today_kobe_light_plan_412") {
+        FitLogTheme(profile = starVisualProfiles.getValue(StarVisualIdentity.KOBE_LAKERS)) {
+            TodayScreen(
+                viewModel = todayViewModel(withPlan = true, inProgress = false),
+                checkInViewModel = checkInViewModel(),
+            )
+        }
+    }
+
     @Config(qualifiers = "w360dp-h800dp")
     @Test
     fun today_light_noPlan_smallScreen() = capture("today_light_noplan_360") {

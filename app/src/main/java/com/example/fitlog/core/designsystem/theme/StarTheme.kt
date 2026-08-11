@@ -490,13 +490,14 @@ val starVisualProfiles: Map<StarVisualIdentity, StarVisualProfile> = mapOf(
         patternAlpha = 0.07f,
     ),
 ).mapValues { (identity, profile) ->
-    starHeroCopy[identity]?.let { copy ->
-        profile.copy(
-            shortName = copy.shortName,
-            slogan = copy.slogan,
-            heroOverlayStyle = copy.overlayStyle,
-        )
-    } ?: profile
+    val copy = starHeroCopy[identity]
+    profile.copy(
+        shortName = copy?.shortName,
+        slogan = copy?.slogan,
+        heroOverlayStyle = copy?.overlayStyle ?: profile.heroOverlayStyle,
+        homeBackgroundRes = profile.homeSceneArtRes(),
+        profileBackgroundRes = profile.profileSceneArtRes(),
+    )
 }
 
 /** App 根部通过此 CompositionLocal 提供当前完整视觉身份。 */
