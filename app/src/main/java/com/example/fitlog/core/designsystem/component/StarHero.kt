@@ -41,6 +41,7 @@ fun StarHero(
     modifier: Modifier = Modifier,
     minHeight: Dp = 360.dp,
     overlayStyle: StarHeroOverlayStyle = LocalStarVisualProfile.current.heroOverlayStyle,
+    backgroundContentScale: ContentScale = ContentScale.Crop,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -48,7 +49,10 @@ fun StarHero(
             .fillMaxWidth()
             .height(minHeight),
     ) {
-        StarHeroBackground(backgroundRes = backgroundRes)
+        StarHeroBackground(
+            backgroundRes = backgroundRes,
+            contentScale = backgroundContentScale,
+        )
         StarHeroOverlay(style = overlayStyle)
         content()
     }
@@ -57,15 +61,20 @@ fun StarHero(
 @Composable
 fun StarHeroBackground(
     @DrawableRes backgroundRes: Int?,
+    contentScale: ContentScale = ContentScale.Crop,
     modifier: Modifier = Modifier,
 ) {
     val profile = LocalStarVisualProfile.current
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(FitLogAccent, FitLogAccentContainer, FitLogBackground))),
+    ) {
         if (backgroundRes != null) {
             Image(
                 painter = painterResource(backgroundRes),
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = contentScale,
                 alignment = when {
                     profile.heroFocusX < 0.34f -> Alignment.CenterStart
                     profile.heroFocusX > 0.66f -> Alignment.CenterEnd

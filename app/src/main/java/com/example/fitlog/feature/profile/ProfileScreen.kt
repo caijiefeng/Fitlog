@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,7 +76,11 @@ fun ProfileScreen(
         containerColor = FitLogBackground,
     ) { innerPadding ->
         ScrollablePageContainer(modifier = Modifier.padding(innerPadding), horizontalPadding = 0.dp) {
-            StarHero(backgroundRes = profile.profileBackgroundRes, minHeight = 260.dp) {
+            StarHero(
+                backgroundRes = profile.profileBackgroundRes,
+                minHeight = 540.dp,
+                backgroundContentScale = ContentScale.Fit,
+            ) {
                 Column(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
