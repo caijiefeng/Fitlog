@@ -54,11 +54,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccentVariant
 import com.example.fitlog.core.designsystem.theme.FitLogCard
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
+import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 import com.example.fitlog.core.designsystem.theme.FitLogWarning
@@ -135,11 +137,6 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // ── 状态图例 ────────────────────────────────────────────────────
-        CalendarLegend()
-
-        Spacer(modifier = Modifier.height(4.dp))
-
         // ── Day-of-week headers ──────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -195,38 +192,6 @@ fun CalendarScreen(
 
 // ── Month Header ───────────────────────────────────────────────────────────
 
-@Composable
-private fun CalendarLegend() {
-    val legend = listOf(
-        CalendarWorkoutStatus.SCHEDULED to stringResource(R.string.calendar_status_scheduled),
-        CalendarWorkoutStatus.COMPLETED to stringResource(R.string.calendar_status_completed),
-        CalendarWorkoutStatus.PARTIALLY_COMPLETED to stringResource(R.string.calendar_status_partial),
-        CalendarWorkoutStatus.IN_PROGRESS to stringResource(R.string.calendar_status_in_progress),
-        CalendarWorkoutStatus.SKIPPED to stringResource(R.string.calendar_status_skipped),
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        legend.forEach { (status, label) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(statusColor(status), CircleShape),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = FitLogTextSecondary,
-                )
-            }
-        }
-    }
-}
-
 /** 日格状态点颜色映射（与 DayCell 一致）。 */
 @Composable
 private fun statusColor(status: CalendarWorkoutStatus): Color = when (status) {
@@ -261,13 +226,18 @@ private fun MonthHeader(
 
         Column(
             modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
-                text = yearMonth.year.toString() + "年" + yearMonth.monthValue + "月",
-                style = MaterialTheme.typography.titleMedium,
+                text = yearMonth.year.toString() + "年",
+                style = MaterialTheme.typography.labelMedium,
+                color = FitLogTextSecondary,
+            )
+            Text(
+                text = yearMonth.monthValue.toString() + "月",
+                style = MaterialTheme.typography.headlineSmall,
                 color = FitLogTextPrimary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
             )
         }
 
@@ -279,7 +249,7 @@ private fun MonthHeader(
             )
         }
 
-        TextButton(onClick = onGoToToday) {
+        TextButton(onClick = onGoToToday, modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(FitLogAccentContainer)) {
             Text(
                 stringResource(R.string.calendar_today),
                 color = FitLogAccent,
@@ -304,9 +274,7 @@ private fun CalendarGrid(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(FitLogCard)
-            .padding(4.dp),
+            .padding(vertical = 4.dp),
     ) {
         var cellIndex = 0
 
@@ -358,13 +326,12 @@ private fun DayCell(
     onClick: () -> Unit,
 ) {
     val bgColor = when {
-        isSelected -> FitLogAccent.copy(alpha = 0.2f)
-        isToday -> FitLogAccentVariant.copy(alpha = 0.3f)
+        isSelected -> FitLogAccent
+        isToday -> Color.Transparent
         else -> Color.Transparent
     }
     val borderColor = when {
-        isSelected -> FitLogAccent
-        isToday -> FitLogAccentVariant
+        isToday -> FitLogAccent
         else -> Color.Transparent
     }
 
@@ -372,7 +339,7 @@ private fun DayCell(
         modifier = modifier
             .aspectRatio(1f)
             .padding(2.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(if (isSelected) CircleShape else RoundedCornerShape(10.dp))
             .background(bgColor)
             .then(
                 if (borderColor != Color.Transparent) {
@@ -385,7 +352,7 @@ private fun DayCell(
         Text(
             text = dayOfMonth.toString(),
             style = MaterialTheme.typography.bodySmall,
-            color = if (isToday || isSelected) FitLogAccent else FitLogTextPrimary,
+            color = if (isSelected) FitLogOnAccent else if (isToday) FitLogAccent else FitLogTextPrimary,
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
         )
 
@@ -399,7 +366,7 @@ private fun DayCell(
 
 @Composable
 private fun StatusIndicators(occurrences: List<CalendarWorkoutOccurrence>) {
-    val statuses = occurrences.map { it.status }.distinct()
+    val statuses = occurrences.map { it.status }.distinct().take(3)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -416,10 +383,7 @@ private fun StatusIndicators(occurrences: List<CalendarWorkoutOccurrence>) {
                 CalendarWorkoutStatus.SCHEDULED -> FitLogTextSecondary
             }
             Box(
-                modifier = Modifier
-                    .size(5.dp)
-                    .clip(CircleShape)
-                    .background(color),
+                modifier = Modifier.width(14.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(color),
             )
         }
     }

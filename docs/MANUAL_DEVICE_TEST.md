@@ -8,6 +8,26 @@ All items below are marked `[UNVERIFIED_DEVICE]` until tested and confirmed by a
 
 ---
 
+## V6.0 Immersive Star Experience
+
+### Today
+- [UNVERIFIED_DEVICE] Verify the edge-to-edge star Hero, status-bar readability, long user names, and fallback treatment when no approved background image exists.
+- [UNVERIFIED_DEVICE] Verify start, resume, schedule, free-workout, nutrition, body-measurement, and camera actions remain tappable.
+
+### Profile
+- [UNVERIFIED_DEVICE] Verify avatar updates immediately, grouped settings remain readable in light/dark themes, and theme mode selection works.
+
+### Progress
+- [UNVERIFIED_DEVICE] Verify the 90-day heatmap correctly marks completed and partially completed sessions, including no-data and high-volume histories.
+
+### Nutrition
+- [UNVERIFIED_DEVICE] Verify calorie ring, no-target state, macro values, meal grouping, long food names, add, edit, and delete actions.
+
+### Calendar and navigation
+- [UNVERIFIED_DEVICE] Verify today/selected/multi-plan calendar markers, cross-month navigation, selected-day actions, and all five floating-dock destinations in light and dark themes.
+
+---
+
 ## 1. Installation
 
 ### 1.1 Fresh Install
