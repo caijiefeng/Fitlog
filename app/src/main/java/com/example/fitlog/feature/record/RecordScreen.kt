@@ -2,6 +2,7 @@ package com.example.fitlog.feature.record
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,11 +43,13 @@ import com.example.fitlog.core.designsystem.component.FitLogCardStyle
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
+import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.model.WorkoutSession
 import com.example.fitlog.core.model.WorkoutStatus
 import java.time.Duration
@@ -65,12 +68,14 @@ fun RecordScreen(
 
     Scaffold(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_record)) },
-        containerColor = FitLogBackground,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
     ) { innerPadding ->
-        PageContainer(modifier = Modifier.padding(innerPadding)) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().weight(1f),
-            ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            StarPageSceneBackground(placement = StarScenePlacement.RECORD)
+            PageContainer(modifier = Modifier.padding(innerPadding)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                ) {
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     // 顶部分类 2×2：每个分类有图标和摘要，不再只是相同卡片
@@ -162,6 +167,7 @@ fun RecordScreen(
                         color = FitLogTextSecondary,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
+                }
                 }
             }
         }

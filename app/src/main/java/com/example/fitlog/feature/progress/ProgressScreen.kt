@@ -32,6 +32,7 @@ import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.component.SectionHeader
+import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -40,6 +41,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -53,9 +55,11 @@ fun ProgressScreen(
         topBar = {
             FitLogTopAppBar(title = stringResource(R.string.nav_progress))
         },
-        containerColor = FitLogBackground,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
     ) { innerPadding ->
-        ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            StarPageSceneBackground(placement = StarScenePlacement.PROGRESS)
+            ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MonthHighlight(
@@ -96,6 +100,7 @@ fun ProgressScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

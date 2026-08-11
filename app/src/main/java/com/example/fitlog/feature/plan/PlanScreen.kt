@@ -1,6 +1,8 @@
 package com.example.fitlog.feature.plan
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -14,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.PageContainer
+import com.example.fitlog.core.designsystem.component.StarPageSceneBackground
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.feature.calendar.CalendarScreen
 
 @Composable
@@ -26,27 +30,30 @@ fun PlanScreen(
     onNavigateToDayDetail: (Long) -> Unit = {},
     onNavigateToReminders: () -> Unit = {},
 ) {
-    PageContainer {
-        CalendarScreen(
-            onNavigateToExercises = onNavigateToExercises,
-            onNavigateToTemplates = onNavigateToTemplates,
-            onNavigateToSession = onNavigateToSession,
-            onNavigateToDayDetail = onNavigateToDayDetail,
-            topBarExtra = {
-                Spacer(modifier = Modifier.width(4.dp))
-                TextButton(onClick = onNavigateToReminders) {
-                    Icon(
-                        Icons.Filled.Notifications,
-                        contentDescription = null,
-                        modifier = Modifier.width(16.dp),
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        StarPageSceneBackground(placement = StarScenePlacement.PLAN)
+        PageContainer {
+            CalendarScreen(
+                onNavigateToExercises = onNavigateToExercises,
+                onNavigateToTemplates = onNavigateToTemplates,
+                onNavigateToSession = onNavigateToSession,
+                onNavigateToDayDetail = onNavigateToDayDetail,
+                topBarExtra = {
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        stringResource(R.string.reminder_manage),
-                        color = FitLogAccent,
-                    )
-                }
-            },
-        )
+                    TextButton(onClick = onNavigateToReminders) {
+                        Icon(
+                            Icons.Filled.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.width(16.dp),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            stringResource(R.string.reminder_manage),
+                            color = FitLogAccent,
+                        )
+                    }
+                },
+            )
+        }
     }
 }
