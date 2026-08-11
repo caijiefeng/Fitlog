@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,20 +41,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.feature.checkin.CheckInCard
 import com.example.fitlog.core.designsystem.component.FitLogCard
-import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
-import com.example.fitlog.core.designsystem.component.StarCardEmphasis
-import com.example.fitlog.core.designsystem.component.StarThemedCard
 import com.example.fitlog.core.designsystem.component.MetricCard
 import com.example.fitlog.core.designsystem.component.QuickAction
 import com.example.fitlog.core.designsystem.component.QuickActionGrid
 import com.example.fitlog.core.designsystem.component.SectionTitle
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
+import com.example.fitlog.core.designsystem.component.StarHero
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogError
+import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogType
+import com.example.fitlog.core.designsystem.theme.LocalStarVisualProfile
 import com.example.fitlog.domain.calendar.CalendarWorkoutStatus
 import java.time.LocalDate
 
@@ -96,160 +97,20 @@ fun TodayScreen(
     }
 
     Scaffold(
-        topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_today)) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
-            val today = LocalDate.now()
-            val greeting = when (java.time.LocalTime.now().hour) {
-                in 5..11 -> R.string.today_greeting_morning
-                in 12..17 -> R.string.today_greeting_afternoon
-                else -> R.string.today_greeting_evening
-            }
-
-            // ── 问候与日期 ────────────────────────────────────────────────
-            Text(
-                text = stringResource(greeting),
-                style = FitLogType.pageTitle,
-                color = FitLogTextPrimary,
+        ScrollablePageContainer(
+            modifier = Modifier.padding(innerPadding),
+            horizontalPadding = 0.dp,
+        ) {
+            TodayImmersiveHero(
+                uiState = uiState,
+                onResume = viewModel::onResumeInProgressWorkout,
+                onStart = viewModel::onStartWorkout,
+                onSchedule = viewModel::onQuickStart,
+                onFreeWorkout = viewModel::onStartFreeWorkout,
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(
-                    R.string.today_date_format,
-                    today.monthValue,
-                    today.dayOfMonth,
-                    weekDays[today.dayOfWeek.value - 1],
-                ),
-                style = FitLogType.caption,
-                color = FitLogTextSecondary,
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // ── 今日训练 Hero ─────────────────────────────────────────────
-            when {
-                uiState.isLoading -> {
-                    BoxLoading()
-                }
-                uiState.hasInProgressWorkout -> {
-                    StarThemedCard(
-                        emphasis = StarCardEmphasis.PROMINENT,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.today_dashboard_in_progress_title),
-                            style = FitLogType.cardTitle,
-                            color = FitLogAccent,
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.today_dashboard_sets_progress,
-                                uiState.inProgressCompletedSets,
-                                uiState.inProgressTotalSets.coerceAtLeast(uiState.inProgressCompletedSets),
-                            ),
-                            style = FitLogType.caption,
-                            color = FitLogTextSecondary,
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = { viewModel.onResumeInProgressWorkout() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.FitnessCenter,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.today_dashboard_continue))
-                        }
-                    }
-                }
-                uiState.occurrences.isEmpty() -> {
-                    StarThemedCard(
-                        emphasis = StarCardEmphasis.PROMINENT,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.today_dashboard_no_plan_title),
-                            style = FitLogType.cardTitle,
-                            color = FitLogAccent,
-                        )
-                        Text(
-                            text = stringResource(R.string.empty_today_subtitle),
-                            style = FitLogType.caption,
-                            color = FitLogTextSecondary,
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Button(
-                                onClick = { viewModel.onQuickStart() },
-                                modifier = Modifier.weight(1f).height(52.dp),
-                            ) {
-                                Text(stringResource(R.string.today_dashboard_schedule))
-                            }
-                            OutlinedButton(
-                                onClick = { viewModel.onStartFreeWorkout() },
-                                modifier = Modifier.weight(1f).height(52.dp),
-                            ) {
-                                Text(
-                                    stringResource(R.string.today_dashboard_free),
-                                    color = FitLogAccent,
-                                )
-                            }
-                        }
-                    }
-                }
-                else -> {
-                    val primary = uiState.occurrences.first()
-                    StarThemedCard(
-                        emphasis = StarCardEmphasis.PROMINENT,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.section_todays_workout),
-                            style = FitLogType.cardTitle,
-                            color = FitLogAccent,
-                        )
-                        Text(
-                            text = primary.templateName,
-                            style = FitLogType.caption,
-                            color = FitLogTextSecondary,
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = { viewModel.onStartWorkout(primary) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                        ) {
-                            Text(stringResource(R.string.today_dashboard_start))
-                        }
-                    }
-                    if (uiState.occurrences.size > 1) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        uiState.occurrences.drop(1).forEach { occurrence ->
-                            FitLogCard(onClick = {
-                                if (occurrence.status == CalendarWorkoutStatus.SCHEDULED ||
-                                    occurrence.status == CalendarWorkoutStatus.COMPLETED ||
-                                    occurrence.status == CalendarWorkoutStatus.PARTIALLY_COMPLETED
-                                ) {
-                                    viewModel.onStartWorkout(occurrence)
-                                }
-                            }) {
-                                Text(
-                                    text = occurrence.templateName,
-                                    style = FitLogType.body,
-                                    color = FitLogTextPrimary,
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-            }
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
 
             uiState.error?.let { error ->
                 Spacer(modifier = Modifier.height(12.dp))
@@ -336,6 +197,66 @@ fun TodayScreen(
             Spacer(modifier = Modifier.height(24.dp))
             CheckInCard(viewModel = checkInViewModel)
             Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TodayImmersiveHero(
+    uiState: TodayUiState,
+    onResume: () -> Unit,
+    onStart: (com.example.fitlog.domain.calendar.CalendarWorkoutOccurrence) -> Unit,
+    onSchedule: () -> Unit,
+    onFreeWorkout: () -> Unit,
+) {
+    val profile = LocalStarVisualProfile.current
+    val today = LocalDate.now()
+    val greeting = when (java.time.LocalTime.now().hour) {
+        in 5..11 -> R.string.today_greeting_morning
+        in 12..17 -> R.string.today_greeting_afternoon
+        else -> R.string.today_greeting_evening
+    }
+    StarHero(backgroundRes = profile.homeBackgroundRes, minHeight = 392.dp) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+        ) {
+            Text(stringResource(greeting), style = FitLogType.caption, color = FitLogOnAccent.copy(alpha = 0.84f))
+            Text(
+                stringResource(R.string.today_date_format, today.monthValue, today.dayOfMonth, weekDays[today.dayOfWeek.value - 1]),
+                style = FitLogType.caption,
+                color = FitLogOnAccent.copy(alpha = 0.72f),
+            )
+            Spacer(Modifier.height(12.dp))
+            profile.slogan?.let { Text(it, style = FitLogType.pageTitle, color = FitLogOnAccent) }
+            Spacer(Modifier.height(8.dp))
+            when {
+                uiState.isLoading -> CircularProgressIndicator(color = FitLogOnAccent)
+                uiState.hasInProgressWorkout -> {
+                    Text(stringResource(R.string.today_dashboard_in_progress_title), style = FitLogType.cardTitle, color = FitLogOnAccent)
+                    Text(stringResource(R.string.today_dashboard_sets_progress, uiState.inProgressCompletedSets, uiState.inProgressTotalSets.coerceAtLeast(uiState.inProgressCompletedSets)), style = FitLogType.caption, color = FitLogOnAccent.copy(alpha = 0.78f))
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = onResume, modifier = Modifier.fillMaxWidth().height(54.dp), colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent, contentColor = FitLogOnAccent)) { Text(stringResource(R.string.today_dashboard_continue)) }
+                }
+                uiState.occurrences.isEmpty() -> {
+                    Text(stringResource(R.string.today_dashboard_no_plan_title), style = FitLogType.cardTitle, color = FitLogOnAccent)
+                    Text(stringResource(R.string.empty_today_subtitle), style = FitLogType.caption, color = FitLogOnAccent.copy(alpha = 0.78f))
+                    Spacer(Modifier.height(16.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button(onClick = onSchedule, modifier = Modifier.weight(1f).height(54.dp), colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent, contentColor = FitLogOnAccent)) { Text(stringResource(R.string.today_dashboard_schedule)) }
+                        OutlinedButton(onClick = onFreeWorkout, modifier = Modifier.weight(1f).height(54.dp)) { Text(stringResource(R.string.today_dashboard_free), color = FitLogOnAccent) }
+                    }
+                }
+                else -> {
+                    val primary = uiState.occurrences.first()
+                    Text(primary.templateName, style = FitLogType.cardTitle, color = FitLogOnAccent)
+                    Text(stringResource(R.string.section_todays_workout), style = FitLogType.caption, color = FitLogOnAccent.copy(alpha = 0.78f))
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { onStart(primary) }, modifier = Modifier.fillMaxWidth().height(54.dp), colors = ButtonDefaults.buttonColors(containerColor = FitLogAccent, contentColor = FitLogOnAccent)) { Text(stringResource(R.string.today_dashboard_start)) }
+                }
+            }
         }
     }
 }

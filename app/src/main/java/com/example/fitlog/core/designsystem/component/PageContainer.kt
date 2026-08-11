@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -17,12 +18,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PageContainer(
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = horizontalPadding)
             .padding(bottom = 16.dp),
         content = content,
     )
@@ -36,13 +38,14 @@ fun PageContainer(
 @Composable
 fun ScrollablePageContainer(
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = horizontalPadding)
             .padding(bottom = 16.dp),
         content = content,
     )
