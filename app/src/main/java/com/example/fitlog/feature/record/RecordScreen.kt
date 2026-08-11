@@ -47,6 +47,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogType
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.model.WorkoutSession
 import com.example.fitlog.core.model.WorkoutStatus
 import java.time.Duration
@@ -67,7 +68,11 @@ fun RecordScreen(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_record)) },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        PageContainer(modifier = Modifier.padding(innerPadding)) {
+        PageContainer(
+            modifier = Modifier.padding(innerPadding),
+            scenePlacement = StarScenePlacement.RECORD,
+            sceneAlpha = 0.22f,
+        ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().weight(1f),
             ) {

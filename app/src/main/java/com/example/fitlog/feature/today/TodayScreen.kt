@@ -49,6 +49,7 @@ import com.example.fitlog.core.designsystem.component.QuickActionGrid
 import com.example.fitlog.core.designsystem.component.SectionTitle
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
@@ -134,6 +135,7 @@ fun TodayScreen(
                 uiState.hasInProgressWorkout -> {
                     StarThemedCard(
                         emphasis = StarCardEmphasis.PROMINENT,
+                        scenePlacement = StarScenePlacement.TODAY,
                     ) {
                         Text(
                             text = stringResource(R.string.today_dashboard_in_progress_title),
@@ -169,6 +171,7 @@ fun TodayScreen(
                 uiState.occurrences.isEmpty() -> {
                     StarThemedCard(
                         emphasis = StarCardEmphasis.PROMINENT,
+                        scenePlacement = StarScenePlacement.TODAY,
                     ) {
                         Text(
                             text = stringResource(R.string.today_dashboard_no_plan_title),
@@ -207,6 +210,7 @@ fun TodayScreen(
                     val primary = uiState.occurrences.first()
                     StarThemedCard(
                         emphasis = StarCardEmphasis.PROMINENT,
+                        scenePlacement = StarScenePlacement.TODAY,
                     ) {
                         Text(
                             text = stringResource(R.string.section_todays_workout),

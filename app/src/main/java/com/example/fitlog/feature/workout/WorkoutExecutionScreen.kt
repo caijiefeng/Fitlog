@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.FitLogCard
+import com.example.fitlog.core.designsystem.component.StarSceneBackdrop
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogAccentContainer
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
@@ -70,6 +71,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogSurface
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
 import com.example.fitlog.core.designsystem.theme.FitLogTextTertiary
@@ -170,38 +172,40 @@ fun WorkoutExecutionScreen(
                 val sessionId = uiState.sessionDetail!!.session.id
                 val isInProgress = uiState.sessionDetail!!.session.status ==
                     com.example.fitlog.core.model.WorkoutStatus.IN_PROGRESS
-                WorkoutContent(
-                    detail = uiState.sessionDetail!!,
-                    sessionId = sessionId,
-                    isInProgress = isInProgress,
-                    restTimerState = uiState.restTimerState,
-                    builtInKeysByExerciseId = uiState.builtInKeysByExerciseId,
-                    onTickRest = viewModel::tickRest,
-                    onSkipRest = viewModel::skipRest,
-                    onAdd15Seconds = viewModel::add15Seconds,
-                    onSubtract15Seconds = viewModel::subtract15Seconds,
-                    onCompleteSet = { exerciseSessionId, setRecordId, reps, weightKg, rpe, rir, setType ->
-                        viewModel.completeSet(
-                            sessionId = uiState.sessionDetail!!.session.id,
-                            exerciseSessionId = exerciseSessionId,
-                            setRecordId = setRecordId,
-                            reps = reps,
-                            weightKg = weightKg,
-                            rpe = rpe,
-                            rir = rir,
-                            setType = setType,
-                        )
-                    },
-                    onAddSet = viewModel::addSet,
-                    onDeleteSet = viewModel::deleteSet,
-                    onUpdateSetType = viewModel::updateSetType,
-                    onSkipExercise = viewModel::skipExercise,
-                    onMarkExerciseCompleted = viewModel::markExerciseCompleted,
-                    onUpdateNotes = viewModel::updateNotes,
-                    onNavigateToExercisePicker = { onNavigateToExercisePicker(sessionId) },
-                    onCancelWorkout = { viewModel.showCancelDialog() },
-                    modifier = Modifier.padding(padding),
-                )
+                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                    StarSceneBackdrop(scenePlacement = StarScenePlacement.WORKOUT, alpha = 0.08f)
+                    WorkoutContent(
+                        detail = uiState.sessionDetail!!,
+                        sessionId = sessionId,
+                        isInProgress = isInProgress,
+                        restTimerState = uiState.restTimerState,
+                        builtInKeysByExerciseId = uiState.builtInKeysByExerciseId,
+                        onTickRest = viewModel::tickRest,
+                        onSkipRest = viewModel::skipRest,
+                        onAdd15Seconds = viewModel::add15Seconds,
+                        onSubtract15Seconds = viewModel::subtract15Seconds,
+                        onCompleteSet = { exerciseSessionId, setRecordId, reps, weightKg, rpe, rir, setType ->
+                            viewModel.completeSet(
+                                sessionId = uiState.sessionDetail!!.session.id,
+                                exerciseSessionId = exerciseSessionId,
+                                setRecordId = setRecordId,
+                                reps = reps,
+                                weightKg = weightKg,
+                                rpe = rpe,
+                                rir = rir,
+                                setType = setType,
+                            )
+                        },
+                        onAddSet = viewModel::addSet,
+                        onDeleteSet = viewModel::deleteSet,
+                        onUpdateSetType = viewModel::updateSetType,
+                        onSkipExercise = viewModel::skipExercise,
+                        onMarkExerciseCompleted = viewModel::markExerciseCompleted,
+                        onUpdateNotes = viewModel::updateNotes,
+                        onNavigateToExercisePicker = { onNavigateToExercisePicker(sessionId) },
+                        onCancelWorkout = { viewModel.showCancelDialog() },
+                    )
+                }
             }
         }
     }

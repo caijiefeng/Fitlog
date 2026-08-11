@@ -40,6 +40,7 @@ import com.example.fitlog.core.designsystem.component.StarThemedCard
 import com.example.fitlog.core.designsystem.component.FitLogTopAppBar
 import com.example.fitlog.core.designsystem.component.ScrollablePageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
@@ -73,6 +74,7 @@ fun ProfileScreen(
             // ── 个人 Hero（球星主题卡片）──────────────────────────────────
             StarThemedCard(
                 emphasis = StarCardEmphasis.PROMINENT,
+                scenePlacement = StarScenePlacement.PROFILE,
             ) {
                 Text(
                     text = if (uiState.userName.isNotEmpty()) {

@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fitlog.R
 import com.example.fitlog.core.designsystem.component.PageContainer
 import com.example.fitlog.core.designsystem.theme.FitLogAccent
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.feature.calendar.CalendarScreen
 
 @Composable
@@ -26,7 +27,10 @@ fun PlanScreen(
     onNavigateToDayDetail: (Long) -> Unit = {},
     onNavigateToReminders: () -> Unit = {},
 ) {
-    PageContainer {
+    PageContainer(
+        scenePlacement = StarScenePlacement.PLAN,
+        sceneAlpha = 0.22f,
+    ) {
         CalendarScreen(
             onNavigateToExercises = onNavigateToExercises,
             onNavigateToTemplates = onNavigateToTemplates,

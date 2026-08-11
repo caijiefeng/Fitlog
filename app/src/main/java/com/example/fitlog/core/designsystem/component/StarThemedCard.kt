@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,8 +35,10 @@ import com.example.fitlog.core.designsystem.theme.FitLogSpacing
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
 import com.example.fitlog.core.designsystem.theme.LocalStarVisualProfile
 import com.example.fitlog.core.designsystem.theme.StarMotif
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
 import com.example.fitlog.core.designsystem.theme.starVisualProfiles
+import com.example.fitlog.core.designsystem.theme.sceneArtRes
 
 /** 主题化卡片强调程度：NORMAL 轻微、PROMINENT 高强调。 */
 enum class StarCardEmphasis {
@@ -51,11 +56,17 @@ enum class StarCardEmphasis {
 fun StarThemedCard(
     modifier: Modifier = Modifier,
     emphasis: StarCardEmphasis = StarCardEmphasis.NORMAL,
+    scenePlacement: StarScenePlacement = StarScenePlacement.TODAY,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val profile = LocalStarVisualProfile.current
     val showNumber = emphasis == StarCardEmphasis.PROMINENT && profile.jerseyNumber != null
     val borderAlpha = if (emphasis == StarCardEmphasis.PROMINENT) 0.35f else 0.22f
+    val sceneArt = if (emphasis == StarCardEmphasis.PROMINENT) {
+        profile.sceneArtRes(placement = scenePlacement)
+    } else {
+        null
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -78,6 +89,36 @@ fun StarThemedCard(
                         ),
                     ),
             )
+            // A scene illustration is deliberately reserved for the hero state:
+            // it makes a selected athlete feel present without turning data lists
+            // and form controls into a noisy wallpaper.
+            if (sceneArt != null) {
+                Image(
+                    painter = painterResource(sceneArt),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.46f,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxWidth(0.72f)
+                        .fillMaxHeight(),
+                )
+                // Content remains readable across light/dark themes while the
+                // illustration is still clearly visible on the trailing edge.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.horizontalGradient(
+                                colorStops = arrayOf(
+                                    0f to FitLogAccentContainer.copy(alpha = 0.96f),
+                                    0.48f to FitLogAccentContainer.copy(alpha = 0.78f),
+                                    1f to Color.Transparent,
+                                ),
+                            ),
+                        ),
+                )
+            }
             // 右上角图案层
             StarMotifLayer(
                 motif = profile.motif,
@@ -101,13 +142,31 @@ fun StarThemedCard(
                         .padding(end = 16.dp, bottom = 0.dp),
                 )
             }
-            // 内容
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(PaddingValues(FitLogSpacing.L)),
-                content = content,
-            )
+            // Keep the illustration at full scale. The information layer uses
+            // a translucent panel so controls remain clear without forcing the
+            // scene into a narrow side strip.
+            if (sceneArt != null) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(0.78f)
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = FitLogAccentContainer.copy(alpha = 0.80f),
+                    border = BorderStroke(1.dp, FitLogAccent.copy(alpha = 0.18f)),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(PaddingValues(FitLogSpacing.L)),
+                        content = content,
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(PaddingValues(FitLogSpacing.L)),
+                    content = content,
+                )
+            }
         }
     }
 }

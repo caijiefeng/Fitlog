@@ -32,6 +32,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogAccent
 import com.example.fitlog.core.designsystem.theme.FitLogBackground
 import com.example.fitlog.core.designsystem.theme.FitLogTextPrimary
 import com.example.fitlog.core.designsystem.theme.FitLogTextSecondary
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 
 @Composable
 fun ProgressScreen(
@@ -45,7 +46,11 @@ fun ProgressScreen(
         },
         containerColor = FitLogBackground,
     ) { innerPadding ->
-        ScrollablePageContainer(modifier = Modifier.padding(innerPadding)) {
+        ScrollablePageContainer(
+            modifier = Modifier.padding(innerPadding),
+            scenePlacement = StarScenePlacement.PROGRESS,
+            sceneAlpha = 0.22f,
+        ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // ── 顶部三个主要指标 ──────────────────────────────────────
