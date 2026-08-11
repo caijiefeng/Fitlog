@@ -279,12 +279,16 @@ class CoreScreensScreenshotTest {
     }
 
     @Test
-    fun exercisePicker_dark_selected() = capture("exercise_picker_dark_selected_412") {
-        FitLogTheme(darkTheme = true) {
-            val vm = exercisePickerViewModel()
-            vm.toggleSelection(1)
-            vm.toggleSelection(2)
+    fun exercisePicker_dark_selected() {
+        // Build the state outside composition. Calling toggleSelection from a
+        // composable lambda made this baseline depend on recomposition count.
+        val vm = exercisePickerViewModel()
+        vm.toggleSelection(1)
+        vm.toggleSelection(2)
+        capture("exercise_picker_dark_selected_412") {
+            FitLogTheme(darkTheme = true) {
             ExercisePickerScreen(viewModel = vm)
+            }
         }
     }
 

@@ -42,6 +42,7 @@ import com.example.fitlog.core.designsystem.theme.FitLogAccentVariantContainer
 import com.example.fitlog.core.designsystem.theme.FitLogDivider
 import com.example.fitlog.core.designsystem.theme.FitLogOnAccent
 import com.example.fitlog.core.designsystem.theme.StarAccentRole
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.FitLogError
 import com.example.fitlog.core.designsystem.theme.FitLogSuccess
 import com.example.fitlog.core.designsystem.theme.FitLogSurfaceVariant
@@ -84,7 +85,10 @@ fun CheckInCard(
     Column(modifier = modifier) {
         SectionHeader(title = stringResource(R.string.section_daily_checkin))
 
-        StarThemedCard(emphasis = StarCardEmphasis.PROMINENT) {
+        StarThemedCard(
+            emphasis = StarCardEmphasis.PROMINENT,
+            scenePlacement = StarScenePlacement.CHECK_IN,
+        ) {
             if (uiState.existingCheckIn != null && uiState.isSaved && !uiState.isEditing) {
                 // Already checked in — show summary with edit button
                 ExistingCheckInContent(

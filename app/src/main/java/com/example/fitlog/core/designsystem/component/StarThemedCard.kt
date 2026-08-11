@@ -1,6 +1,7 @@
 package com.example.fitlog.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,7 +35,9 @@ import com.example.fitlog.core.designsystem.theme.FitLogSpacing
 import com.example.fitlog.core.designsystem.theme.FitLogTheme
 import com.example.fitlog.core.designsystem.theme.LocalStarVisualProfile
 import com.example.fitlog.core.designsystem.theme.StarMotif
+import com.example.fitlog.core.designsystem.theme.StarScenePlacement
 import com.example.fitlog.core.designsystem.theme.StarVisualIdentity
+import com.example.fitlog.core.designsystem.theme.sceneArtRes
 import com.example.fitlog.core.designsystem.theme.starVisualProfiles
 
 /** 主题化卡片强调程度：NORMAL 轻微、PROMINENT 高强调。 */
@@ -51,11 +56,17 @@ enum class StarCardEmphasis {
 fun StarThemedCard(
     modifier: Modifier = Modifier,
     emphasis: StarCardEmphasis = StarCardEmphasis.NORMAL,
+    scenePlacement: StarScenePlacement? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val profile = LocalStarVisualProfile.current
     val showNumber = emphasis == StarCardEmphasis.PROMINENT && profile.jerseyNumber != null
     val borderAlpha = if (emphasis == StarCardEmphasis.PROMINENT) 0.35f else 0.22f
+    val sceneArt = if (emphasis == StarCardEmphasis.PROMINENT && scenePlacement != null) {
+        profile.sceneArtRes(scenePlacement)
+    } else {
+        null
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -78,11 +89,35 @@ fun StarThemedCard(
                         ),
                     ),
             )
+            if (sceneArt != null) {
+                Image(
+                    painter = painterResource(sceneArt),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.30f,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                // Form controls stay legible while the full scene remains a
+                // part of the card rather than becoming a thumbnail.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    FitLogAccentContainer.copy(alpha = 0.80f),
+                                    FitLogAccentContainer.copy(alpha = 0.56f),
+                                    FitLogAccentVariantContainer.copy(alpha = 0.38f),
+                                ),
+                            ),
+                        ),
+                )
+            }
             // 右上角图案层
             StarMotifLayer(
                 motif = profile.motif,
                 color = FitLogAccent,
-                alpha = profile.patternAlpha,
+                alpha = if (sceneArt != null) profile.patternAlpha * 0.45f else profile.patternAlpha,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .fillMaxWidth(0.55f)
