@@ -1,6 +1,7 @@
 package com.example.fitlog.core.designsystem.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import com.example.fitlog.domain.avatar.AvatarType
 import com.example.fitlog.domain.avatar.BuiltInAvatar
@@ -61,6 +62,14 @@ enum class StarGeometry {
     DYNAMIC,
 }
 
+/** Text-safe treatment applied above a full-bleed star scene. */
+enum class StarHeroOverlayStyle {
+    DARK_BOTTOM,
+    DARK_LEFT,
+    DARK_RIGHT,
+    CINEMATIC,
+}
+
 /**
  * 球星品牌色。
  *
@@ -93,6 +102,14 @@ data class StarVisualProfile(
     val geometry: StarGeometry,
     /** 图案透明度（0.04～0.12，不影响文字可读性） */
     val patternAlpha: Float,
+    /** Optional owner-approved full-bleed scene art. Null uses the themed fallback. */
+    @DrawableRes val homeBackgroundRes: Int? = null,
+    @DrawableRes val profileBackgroundRes: Int? = null,
+    val heroFocusX: Float = 0.5f,
+    val heroFocusY: Float = 0.35f,
+    val slogan: String? = null,
+    val shortName: String? = null,
+    val heroOverlayStyle: StarHeroOverlayStyle = StarHeroOverlayStyle.CINEMATIC,
 )
 
 /**
@@ -147,6 +164,28 @@ val defaultStarVisualProfile = StarVisualProfile(
  * - 暗色模式：主色提亮；容器色低饱和、低亮度
  * - 背景与卡片保持 FitLog 中性风格，只做轻微主题色倾向
  */
+private data class StarHeroCopy(
+    val shortName: String,
+    val slogan: String,
+    val overlayStyle: StarHeroOverlayStyle = StarHeroOverlayStyle.CINEMATIC,
+)
+
+private val starHeroCopy = mapOf(
+    StarVisualIdentity.KOBE_LAKERS to StarHeroCopy("KOBE", "MAMBA MENTALITY"),
+    StarVisualIdentity.LEBRON_LAKERS to StarHeroCopy("KING", "KEEP BUILDING."),
+    StarVisualIdentity.DURANT_NETS to StarHeroCopy("KD", "JUST WORK.", StarHeroOverlayStyle.DARK_LEFT),
+    StarVisualIdentity.CURRY_WARRIORS to StarHeroCopy("30", "LOCK IN."),
+    StarVisualIdentity.JORDAN_BULLS to StarHeroCopy("23", "COMPETE."),
+    StarVisualIdentity.HARDEN_ROCKETS to StarHeroCopy("13", "STAY IN YOUR BAG."),
+    StarVisualIdentity.IRVING_CURRENT to StarHeroCopy("11", "STAY CREATIVE."),
+    StarVisualIdentity.GEORGE_CLIPPERS to StarHeroCopy("13", "STAY READY."),
+    StarVisualIdentity.WESTBROOK_THUNDER to StarHeroCopy("WHY NOT?", "ATTACK THE DAY."),
+    StarVisualIdentity.RONALDO_REAL_MADRID to StarHeroCopy("CR7", "WORK. BELIEVE. REPEAT."),
+    StarVisualIdentity.MESSI_ARGENTINA to StarHeroCopy("10", "KEEP GOING."),
+    StarVisualIdentity.MBAPPE_FRANCE to StarHeroCopy("10", "FULL SPEED."),
+    StarVisualIdentity.NEYMAR_BRAZIL to StarHeroCopy("NEY", "ENJOY THE WORK."),
+)
+
 val starVisualProfiles: Map<StarVisualIdentity, StarVisualProfile> = mapOf(
     // ── 篮球 ────────────────────────────────────────────────────────────
     StarVisualIdentity.KOBE_LAKERS to StarVisualProfile(
@@ -450,7 +489,15 @@ val starVisualProfiles: Map<StarVisualIdentity, StarVisualProfile> = mapOf(
         geometry = StarGeometry.ROUNDED,
         patternAlpha = 0.07f,
     ),
-)
+).mapValues { (identity, profile) ->
+    starHeroCopy[identity]?.let { copy ->
+        profile.copy(
+            shortName = copy.shortName,
+            slogan = copy.slogan,
+            heroOverlayStyle = copy.overlayStyle,
+        )
+    } ?: profile
+}
 
 /** App 根部通过此 CompositionLocal 提供当前完整视觉身份。 */
 val LocalStarVisualProfile = staticCompositionLocalOf { defaultStarVisualProfile }
