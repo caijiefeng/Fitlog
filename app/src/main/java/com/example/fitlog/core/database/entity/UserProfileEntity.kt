@@ -17,6 +17,7 @@ data class UserProfileEntity(
     @ColumnInfo(name = "avatar_type") val avatarType: String = "DEFAULT",
     @ColumnInfo(name = "avatar_key") val avatarKey: String? = null,
     @ColumnInfo(name = "custom_avatar_path") val customAvatarPath: String? = null,
+    @ColumnInfo(name = "display_name") val displayName: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "updated_at") val updatedAt: Long = System.currentTimeMillis(),
 )

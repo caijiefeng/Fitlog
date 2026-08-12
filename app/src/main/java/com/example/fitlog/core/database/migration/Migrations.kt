@@ -329,4 +329,10 @@ object Migrations {
             db.execSQL("ALTER TABLE food_records ADD COLUMN grams REAL")
         }
     }
+
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE user_profiles ADD COLUMN display_name TEXT")
+        }
+    }
 }

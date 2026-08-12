@@ -27,6 +27,7 @@ class UserProfileRepository @Inject constructor(
                 activityLevel = profile.activityLevel.name,
                 goalType = profile.goalType.name,
                 targetBodyFat = profile.targetBodyFat,
+                displayName = profile.displayName ?: existing.displayName,
                 updatedAt = System.currentTimeMillis(),
             )
         } else {
@@ -37,6 +38,7 @@ class UserProfileRepository @Inject constructor(
                 activityLevel = profile.activityLevel.name,
                 goalType = profile.goalType.name,
                 targetBodyFat = profile.targetBodyFat,
+                displayName = profile.displayName,
             )
         }
         val id = userProfileDao.upsert(entity)
@@ -78,6 +80,27 @@ class UserProfileRepository @Inject constructor(
         return entity.copy(id = id).toDomain()
     }
 
+    suspend fun updateDisplayName(displayName: String): UserProfile {
+        val normalizedName = displayName.trim().take(24).ifBlank { null }
+        val existing = userProfileDao.get()
+        val entity = if (existing != null) {
+            existing.copy(
+                displayName = normalizedName,
+                updatedAt = System.currentTimeMillis(),
+            )
+        } else {
+            UserProfileEntity(
+                gender = "OTHER",
+                birthday = LocalDate.of(2000, 1, 1).toEpochDay(),
+                activityLevel = ActivityLevel.SEDENTARY.name,
+                goalType = GoalType.MAINTAIN.name,
+                displayName = normalizedName,
+            )
+        }
+        val id = userProfileDao.upsert(entity)
+        return entity.copy(id = id).toDomain()
+    }
+
     suspend fun get(): UserProfile? {
         return userProfileDao.get()?.toDomain()
     }
@@ -98,5 +121,6 @@ class UserProfileRepository @Inject constructor(
             .getOrDefault(AvatarType.DEFAULT),
         avatarKey = avatarKey,
         customAvatarPath = customAvatarPath,
+        displayName = displayName,
     )
 }

@@ -552,6 +552,7 @@ class BackupImporter(
             put("avatar_type", json.optString("avatar_type", "DEFAULT"))
             put("avatar_key", optNullString(json, "avatar_key"))
             put("custom_avatar_path", optNullString(json, "custom_avatar_path"))
+            put("display_name", optNullString(json, "display_name"))
             put("created_at", json.optLong("created_at", System.currentTimeMillis()))
             put("updated_at", json.optLong("updated_at", System.currentTimeMillis()))
         })

@@ -379,6 +379,7 @@ internal fun UserProfileEntity.toJson() = JSONObject().apply {
     put("avatar_type", avatarType)
     put("avatar_key", avatarKey ?: JSONObject.NULL)
     put("custom_avatar_path", customAvatarPath ?: JSONObject.NULL)
+    put("display_name", displayName ?: JSONObject.NULL)
     put("created_at", createdAt)
     put("updated_at", updatedAt)
 }

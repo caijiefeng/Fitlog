@@ -14,4 +14,5 @@ data class UserProfile(
     val avatarType: AvatarType = AvatarType.DEFAULT,
     val avatarKey: String? = null,
     val customAvatarPath: String? = null,
+    val displayName: String? = null,
 )

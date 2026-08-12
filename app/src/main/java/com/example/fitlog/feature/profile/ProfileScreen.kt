@@ -23,20 +23,27 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +77,7 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = LocalStarVisualProfile.current
+    var showNameDialog by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
 
     Scaffold(
         topBar = { FitLogTopAppBar(title = stringResource(R.string.nav_profile)) },
@@ -103,6 +111,12 @@ fun ProfileScreen(
                 OutlinedButton(onClick = onNavigateToAvatarPicker, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.profile_avatar_edit), color = FitLogAccent) }
                 Spacer(Modifier.height(24.dp))
                 SettingsGroup(title = "个人") {
+                    SettingsRow(
+                        icon = Icons.Filled.Badge,
+                        title = stringResource(R.string.profile_display_name),
+                        subtitle = uiState.userName.ifBlank { stringResource(R.string.profile_no_name) },
+                        onClick = { showNameDialog = true },
+                    )
                     SettingsRow(Icons.Filled.AccountCircle, stringResource(R.string.profile_personal_info), stringResource(R.string.profile_personal_info_desc), onNavigateToBodyProfile)
                     SettingsRow(Icons.Filled.FitnessCenter, stringResource(R.string.profile_training_prefs), stringResource(R.string.profile_training_prefs_desc), null)
                 }
@@ -118,6 +132,53 @@ fun ProfileScreen(
             }
         }
     }
+
+    if (showNameDialog) {
+        DisplayNameDialog(
+            initialValue = uiState.userName,
+            onDismiss = { showNameDialog = false },
+            onSave = {
+                viewModel.updateDisplayName(it)
+                showNameDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun DisplayNameDialog(
+    initialValue: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var value by androidx.compose.runtime.saveable.rememberSaveable(initialValue) {
+        androidx.compose.runtime.mutableStateOf(initialValue)
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.profile_display_name)) },
+        text = {
+            OutlinedTextField(
+                value = value,
+                onValueChange = { value = it.take(24) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(stringResource(R.string.profile_display_name)) },
+                placeholder = { Text(stringResource(R.string.profile_display_name_hint)) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(value) }) {
+                Text(stringResource(R.string.action_save), color = FitLogAccent)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel), color = FitLogTextSecondary)
+            }
+        },
+    )
 }
 
 @Composable

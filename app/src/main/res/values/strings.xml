@@ -70,6 +70,8 @@
 
     <!-- Profile -->
     <string name="profile_no_name">未设置昵称</string>
+    <string name="profile_display_name">昵称</string>
+    <string name="profile_display_name_hint">输入你的昵称</string>
     <string name="profile_setup_hint">设置个人资料以获取更好的体验</string>
     <string name="profile_personal_info">个人资料</string>
     <string name="profile_personal_info_desc">身高、体重、出生日期、性别</string>

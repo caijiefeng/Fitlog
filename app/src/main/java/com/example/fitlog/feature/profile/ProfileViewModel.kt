@@ -52,6 +52,7 @@ class ProfileViewModel @Inject constructor(
                     avatarType = profile?.avatarType ?: AvatarType.DEFAULT,
                     avatarKey = profile?.avatarKey,
                     customAvatarPath = profile?.customAvatarPath,
+                    userName = profile?.displayName.orEmpty(),
                     heightCm = profile?.heightCm,
                     goalLabel = profile?.goalType?.let { goalTypeLabel(it) },
                 )
@@ -75,6 +76,12 @@ class ProfileViewModel @Inject constructor(
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             preferencesRepository.setThemeMode(mode)
+        }
+    }
+
+    fun updateDisplayName(displayName: String) {
+        viewModelScope.launch {
+            userProfileRepository.updateDisplayName(displayName)
         }
     }
 }
