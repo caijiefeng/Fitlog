@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -218,7 +219,11 @@ private fun TodayImmersiveHero(
         in 12..17 -> R.string.today_greeting_afternoon
         else -> R.string.today_greeting_evening
     }
-    StarHero(backgroundRes = profile.homeBackgroundRes, minHeight = 392.dp) {
+    StarHero(
+        backgroundRes = profile.homeBackgroundRes,
+        minHeight = 540.dp,
+        backgroundContentScale = ContentScale.Fit,
+    ) {
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)

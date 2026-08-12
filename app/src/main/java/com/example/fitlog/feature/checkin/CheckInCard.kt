@@ -88,6 +88,8 @@ fun CheckInCard(
         StarThemedCard(
             emphasis = StarCardEmphasis.PROMINENT,
             scenePlacement = StarScenePlacement.CHECK_IN,
+            sceneArtAlpha = 1f,
+            showSceneReadingOverlay = false,
         ) {
             if (uiState.existingCheckIn != null && uiState.isSaved && !uiState.isEditing) {
                 // Already checked in — show summary with edit button

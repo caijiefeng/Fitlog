@@ -57,6 +57,8 @@ fun StarThemedCard(
     modifier: Modifier = Modifier,
     emphasis: StarCardEmphasis = StarCardEmphasis.NORMAL,
     scenePlacement: StarScenePlacement? = null,
+    sceneArtAlpha: Float = 0.30f,
+    showSceneReadingOverlay: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val profile = LocalStarVisualProfile.current
@@ -94,24 +96,26 @@ fun StarThemedCard(
                     painter = painterResource(sceneArt),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    alpha = 0.30f,
+                    alpha = sceneArtAlpha,
                     modifier = Modifier.fillMaxSize(),
                 )
-                // Form controls stay legible while the full scene remains a
-                // part of the card rather than becoming a thumbnail.
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    FitLogAccentContainer.copy(alpha = 0.80f),
-                                    FitLogAccentContainer.copy(alpha = 0.56f),
-                                    FitLogAccentVariantContainer.copy(alpha = 0.38f),
+                if (showSceneReadingOverlay) {
+                    // Form controls stay legible while the full scene remains a
+                    // part of the card rather than becoming a thumbnail.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        FitLogAccentContainer.copy(alpha = 0.80f),
+                                        FitLogAccentContainer.copy(alpha = 0.56f),
+                                        FitLogAccentVariantContainer.copy(alpha = 0.38f),
+                                    ),
                                 ),
                             ),
-                        ),
-                )
+                    )
+                }
             }
             // 右上角图案层
             StarMotifLayer(
